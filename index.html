@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kho Dao</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+:root{--blue:#1976d2;--orange:#ff9800;--red:#d32f2f;--bg:#f4f6f8;}
+body{font-family:Segoe UI,Arial;background:var(--bg);margin:20px}
+h1{margin-bottom:10px}
+button{padding:8px 14px;border:0;border-radius:6px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.primary{background:var(--blue);color:#fff}
+.warn{background:var(--orange);color:#fff}
+.small{padding:6px 10px;font-size:13px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
+th,td{padding:9px;border-bottom:1px solid #eee;font-size:14px}
+th{background:var(--blue);color:#fff}
+.low{color:var(--red);font-weight:700}
+.actions{display:flex;gap:5px}
+.toolbar,.filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+input,select{padding:7px;border-radius:6px;border:1px solid #ccc}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:1000}
+.box{background:#fff;padding:20px;border-radius:12px;width:420px}
+ul{padding-left:18px}
+
+@media (max-width:768px){
+body{margin:10px}
+h1{font-size:20px}
+table,thead,tbody,th,td,tr{display:block}
+thead{display:none}
+tr{background:#fff;border-radius:10px;margin-bottom:10px;padding:10px}
+td{border:none;padding:4px 0;font-size:13px}
+td::before{content:attr(data-label);font-weight:600;color:#555}
+.actions{flex-wrap:wrap}
+.modal .box{width:95%;max-height:85vh;overflow:auto}
+input,select{width:100%}
+}
+</style>
+</head>
+
+<body>
+
+<h1><i class="fa-solid fa-warehouse"></i> Kho Dao</h1>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+<button class="primary" onclick="openPass()"><i class="fa fa-lock"></i> Đăng nhập</button>
+<button class="primary" onclick="toggleForm()"><i class="fa fa-plus"></i> Thêm sản phẩm</button>
+
+<button onclick="exportJSON()"><i class="fa fa-download"></i> Xuất JSON</button>
+<input type="file" id="importJSON" hidden accept=".json" onchange="importJSONFile(event)">
+<button onclick="importJSON.click()"><i class="fa fa-upload"></i> Nhập JSON</button>
+
+<select id="pdfMonth"></select>
+<select id="pdfYear"></select>
+<button class="warn" onclick="exportPDF()">
+<i class="fa fa-file-pdf"></i> PDF nhập / xuất
+</button>
+
+<!-- NEW -->
+<button class="warn" onclick="exportFullStockPDF()">
+<i class="fa fa-file-pdf"></i> PDF toàn bộ kho
+</button>
+
+<button class="warn" onclick="clearAllHistory()">
+<i class="fa fa-trash"></i> Xóa toàn bộ lịch sử
+</button>
+</div>
+
+<!-- FILTER -->
+<div class="filter">
+<select id="f_category"><option value="">Loại</option><option>dao cắt</option><option>dao răng</option><option>dao</option></select>
+<select id="f_size"><option value="">Size</option><option>0.7</option><option>1.05</option><option>1.42</option></select>
+<select id="f_leg"><option value="">Chân</option><option>có chân</option><option>không chân</option></select>
+<select id="f_blade"><option value="">Đầu</option><option>lưỡi tròn</option><option>lưỡi bằng</option><option>lưỡi bầu</option><option>lưỡi nhọn</option></select>
+<select id="f_origin"><option value="">Xuất xứ</option><option>Nhật</option><option>Trung Quốc</option></select>
+<select id="f_stock"><option value="">Số lượng</option><option value="low">Tồn thấp</option><option value="zero">Hết hàng</option></select>
+</div>
+
+<!-- ADD FORM -->
+<div id="form" style="display:none;background:#fff;padding:15px;border-radius:12px;margin-bottom:10px">
+<input id="name" placeholder="Tên sản phẩm">
+<select id="category"><option>dao cắt</option><option>dao răng</option><option>dao</option></select>
+<select id="size"><option>0.7</option><option>1.05</option><option>1.42</option></select>
+<select id="leg"><option>có chân</option><option>không chân</option></select>
+<select id="blade"><option>lưỡi tròn</option><option>lưỡi bằng</option><option>lưỡi bầu</option><option>lưỡi nhọn</option></select>
+<select id="origin"><option>Nhật</option><option>Trung Quốc</option></select>
+<input id="qty" type="number" placeholder="Số lượng">
+<button class="primary" onclick="addProduct()">Lưu</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Tên</th><th>Loại</th><th>Size</th><th>Chân</th>
+<th>Đầu</th><th>Xuất xứ</th><th>SL</th><th>Hành động</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<!-- MODALS -->
+<div class="modal" id="passModal">
+<div class="box">
+<input type="password" id="pass" placeholder="Mật khẩu">
+<button class="primary" onclick="login()">Xác nhận</button>
+</div>
+</div>
+
+<div class="modal" id="ioModal">
+<div class="box">
+<h3 id="ioTitle"></h3>
+<input id="ioQty" type="number" placeholder="Số lượng">
+<button class="warn" onclick="submitIO()">Xác nhận</button>
+</div>
+</div>
+
+<div class="modal" id="editModal">
+<div class="box">
+<input id="e_name">
+<select id="e_category"></select>
+<select id="e_size"></select>
+<select id="e_leg"></select>
+<select id="e_blade"></select>
+<select id="e_origin"></select>
+<input id="e_qty" type="number">
+<div class="actions">
+<button class="primary" onclick="saveEdit()">Lưu</button>
+<button class="warn" onclick="deleteProduct()">Xóa</button>
+</div>
+</div>
+</div>
+
+<div class="modal" id="historyModal">
+<div class="box">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<h3>Lịch sử nhập / xuất</h3>
+<button class="small warn" onclick="historyModal.style.display='none'">
+<i class="fa fa-times"></i>
+</button>
+</div>
+<ul id="historyList"></ul>
+<button class="warn small" onclick="confirmClearHistory()">
+<i class="fa fa-trash"></i> Xóa lịch sử
+</button>
+</div>
+</div>
+
+<script>
+const PASSWORD="kgget1234",LOW_STOCK=5;
+let hasAccess=false,editIndex=-1,ioIndex=-1,ioType="",historyIndex=-1;
+const products=JSON.parse(localStorage.getItem("products")||"[]");
+
+/* ===== INIT ===== */
+const now=new Date();
+for(let m=0;m<12;m++)pdfMonth.innerHTML+=`<option value="${m}">${m+1}</option>`;
+for(let y=now.getFullYear()-2;y<=now.getFullYear();y++)pdfYear.innerHTML+=`<option>${y}</option>`;
+pdfMonth.value=now.getMonth();pdfYear.value=now.getFullYear();
+
+function openPass(){passModal.style.display="flex"}
+function login(){pass.value===PASSWORD?(hasAccess=true,passModal.style.display="none",alert("Đăng nhập thành công")):alert("Sai mật khẩu")}
+
+function toggleForm(){if(!hasAccess)return alert("Vui lòng đăng nhập");form.style.display=form.style.display?"":"block"}
+
+function addProduct(){
+products.push({
+name:name.value,category:category.value,size:size.value,
+leg:leg.value,blade:blade.value,origin:origin.value,
+quantity:+qty.value,history:[],createdAt:new Date().toISOString()
+});
+save();form.style.display="none"
+}
+
+function openIO(i,t){
+if(!hasAccess)return;
+ioIndex=i;ioType=t;
+ioTitle.innerText=t==="nhap"?"Nhập kho":"Xuất kho";
+ioModal.style.display="flex"
+}
+
+function submitIO(){
+const p=products[ioIndex],q=+ioQty.value;
+if(q<=0)return alert("Sai số");
+if(ioType==="xuat"&&q>p.quantity)return alert("Không đủ");
+p.quantity+=ioType==="nhap"?q:-q;
+p.history.push({type:ioType,qty:q,date:new Date().toISOString()});
+save();ioModal.style.display="none"
+}
+
+function viewHistory(i){
+historyIndex=i;
+const h=products[i].history;
+historyList.innerHTML=h.length
+?h.map(x=>`<li>${x.type==="nhap"?"➕":"➖"} ${x.qty} | ${new Date(x.date).toLocaleString()}</li>`).join("")
+:"<li>Chưa có</li>";
+historyModal.style.display="flex"
+}
+
+function confirmClearHistory(){
+if(!hasAccess)return alert("Vui lòng đăng nhập");
+if(!confirm("Xóa toàn bộ lịch sử của sản phẩm này?"))return;
+const p=prompt("Nhập lại mật khẩu:");
+if(p!==PASSWORD)return alert("Sai mật khẩu!");
+products[historyIndex].history=[];
+save();historyModal.style.display="none";
+alert("Đã xóa lịch sử sản phẩm");
+}
+
+function clearAllHistory(){
+if(!hasAccess)return alert("Vui lòng đăng nhập");
+if(!confirm("CẢNH BÁO: Xóa toàn bộ lịch sử nhập/xuất của TẤT CẢ sản phẩm?"))return;
+const p=prompt("Nhập lại mật khẩu:");
+if(p!==PASSWORD)return alert("Sai mật khẩu!");
+products.forEach(pr=>pr.history=[]);
+save();
+alert("Đã xóa toàn bộ lịch sử nhập / xuất");
+}
+
+function openEdit(i){
+if(!hasAccess)return;
+editIndex=i;
+const p=products[i];
+editModal.style.display="flex";
+[e_category,e_size,e_leg,e_blade,e_origin]
+.forEach((el,j)=>el.innerHTML=document.getElementById(
+["category","size","leg","blade","origin"][j]).innerHTML);
+e_name.value=p.name;e_category.value=p.category;
+e_size.value=p.size;e_leg.value=p.leg;
+e_blade.value=p.blade;e_origin.value=p.origin;
+e_qty.value=p.quantity;
+}
+
+function saveEdit(){
+Object.assign(products[editIndex],{
+name:e_name.value,category:e_category.value,size:e_size.value,
+leg:e_leg.value,blade:e_blade.value,
+origin:e_origin.value,quantity:+e_qty.value
+});
+save();editModal.style.display="none"
+}
+
+function deleteProduct(){
+if(confirm("Xóa sản phẩm?")){
+products.splice(editIndex,1);
+save();editModal.style.display="none"}
+}
+
+document.querySelectorAll(".filter select").forEach(el=>el.onchange=render);
+
+function render(){
+tbody.innerHTML="";
+products.forEach((p,i)=>{
+if(f_category.value&&p.category!==f_category.value)return;
+if(f_size.value&&p.size!==f_size.value)return;
+if(f_leg.value&&p.leg!==f_leg.value)return;
+if(f_blade.value&&p.blade!==f_blade.value)return;
+if(f_origin.value&&p.origin!==f_origin.value)return;
+if(f_stock.value==="low"&&p.quantity>=LOW_STOCK)return;
+if(f_stock.value==="zero"&&p.quantity>0)return;
+
+tbody.innerHTML+=`
+<tr>
+<td data-label="Tên">${p.name}</td>
+<td data-label="Loại">${p.category}</td>
+<td data-label="Size">${p.size}</td>
+<td data-label="Chân">${p.leg}</td>
+<td data-label="Đầu">${p.blade}</td>
+<td data-label="Xuất xứ">${p.origin}</td>
+<td data-label="SL" class="${p.quantity<LOW_STOCK?'low':''}">${p.quantity}</td>
+<td data-label="Hành động" class="actions">
+<button class="small primary" onclick="openIO(${i},'nhap')">+</button>
+<button class="small warn" onclick="openIO(${i},'xuat')">-</button>
+<button class="small" onclick="openEdit(${i})">Sửa</button>
+<button class="small" onclick="viewHistory(${i})">Lịch sử</button>
+</td>
+</tr>`;
+});
+}
+
+function save(){
+localStorage.setItem("products",JSON.stringify(products));
+render()
+}
+render();
+
+/* ===== EXPORT JSON ===== */
+function exportJSON(){
+const d=new Date();
+const day=String(d.getDate()).padStart(2,"0");
+const month=String(d.getMonth()+1).padStart(2,"0");
+const year=d.getFullYear();
+const filename=`du_lieu_kho_dao_${day}-${month}-${year}.json`;
+
+const a=document.createElement("a");
+a.href=URL.createObjectURL(
+new Blob([JSON.stringify(products,null,2)],{type:"application/json"})
+);
+a.download=filename;a.click();
+}
+
+function importJSONFile(e){
+const r=new FileReader();
+r.onload=()=>{localStorage.setItem("products",r.result);location.reload()};
+r.readAsText(e.target.files[0])
+}
+
+function removeVN(s){
+return s.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,"")
+.replace(/đ/g,"d").replace(/Đ/g,"D")
+}
+
+/* ===== PDF NHẬP / XUẤT ===== */
+function exportPDF(){
+const m=+pdfMonth.value,y=+pdfYear.value,rows=[];
+products.forEach(p=>p.history.forEach(h=>{
+const d=new Date(h.date);
+if(d.getMonth()===m&&d.getFullYear()===y)
+rows.push([removeVN(p.name),h.type==="nhap"?"Nhap":"Xuat",h.qty,d.toLocaleString()]);
+}));
+const {jsPDF}=window.jspdf;
+const doc=new jsPDF();
+doc.text(removeVN(`BAO CAO NHAP XUAT ${m+1}/${y}`),14,15);
+doc.autoTable({startY:22,head:[["Ten","Loai","So luong","Thoi gian"]],body:rows});
+doc.save("bao_cao_nhap_xuat.pdf");
+}
+
+/* ===== NEW: PDF TOÀN BỘ KHO ===== */
+function exportFullStockPDF(){
+const rows=products.map(p=>[
+removeVN(p.name),p.category,p.size,p.leg,p.blade,p.origin,p.quantity
+]);
+const {jsPDF}=window.jspdf;
+const doc=new jsPDF();
+doc.text(removeVN("BAO CAO TOAN BO KHO DAO"),14,15);
+doc.autoTable({
+startY:22,
+head:[["Ten","Loai","Size","Chan","Dau","Xuat xu","So luong"]],
+body:rows
+});
+doc.save("bao_cao_toan_bo_kho_dao.pdf");
+}
+</script>
+
+</body>
+</html>
