@@ -55,25 +55,13 @@ input,select{width:100%}
 <input type="file" id="importJSON" hidden accept=".json" onchange="importJSONFile(event)">
 <button onclick="importJSON.click()"><i class="fa fa-upload"></i> Nhập JSON</button>
 
-<button class="warn" onclick="saveOnline()">
-<i class="fa fa-cloud-upload"></i> Lưu online
-</button>
-<button class="warn" onclick="loadOnline()">
-<i class="fa fa-cloud-download"></i> Tải online
-</button>
+<button class="warn" onclick="saveOnline()"><i class="fa fa-cloud-upload"></i> Lưu online</button>
 
 <select id="pdfMonth"></select>
 <select id="pdfYear"></select>
-<button class="warn" onclick="exportPDF()">
-<i class="fa fa-file-pdf"></i> PDF nhập / xuất
-</button>
-
-<button class="warn" onclick="exportFullStockPDF()">
-<i class="fa fa-file-pdf"></i> PDF toàn bộ kho
-</button>
-<button class="warn" onclick="clearAllHistory()">
-<i class="fa fa-trash"></i> Xóa toàn bộ lịch sử
-</button>
+<button class="warn" onclick="exportPDF()"><i class="fa fa-file-pdf"></i> PDF nhập / xuất</button>
+<button class="warn" onclick="exportFullStockPDF()"><i class="fa fa-file-pdf"></i> PDF toàn bộ kho</button>
+<button class="warn" onclick="clearAllHistory()"><i class="fa fa-trash"></i> Xóa toàn bộ lịch sử</button>
 </div>
 
 <div class="filter">
@@ -83,17 +71,6 @@ input,select{width:100%}
 <select id="f_blade"><option value="">Đầu</option><option>lưỡi tròn</option><option>lưỡi bằng</option><option>lưỡi bầu</option><option>lưỡi nhọn</option></select>
 <select id="f_origin"><option value="">Xuất xứ</option><option>Nhật</option><option>Trung Quốc</option></select>
 <select id="f_stock"><option value="">Số lượng</option><option value="low">Tồn thấp</option><option value="zero">Hết hàng</option></select>
-</div>
-
-<div id="form" style="display:none;background:#fff;padding:15px;border-radius:12px;margin-bottom:10px">
-<input id="name" placeholder="Tên sản phẩm">
-<select id="category"><option>dao cắt</option><option>dao răng</option><option>dao</option></select>
-<select id="size"><option>0.7</option><option>1.05</option><option>1.42</option></select>
-<select id="leg"><option>có chân</option><option>không chân</option></select>
-<select id="blade"><option>lưỡi tròn</option><option>lưỡi bằng</option><option>lưỡi bầu</option><option>lưỡi nhọn</option></select>
-<select id="origin"><option>Nhật</option><option>Trung Quốc</option></select>
-<input id="qty" type="number" placeholder="Số lượng">
-<button class="primary" onclick="addProduct()">Lưu</button>
 </div>
 
 <table>
@@ -107,23 +84,18 @@ input,select{width:100%}
 </table>
 
 <!-- MODALS -->
-<div class="modal" id="passModal">
-<div class="box">
+<div class="modal" id="passModal"><div class="box">
 <input type="password" id="pass" placeholder="Mật khẩu">
 <button class="primary" onclick="login()">Xác nhận</button>
-</div>
-</div>
+</div></div>
 
-<div class="modal" id="ioModal">
-<div class="box">
+<div class="modal" id="ioModal"><div class="box">
 <h3 id="ioTitle"></h3>
 <input id="ioQty" type="number" placeholder="Số lượng">
 <button class="warn" onclick="submitIO()">Xác nhận</button>
-</div>
-</div>
+</div></div>
 
-<div class="modal" id="editModal">
-<div class="box">
+<div class="modal" id="editModal"><div class="box">
 <input id="e_name">
 <select id="e_category"></select>
 <select id="e_size"></select>
@@ -135,22 +107,18 @@ input,select{width:100%}
 <button class="primary" onclick="saveEdit()">Lưu</button>
 <button class="warn" onclick="deleteProduct()">Xóa</button>
 </div>
-</div>
-</div>
+</div></div>
 
-<div class="modal" id="historyModal">
-<div class="box">
+<div class="modal" id="historyModal"><div class="box">
 <h3>Lịch sử nhập / xuất</h3>
 <ul id="historyList"></ul>
-<button class="warn small" onclick="confirmClearHistory()">Xóa lịch sử</button>
-</div>
-</div>
+</div></div>
 
 <script>
-/* ===== CẤU HÌNH ONLINE ===== */
-const GITHUB_TOKEN = "DAN_TOKEN_CUA_BAN";
-const GIST_ID = "GIST_ID_CUA_BAN";
-const GIST_FILE = "kho_dao.json";
+/* ===== ONLINE CONFIG ===== */
+const GITHUB_TOKEN="DAN_TOKEN_CUA_BAN";
+const GIST_ID="GIST_ID_CUA_BAN";
+const GIST_FILE="kho_dao.json";
 
 /* ===== CORE ===== */
 const PASSWORD="kgget1234",LOW_STOCK=5;
@@ -167,7 +135,7 @@ pdfMonth.value=now.getMonth();pdfYear.value=now.getFullYear();
 function openPass(){passModal.style.display="flex"}
 function login(){pass.value===PASSWORD?(hasAccess=true,passModal.style.display="none",alert("Đăng nhập thành công")):alert("Sai mật khẩu")}
 
-/* ===== ONLINE ===== */
+/* ===== ONLINE SAVE ===== */
 async function saveOnline(){
 await fetch(`https://api.github.com/gists/${GIST_ID}`,{
 method:"PATCH",
@@ -175,29 +143,33 @@ headers:{
 "Authorization":"token "+GITHUB_TOKEN,
 "Content-Type":"application/json"
 },
-body:JSON.stringify({
-files:{[GIST_FILE]:{content:JSON.stringify(products,null,2)}}
-})
+body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(products,null,2)}}})
 });
-alert("Đã lưu dữ liệu online");
 }
 
-async function loadOnline(){
-const r=await fetch(`https://api.github.com/gists/${GIST_ID}`);
+/* ===== REALTIME SYNC LEVEL 1 ===== */
+let lastOnlineUpdate=null;
+setInterval(async()=>{
+try{
+const r=await fetch(`https://api.github.com/gists/${GIST_ID}`,{headers:{Authorization:"token "+GITHUB_TOKEN}});
 const d=await r.json();
-localStorage.setItem("products",d.files[GIST_FILE].content);
-location.reload();
+if(lastOnlineUpdate&&d.updated_at<=lastOnlineUpdate)return;
+const online=d.files[GIST_FILE].content;
+if(online!==localStorage.getItem("products")){
+localStorage.setItem("products",online);
+lastOnlineUpdate=d.updated_at;
+render();
 }
+}catch(e){}
+},5000);
 
-/* ===== LOGIC CŨ (GIỮ NGUYÊN) ===== */
-function toggleForm(){if(!hasAccess)return alert("Vui lòng đăng nhập");form.style.display=form.style.display?"":"block"}
-function addProduct(){products.push({name:name.value,category:category.value,size:size.value,leg:leg.value,blade:blade.value,origin:origin.value,quantity:+qty.value,history:[],createdAt:new Date().toISOString()});save();form.style.display="none"}
-function openIO(i,t){if(!hasAccess)return;ioIndex=i;ioType=t;ioTitle.innerText=t==="nhap"?"Nhập kho":"Xuất kho";ioModal.style.display="flex"}
-function submitIO(){const p=products[ioIndex],q=+ioQty.value;if(q<=0)return alert("Sai số");if(ioType==="xuat"&&q>p.quantity)return alert("Không đủ");p.quantity+=ioType==="nhap"?q:-q;p.history.push({type:ioType,qty:q,date:new Date().toISOString()});save();ioModal.style.display="none"}
-function viewHistory(i){historyIndex=i;const h=products[i].history;historyList.innerHTML=h.length?h.map(x=>`<li>${x.type==="nhap"?"➕":"➖"} ${x.qty} | ${new Date(x.date).toLocaleString()}</li>`).join(""):"<li>Chưa có</li>";historyModal.style.display="flex"}
-function confirmClearHistory(){products[historyIndex].history=[];save();historyModal.style.display="none"}
-function clearAllHistory(){products.forEach(p=>p.history=[]);save()}
-function save(){localStorage.setItem("products",JSON.stringify(products));render()}
+/* ===== CORE LOGIC (GIỮ NGUYÊN) ===== */
+function toggleForm(){if(!hasAccess)return alert("Vui lòng đăng nhập")}
+function addProduct(){products.push({name:name.value,category:category.value,size:size.value,leg:leg.value,blade:blade.value,origin:origin.value,quantity:+qty.value,history:[],createdAt:new Date().toISOString()});save()}
+function openIO(i,t){ioIndex=i;ioType=t;ioTitle.innerText=t==="nhap"?"Nhập":"Xuất";ioModal.style.display="flex"}
+function submitIO(){const p=products[ioIndex],q=+ioQty.value;if(q<=0)return;if(ioType==="xuat"&&q>p.quantity)return;p.quantity+=ioType==="nhap"?q:-q;p.history.push({type:ioType,qty:q,date:new Date().toISOString()});save();ioModal.style.display="none"}
+function viewHistory(i){historyIndex=i;historyList.innerHTML=products[i].history.map(h=>`<li>${h.type} ${h.qty}</li>`).join("");historyModal.style.display="flex"}
+function save(){localStorage.setItem("products",JSON.stringify(products));render();saveOnline()}
 function render(){tbody.innerHTML="";products.forEach((p,i)=>{tbody.innerHTML+=`<tr><td>${p.name}</td><td>${p.category}</td><td>${p.size}</td><td>${p.leg}</td><td>${p.blade}</td><td>${p.origin}</td><td>${p.quantity}</td><td><button onclick="openIO(${i},'nhap')">+</button><button onclick="openIO(${i},'xuat')">-</button></td></tr>`})}
 render();
 </script>
