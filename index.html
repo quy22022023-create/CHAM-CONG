@@ -3,819 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chấm Công Tăng Ca - iPhone</title>
+    <title>Chấm Công Tăng Ca</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        :root {
-            --primary: #007AFF;
-            --primary-dark: #0056CC;
-            --success: #34C759;
-            --warning: #FF9500;
-            --danger: #FF3B30;
-            --light: #F2F2F7;
-            --dark: #1D1D1F;
-            --gray: #8E8E93;
-            --border: #C7C7CC;
-            --card-bg: #FFFFFF;
-            --sunday: #FF2D55;
-            --today: #007AFF;
-            --salary: #5856D6;
-        }
-        
-        body {
-            background-color: var(--light);
-            color: var(--dark);
-            line-height: 1.5;
-            max-width: 100%;
-            overflow-x: hidden;
-            padding-bottom: env(safe-area-inset-bottom);
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        /* Nút tính lương - LÀM NỔI BẬT HƠN */
-        .salary-btn {
-            position: fixed;
-            top: 80px;
-            right: 15px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--salary), #7D3CFF);
-            color: white;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 6px 20px rgba(88, 86, 214, 0.4);
-            z-index: 99;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .salary-btn:active {
-            transform: scale(0.95);
-            animation: none;
-        }
-        
-        .salary-label {
-            position: fixed;
-            top: 145px;
-            right: 15px;
-            background-color: var(--salary);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            z-index: 98;
-            white-space: nowrap;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary), #5856D6);
-            color: white;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: 20px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header-content {
-            padding: 15px 20px;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-            font-weight: 400;
-        }
-        
-        /* Thời gian hiện tại */
-        .current-time {
-            background-color: var(--card-bg);
-            margin: 15px;
-            padding: 15px;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
-        
-        .current-time h2 {
-            font-size: 18px;
-            margin-bottom: 10px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .time-display {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--dark);
-            margin: 10px 0;
-        }
-        
-        .date-display {
-            font-size: 16px;
-            color: var(--gray);
-            font-weight: 500;
-        }
-        
-        /* Day indicator */
-        .day-indicator {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 8px;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .day-indicator.sunday {
-            background-color: var(--sunday);
-        }
-        
-        /* Container chính */
-        .container {
-            max-width: 100%;
-            padding: 0 15px 20px;
-        }
-        
-        /* Card */
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        
-        .card h2 {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .card h2 i {
-            color: var(--primary);
-        }
-        
-        /* Controls - ĐÃ XÓA NÚT RESET */
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .controls-2-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 16px 10px;
-            font-size: 17px;
-            font-weight: 600;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn:active {
-            transform: scale(0.97);
-        }
-        
-        .btn-full {
-            width: 100%;
-        }
-        
-        .btn-start {
-            background-color: var(--success);
-        }
-        
-        .btn-start:active {
-            background-color: #2DAE4A;
-        }
-        
-        .btn-end {
-            background-color: var(--warning);
-        }
-        
-        .btn-end:active {
-            background-color: #E68500;
-        }
-        
-        .btn-reset {
-            background-color: var(--danger);
-            display: none; /* ĐÃ ẨN NÚT RESET */
-        }
-        
-        .btn-reset:active {
-            background-color: #E02A20;
-        }
-        
-        .btn-small {
-            padding: 10px 15px;
-            font-size: 14px;
-            border-radius: 10px;
-        }
-        
-        .btn-secondary {
-            background-color: var(--light);
-            color: var(--dark);
-            border: 1px solid var(--border);
-        }
-        
-        .btn-secondary:active {
-            background-color: #E5E5EA;
-        }
-        
-        .btn-month {
-            background-color: #5AC8FA;
-            margin-top: 15px;
-        }
-        
-        .btn-month:active {
-            background-color: #4AA8D8;
-        }
-        
-        .btn-lunch {
-            background-color: #FF9500;
-            margin-top: 10px;
-        }
-        
-        .btn-lunch:active {
-            background-color: #E68500;
-        }
-        
-        .btn-salary {
-            background-color: var(--salary);
-            margin-top: 10px;
-        }
-        
-        .btn-salary:active {
-            background-color: #4A4AC8;
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* Thông tin làm việc */
-        .work-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .info-box {
-            background-color: var(--light);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-        }
-        
-        .info-box h3 {
-            font-size: 14px;
-            color: var(--gray);
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        .info-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-        
-        .info-unit {
-            font-size: 14px;
-            color: var(--gray);
-            margin-left: 2px;
-        }
-        
-        /* Expected salary */
-        .expected-salary {
-            background-color: rgba(88, 86, 214, 0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 15px;
-            text-align: center;
-            border: 2px solid var(--salary);
-        }
-        
-        .expected-salary h4 {
-            color: var(--salary);
-            margin-bottom: 5px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .expected-amount {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--salary);
-        }
-        
-        /* Lịch sử làm việc */
-        .work-history {
-            max-height: 300px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid var(--light);
-        }
-        
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        
-        .history-date {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--dark);
-        }
-        
-        .history-time {
-            font-size: 14px;
-            color: var(--gray);
-        }
-        
-        .history-overtime {
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--success);
-        }
-        
-        /* Xóa dữ liệu theo tháng */
-        .delete-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-        }
-        
-        .month-select {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background-color: white;
-            font-size: 16px;
-            margin-right: 10px;
-        }
-        
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: var(--gray);
-            font-size: 14px;
-            border-top: 1px solid var(--border);
-            margin-top: 10px;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .modal-content {
-            background-color: white;
-            border-radius: 16px;
-            padding: 25px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal h3 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .modal h3 .close-btn {
-            background: none;
-            border: none;
-            color: var(--gray);
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0;
-        }
-        
-        .modal p {
-            margin-bottom: 20px;
-            color: var(--gray);
-            line-height: 1.6;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        /* Calendar */
-        .calendar {
-            width: 100%;
-        }
-        
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .calendar-month-year {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .calendar-nav {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .calendar-nav-btn {
-            background-color: var(--light);
-            border: none;
-            border-radius: 8px;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        .calendar-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--gray);
-        }
-        
-        .calendar-weekdays div {
-            padding: 8px 0;
-        }
-        
-        .calendar-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-        }
-        
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-        
-        .calendar-day:hover {
-            background-color: var(--light);
-        }
-        
-        .calendar-day.empty {
-            background-color: transparent;
-            cursor: default;
-        }
-        
-        .calendar-day.today {
-            background-color: rgba(0, 122, 255, 0.1);
-            color: var(--primary);
-            font-weight: 700;
-        }
-        
-        .calendar-day.has-data {
-            background-color: rgba(52, 199, 89, 0.1);
-        }
-        
-        .calendar-day.sunday {
-            color: var(--sunday);
-        }
-        
-        .calendar-day.selected {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .day-overtime {
-            font-size: 10px;
-            margin-top: 2px;
-            color: var(--success);
-            font-weight: 700;
-        }
-        
-        .day-lunch {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 6px;
-            height: 6px;
-            background-color: var(--warning);
-            border-radius: 50%;
-        }
-        
-        /* Day Detail */
-        .day-detail {
-            margin-bottom: 20px;
-        }
-        
-        .day-detail-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .detail-box {
-            background-color: var(--light);
-            border-radius: 12px;
-            padding: 15px;
-            text-align: center;
-        }
-        
-        .detail-box h4 {
-            font-size: 14px;
-            color: var(--gray);
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        .detail-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-        
-        .edit-time {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-        
-        .time-input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background-color: white;
-            font-size: 16px;
-            text-align: center;
-        }
-        
-        .edit-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        /* Salary Calculator */
-        .salary-input-group {
-            margin-bottom: 20px;
-        }
-        
-        .salary-input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .salary-input {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            text-align: right;
-            background-color: var(--light);
-        }
-        
-        .salary-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .salary-result {
-            background-color: rgba(88, 86, 214, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-            border: 2px solid var(--salary);
-        }
-        
-        .salary-result h4 {
-            color: var(--salary);
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-        
-        .salary-amount {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--salary);
-            margin-bottom: 5px;
-        }
-        
-        .salary-details {
-            font-size: 14px;
-            color: var(--gray);
-            margin-top: 10px;
-            text-align: left;
-        }
-        
-        .salary-details div {
-            margin-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        /* Thông báo */
-        .notification {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            background-color: var(--success);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1001;
-            transform: translateX(150%);
-            transition: transform 0.3s ease;
-            max-width: 300px;
-        }
-        
-        .notification.show {
-            transform: translateX(0);
-        }
-        
-        .notification.warning {
-            background-color: var(--warning);
-        }
-        
-        .notification.info {
-            background-color: var(--primary);
-        }
-        
-        /* Info Box */
-        .info-message {
-            background-color: rgba(0, 122, 255, 0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .info-message h4 {
-            color: var(--primary);
-            margin-bottom: 5px;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        /* Responsive */
-        @media (max-width: 350px) {
-            .controls-2-buttons {
-                grid-template-columns: 1fr;
-            }
-            
-            .work-info {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal-content {
-                padding: 15px;
-            }
-            
-            .edit-time {
-                flex-direction: column;
-            }
-        }
-        
-        /* Hiệu ứng loading */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Tối ưu cho iPhone */
-        @supports (-webkit-touch-callout: none) {
-            .btn, .month-select, .time-input, .salary-input {
-                -webkit-appearance: none;
-            }
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,sans-serif;}
+        :root{--primary:#007AFF;--success:#34C759;--warning:#FF9500;--danger:#FF3B30;--light:#F2F2F7;--dark:#1D1D1F;--gray:#8E8E93;--border:#C7C7CC;--card-bg:#FFFFFF;--sunday:#FF2D55;--salary:#5856D6;}
+        body{background-color:var(--light);color:var(--dark);line-height:1.5;max-width:100%;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent;}
+        .header{background:linear-gradient(135deg,var(--primary),#5856D6);color:white;padding-top:env(safe-area-inset-top);padding-bottom:20px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+        .header-content{padding:15px 20px;}
+        .header h1{font-size:24px;font-weight:700;margin-bottom:5px;}
+        .header p{opacity:0.9;font-size:14px;font-weight:400;}
+        .current-time{background-color:var(--card-bg);margin:15px;padding:15px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,0.05);text-align:center;}
+        .current-time h2{font-size:18px;margin-bottom:10px;color:var(--primary);display:flex;align-items:center;justify-content:center;gap:10px;}
+        .time-display{font-size:32px;font-weight:700;color:var(--dark);margin:10px 0;}
+        .date-display{font-size:16px;color:var(--gray);font-weight:500;}
+        .day-indicator{display:inline-flex;align-items:center;padding:6px 12px;border-radius:20px;font-size:14px;font-weight:600;margin-top:8px;background-color:rgba(255,255,255,0.2);}
+        .day-indicator.sunday{background-color:var(--sunday);}
+        .container{max-width:100%;padding:0 15px 20px;}
+        .card{background-color:var(--card-bg);border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,0.05);}
+        .card h2{font-size:18px;margin-bottom:15px;color:var(--dark);display:flex;align-items:center;gap:10px;}
+        .card h2 i{color:var(--primary);}
+        .controls{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;}
+        .btn{background-color:var(--primary);color:white;border:none;border-radius:12px;padding:16px 10px;font-size:17px;font-weight:600;text-align:center;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent;}
+        .btn:active{transform:scale(0.97);}
+        .btn-full{width:100%;}
+        .btn-start{background-color:var(--success);}
+        .btn-start:active{background-color:#2DAE4A;}
+        .btn-start.auto-activated{background-color:#2DAE4A;border:2px solid #1E8C3E;}
+        .btn-end{background-color:var(--warning);}
+        .btn-end:active{background-color:#E68500;}
+        .btn-salary-control{background:linear-gradient(135deg,var(--salary),#7D3CFF);margin-top:10px;grid-column:span 2;animation:pulse 2s infinite;}
+        @keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.02);}100%{transform:scale(1);}}
+        .btn-salary-control:active{transform:scale(0.97);animation:none;}
+        .btn-small{padding:10px 15px;font-size:14px;border-radius:10px;}
+        .btn-secondary{background-color:var(--light);color:var(--dark);border:1px solid var(--border);}
+        .btn-secondary:active{background-color:#E5E5EA;}
+        .btn-month{background-color:#5AC8FA;margin-top:15px;}
+        .btn-month:active{background-color:#4AA8D8;}
+        .btn-lunch{background-color:#FF9500;margin-top:10px;}
+        .btn-lunch:active{background-color:#E68500;}
+        .btn-salary{background-color:var(--salary);margin-top:10px;}
+        .btn-salary:active{background-color:#4A4AC8;}
+        .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none !important;}
+        .auto-start-info{background-color:rgba(52,199,89,0.1);border-radius:10px;padding:12px;margin-top:10px;text-align:center;font-size:14px;color:var(--success);display:flex;align-items:center;justify-content:center;gap:8px;}
+        .auto-start-info i{font-size:16px;}
+        .work-info{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;}
+        .info-box{background-color:var(--light);border-radius:12px;padding:15px;text-align:center;}
+        .info-box h3{font-size:14px;color:var(--gray);margin-bottom:5px;font-weight:500;}
+        .info-value{font-size:20px;font-weight:700;color:var(--dark);}
+        .info-unit{font-size:14px;color:var(--gray);margin-left:2px;}
+        .expected-salary{background-color:rgba(88,86,214,0.1);border-radius:12px;padding:15px;margin-top:15px;text-align:center;border:2px solid var(--salary);}
+        .expected-salary h4{color:var(--salary);margin-bottom:5px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+        .expected-amount{font-size:22px;font-weight:700;color:var(--salary);}
+        .work-history{max-height:300px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+        .history-item{display:flex;justify-content:space-between;align-items:center;padding:15px 0;border-bottom:1px solid var(--light);}
+        .history-item:last-child{border-bottom:none;}
+        .history-date{font-weight:600;font-size:16px;color:var(--dark);}
+        .history-time{font-size:14px;color:var(--gray);}
+        .history-overtime{font-weight:700;font-size:16px;color:var(--success);}
+        .delete-section{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+        .month-select{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background-color:white;font-size:16px;margin-right:10px;}
+        .footer{text-align:center;padding:20px;color:var(--gray);font-size:14px;border-top:1px solid var(--border);margin-top:10px;}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center;padding:20px;overflow-y:auto;}
+        .modal-content{background-color:white;border-radius:16px;padding:25px;width:100%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.2);max-height:90vh;overflow-y:auto;}
+        .modal h3{font-size:20px;margin-bottom:15px;color:var(--dark);display:flex;align-items:center;justify-content:space-between;}
+        .modal h3 .close-btn{background:none;border:none;color:var(--gray);font-size:24px;cursor:pointer;padding:0;}
+        .modal p{margin-bottom:20px;color:var(--gray);line-height:1.6;}
+        .modal-buttons{display:flex;gap:10px;margin-top:20px;}
+        .calendar{width:100%;}
+        .calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+        .calendar-month-year{font-size:18px;font-weight:600;color:var(--dark);}
+        .calendar-nav{display:flex;gap:10px;}
+        .calendar-nav-btn{background-color:var(--light);border:none;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+        .calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:10px;text-align:center;font-weight:600;font-size:14px;color:var(--gray);}
+        .calendar-weekdays div{padding:8px 0;}
+        .calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+        .calendar-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;transition:all 0.2s;position:relative;}
+        .calendar-day:hover{background-color:var(--light);}
+        .calendar-day.empty{background-color:transparent;cursor:default;}
+        .calendar-day.today{background-color:rgba(0,122,255,0.1);color:var(--primary);font-weight:700;}
+        .calendar-day.has-data{background-color:rgba(52,199,89,0.1);}
+        .calendar-day.sunday{color:var(--sunday);}
+        .calendar-day.selected{background-color:var(--primary);color:white;}
+        .day-overtime{font-size:10px;margin-top:2px;color:var(--success);font-weight:700;}
+        .day-lunch{position:absolute;top:2px;right:2px;width:6px;height:6px;background-color:var(--warning);border-radius:50%;}
+        .day-detail{margin-bottom:20px;}
+        .day-detail-info{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;}
+        .detail-box{background-color:var(--light);border-radius:12px;padding:15px;text-align:center;}
+        .detail-box h4{font-size:14px;color:var(--gray);margin-bottom:5px;font-weight:500;}
+        .detail-value{font-size:18px;font-weight:700;color:var(--dark);}
+        .edit-time{display:flex;gap:10px;margin-bottom:15px;align-items:center;}
+        .time-input{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background-color:white;font-size:16px;text-align:center;}
+        .edit-overtime{margin-bottom:15px;}
+        .edit-overtime label{display:block;margin-bottom:8px;font-weight:600;color:var(--dark);}
+        .overtime-input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background-color:white;font-size:16px;text-align:center;}
+        .edit-buttons{display:flex;gap:10px;margin-top:10px;}
+        .salary-input-group{margin-bottom:20px;}
+        .salary-input-group label{display:block;margin-bottom:8px;font-weight:600;color:var(--dark);}
+        .salary-input{width:100%;padding:15px;border:1px solid var(--border);border-radius:12px;font-size:18px;font-weight:600;text-align:right;background-color:var(--light);}
+        .salary-input:focus{outline:none;border-color:var(--primary);}
+        .salary-result{background-color:rgba(88,86,214,0.1);border-radius:12px;padding:20px;margin-top:20px;text-align:center;border:2px solid var(--salary);}
+        .salary-result h4{color:var(--salary);margin-bottom:10px;font-size:16px;}
+        .salary-amount{font-size:28px;font-weight:700;color:var(--salary);margin-bottom:5px;}
+        .salary-details{font-size:14px;color:var(--gray);margin-top:10px;text-align:left;}
+        .salary-details div{margin-bottom:5px;display:flex;justify-content:space-between;}
+        .notification{position:fixed;top:100px;right:20px;background-color:var(--success);color:white;padding:15px 20px;border-radius:12px;box-shadow:0 5px 15px rgba(0,0,0,0.2);z-index:1001;transform:translateX(150%);transition:transform 0.3s ease;max-width:300px;}
+        .notification.show{transform:translateX(0);}
+        .notification.warning{background-color:var(--warning);}
+        .notification.info{background-color:var(--primary);}
+        .info-message{background-color:rgba(0,122,255,0.1);border-radius:12px;padding:15px;margin-bottom:20px;border-left:4px solid var(--primary);}
+        .info-message h4{color:var(--primary);margin-bottom:5px;font-size:16px;display:flex;align-items:center;gap:8px;}
+        @media (max-width:350px){.controls{grid-template-columns:1fr;}.btn-salary-control{grid-column:span 1;}.work-info{grid-template-columns:1fr;}.modal-content{padding:15px;}.edit-time{flex-direction:column;}}
+        .loading{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 1s ease-in-out infinite;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        @supports (-webkit-touch-callout:none){.btn,.month-select,.time-input,.salary-input,.overtime-input{-webkit-appearance:none;}.btn{-webkit-tap-highlight-color:transparent;}}
     </style>
 </head>
 <body>
-    <!-- Nút tính lương - NỔI BẬT HƠN -->
-    <button class="salary-btn" id="salaryBtn">
-        <i class="fas fa-calculator"></i>
-    </button>
-    <div class="salary-label">Tính lương</div>
-
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
             <h1><i class="fas fa-clock"></i> Chấm Công Tăng Ca</h1>
@@ -826,7 +131,6 @@
         </div>
     </header>
 
-    <!-- Thời gian hiện tại -->
     <div class="current-time">
         <h2><i class="fas fa-calendar-alt"></i> Hôm nay</h2>
         <div class="date-display" id="currentDate">Đang tải...</div>
@@ -834,25 +138,26 @@
         <div id="workStatus" style="color: var(--primary); font-weight: 600; margin-top: 5px;">Chưa bắt đầu làm việc</div>
     </div>
 
-    <!-- Container chính -->
     <div class="container">
-        <!-- Thông tin logic -->
         <div class="info-message">
             <h4><i class="fas fa-info-circle"></i> Logic chấm công</h4>
-            <p><strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu lúc 7:45, chỉ cần ấn "Tan ca" khi kết thúc.</p>
+            <p><strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu lúc 7:45, có thể ấn "Bắt đầu" thủ công nếu cần.</p>
             <p><strong>Chủ nhật:</strong> Ấn "Bắt đầu" khi vào ca, ấn "Tan ca" khi kết thúc.</p>
         </div>
         
-        <!-- Điều khiển chính -->
         <div class="card">
             <h2><i class="fas fa-play-circle"></i> Điều khiển</h2>
-            <div class="controls-2-buttons">
+            <div class="controls">
                 <button class="btn btn-start" id="startWorkBtn">
                     <i class="fas fa-play"></i> Bắt đầu
                 </button>
                 <button class="btn btn-end" id="endWorkBtn">
                     <i class="fas fa-stop"></i> Tan ca
                 </button>
+            </div>
+            
+            <div id="autoStartInfo" class="auto-start-info" style="display: none;">
+                <i class="fas fa-robot"></i> Tự động kích hoạt lúc 7:45 (T2-T7)
             </div>
             
             <div class="work-info">
@@ -874,30 +179,29 @@
                 </div>
             </div>
             
-            <!-- Lương tăng ca dự kiến -->
             <div class="expected-salary" id="expectedSalary" style="display: none;">
                 <h4><i class="fas fa-coins"></i> Lương tăng ca dự kiến hôm nay</h4>
                 <div class="expected-amount" id="expectedAmount">0 VNĐ</div>
             </div>
             
-            <!-- Nút xem lịch tháng -->
+            <button class="btn btn-salary-control btn-full" id="salaryBtn">
+                <i class="fas fa-calculator"></i> Tính Lương Tăng Ca
+            </button>
+            
             <button class="btn btn-month btn-full" id="viewMonthBtn">
                 <i class="fas fa-calendar-alt"></i> Xem Lịch Tháng
             </button>
         </div>
 
-        <!-- Lịch sử làm việc -->
         <div class="card">
             <h2><i class="fas fa-history"></i> Lịch sử làm việc</h2>
             <div class="work-history" id="workHistory">
-                <!-- Dữ liệu lịch sử sẽ được thêm ở đây bằng JavaScript -->
                 <div style="text-align: center; padding: 30px; color: var(--gray);">
                     <i class="fas fa-history" style="font-size: 40px; margin-bottom: 10px;"></i>
                     <p>Chưa có dữ liệu chấm công</p>
                 </div>
             </div>
             
-            <!-- Xóa dữ liệu theo tháng -->
             <div class="delete-section">
                 <select class="month-select" id="monthSelect">
                     <option value="">Chọn tháng để xóa</option>
@@ -909,14 +213,11 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
-        <p>Ứng dụng Chấm Công Tăng Ca &copy; 2026v1</p>
+        <p>Ứng dụng Chấm Công Tăng Ca &copy; 2023</p>
         <p>Dữ liệu được lưu trữ cục bộ trên thiết bị</p>
-        <p>By Quý ẹp trai</p>
     </div>
 
-    <!-- Modal xác nhận xóa -->
     <div class="modal" id="confirmModal">
         <div class="modal-content">
             <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
@@ -928,33 +229,26 @@
         </div>
     </div>
 
-    <!-- Modal Lịch Tháng -->
     <div class="modal" id="monthCalendarModal">
         <div class="modal-content">
             <h3>
                 <i class="fas fa-calendar"></i> Lịch Tháng
                 <button class="close-btn" id="closeMonthModal">&times;</button>
             </h3>
-            <div class="calendar" id="monthCalendar">
-                <!-- Calendar sẽ được tạo bằng JavaScript -->
-            </div>
+            <div class="calendar" id="monthCalendar"></div>
         </div>
     </div>
 
-    <!-- Modal Chi Tiết Ngày -->
     <div class="modal" id="dayDetailModal">
         <div class="modal-content">
             <h3>
                 <i class="fas fa-calendar-day"></i> Chi Tiết Ngày
                 <button class="close-btn" id="closeDayModal">&times;</button>
             </h3>
-            <div class="day-detail" id="dayDetailContent">
-                <!-- Nội dung chi tiết sẽ được thêm bằng JavaScript -->
-            </div>
+            <div class="day-detail" id="dayDetailContent"></div>
         </div>
     </div>
 
-    <!-- Modal Tính Lương Tăng Ca -->
     <div class="modal" id="salaryModal">
         <div class="modal-content">
             <h3>
@@ -969,9 +263,7 @@
             
             <div class="salary-input-group">
                 <label for="selectedMonth">Chọn tháng</label>
-                <select id="selectedMonth" class="month-select">
-                    <!-- Options sẽ được thêm bằng JavaScript -->
-                </select>
+                <select id="selectedMonth" class="month-select"></select>
             </div>
             
             <button class="btn btn-salary btn-full" id="calculateSalaryBtn">
@@ -981,29 +273,25 @@
             <div class="salary-result" id="salaryResult" style="display: none;">
                 <h4>Lương tăng ca dự kiến tháng này</h4>
                 <div class="salary-amount" id="salaryAmount">0 VNĐ</div>
-                <div class="salary-details" id="salaryDetails">
-                    <!-- Chi tiết tính toán sẽ được thêm ở đây -->
-                </div>
+                <div class="salary-details" id="salaryDetails"></div>
             </div>
             
-            <div style="margin-top: 20px; padding: 15px; background-color: rgba(0, 122, 255, 0.1); border-radius: 12px;">
-                <h4 style="color: var(--primary); margin-bottom: 10px; font-size: 14px;">
+            <div style="margin-top:20px;padding:15px;background-color:rgba(0,122,255,0.1);border-radius:12px;">
+                <h4 style="color:var(--primary);margin-bottom:10px;font-size:14px;">
                     <i class="fas fa-info-circle"></i> Công thức tính
                 </h4>
-                <p style="font-size: 13px; color: var(--gray);">
-                    Tiền tăng ca = (Tổng giờ tăng ca × 2) × (Lương căn bản ÷ 26)
+                <p style="font-size:13px;color:var(--gray);">
+                    Tiền tăng ca = Số giờ tăng ca × (((Lương căn bản ÷ 26) ÷ 8) × 2)
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- Thông báo -->
     <div class="notification" id="notification">
         <div id="notificationMessage">Thao tác thành công!</div>
     </div>
 
     <script>
-        // Khai báo biến toàn cục
         let workStartTime = null;
         let workEndTime = null;
         let isWorking = false;
@@ -1012,62 +300,48 @@
         let deleteAction = null;
         let selectedMonth = null;
         let today = new Date();
-        let dayOfWeek = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+        let dayOfWeek = today.getDay();
         let isSunday = (dayOfWeek === 0);
-        let isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6); // Thứ 2 đến thứ 7
+        let isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6);
         let currentMonth = today.getMonth();
         let currentYear = today.getFullYear();
         let selectedDate = null;
         let selectedDayData = null;
         let basicSalary = localStorage.getItem('basicSalary') || 0;
+        let autoStartTriggered = false;
 
-        // Khởi tạo ứng dụng khi trang được tải
         document.addEventListener('DOMContentLoaded', function() {
             initApp();
         });
 
         function initApp() {
-            // Khởi tạo thời gian hiện tại
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
-            // Cập nhật tên ngày
             updateDayName();
-            
-            // Tải dữ liệu đã lưu
             loadWorkData();
-            
-            // Khởi tạo dropdown chọn tháng
             initMonthSelect();
-            
-            // Khởi tạo dropdown chọn tháng cho tính lương
             initSalaryMonthSelect();
-            
-            // Load lương căn bản đã lưu
             loadBasicSalary();
             
-            // Gắn sự kiện cho các nút
             document.getElementById('startWorkBtn').addEventListener('click', startWork);
             document.getElementById('endWorkBtn').addEventListener('click', endWork);
             document.getElementById('deleteMonthBtn').addEventListener('click', showDeleteConfirm);
             document.getElementById('cancelBtn').addEventListener('click', hideModal);
             document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
-            document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
+            document.getElementById('viewMonthBtn').addEventListener('click', function() { showMonthCalendar(); });
+            document.getElementById('salaryBtn').addEventListener('click', function() { showSalaryModal(); });
             document.getElementById('closeMonthModal').addEventListener('click', hideMonthModal);
             document.getElementById('closeDayModal').addEventListener('click', hideDayModal);
-            document.getElementById('salaryBtn').addEventListener('click', showSalaryModal);
             document.getElementById('closeSalaryModal').addEventListener('click', hideSalaryModal);
             document.getElementById('calculateSalaryBtn').addEventListener('click', calculateSalary);
             document.getElementById('basicSalary').addEventListener('change', saveBasicSalary);
             
-            // Kiểm tra trạng thái làm việc hôm nay
             checkTodayWorkStatus();
-            
-            // Áp dụng logic ngày trong tuần
-            applyDayLogic();
+            checkAutoStart();
+            updateButtonStates();
         }
 
-        // Cập nhật thời gian hiện tại
         function updateCurrentTime() {
             const now = new Date();
             today = now;
@@ -1085,9 +359,88 @@
             
             document.getElementById('currentDate').textContent = dateStr;
             document.getElementById('currentTime').textContent = timeStr;
+            
+            checkAutoStart();
         }
 
-        // Cập nhật tên ngày và indicator
+        function checkAutoStart() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentDay = now.getDay();
+            
+            const isWeekdayAuto = (currentDay >= 1 && currentDay <= 6);
+            
+            if (isWeekdayAuto && currentHour >= 7 && currentMinute >= 45 && !autoStartTriggered) {
+                if (!isWorking) {
+                    autoStartWork();
+                }
+            }
+        }
+
+        function autoStartWork() {
+            autoStartTriggered = true;
+            
+            const startTimeToday = new Date(today);
+            startTimeToday.setHours(7, 45, 0, 0);
+            
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            
+            if (todayRecord) {
+                return;
+            }
+            
+            workStartTime = startTimeToday;
+            isWorking = true;
+            
+            document.getElementById('startTime').textContent = '07:45';
+            document.getElementById('workStatus').textContent = 'Đang làm việc (tự động 7:45)';
+            document.getElementById('workStatus').style.color = 'var(--success)';
+            
+            const startBtn = document.getElementById('startWorkBtn');
+            startBtn.classList.add('auto-activated');
+            
+            const autoStartInfo = document.getElementById('autoStartInfo');
+            autoStartInfo.style.display = 'flex';
+            
+            updateButtonStates();
+            startTimer();
+            createAutoWorkRecord();
+            
+            showNotification('Tự động bắt đầu làm việc từ 7:45 (thứ 2 - thứ 7)', 'info');
+        }
+
+        function createAutoWorkRecord() {
+            const todayStr = formatDate(today);
+            const startTimeToday = new Date(today);
+            startTimeToday.setHours(7, 45, 0, 0);
+            
+            const workRecord = {
+                id: Date.now(),
+                date: todayStr,
+                dateISO: formatDateISO(startTimeToday),
+                startTime: '07:45',
+                endTime: null,
+                totalHours: '0.00',
+                overtime: '0.00',
+                manualOvertime: '0.00',
+                lunchOvertime: 0,
+                timestamp: startTimeToday.getTime(),
+                isWeekday: true,
+                isAutoStarted: true
+            };
+            
+            workData.unshift(workRecord);
+            
+            if (workData.length > 100) {
+                workData = workData.slice(0, 100);
+            }
+            
+            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            updateWorkHistory();
+        }
+
         function updateDayName() {
             const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
             const dayName = dayNames[dayOfWeek];
@@ -1102,7 +455,6 @@
             }
         }
 
-        // Load lương căn bản đã lưu
         function loadBasicSalary() {
             const savedSalary = localStorage.getItem('basicSalary');
             if (savedSalary) {
@@ -1111,25 +463,20 @@
             }
         }
 
-        // Lưu lương căn bản
         function saveBasicSalary() {
             const salaryInput = document.getElementById('basicSalary');
             const salary = parseInt(salaryInput.value) || 0;
             basicSalary = salary;
             localStorage.setItem('basicSalary', salary.toString());
             showNotification('Đã lưu lương căn bản', 'success');
-            
-            // Cập nhật lương tăng ca dự kiến hôm nay
             updateExpectedSalary();
         }
 
-        // Cập nhật lương tăng ca dự kiến hôm nay
         function updateExpectedSalary() {
             const expectedSalaryDiv = document.getElementById('expectedSalary');
             const expectedAmount = document.getElementById('expectedAmount');
             
             if (basicSalary > 0) {
-                // Lấy tăng ca hôm nay
                 const todayStr = formatDate(today);
                 const todayRecord = workData.find(record => record.date === todayStr);
                 
@@ -1137,10 +484,10 @@
                     const overtime = parseFloat(todayRecord.overtime);
                     
                     if (overtime > 0) {
-                        // Tính lương theo công thức: (Tổng giờ tăng ca × 2) × (Lương căn bản ÷ 26)
                         const dailySalary = basicSalary / 26;
+                        const hourlySalary = dailySalary / 8;
                         const overtimeRate = 2;
-                        const salary = overtime * overtimeRate * dailySalary;
+                        const salary = overtime * (hourlySalary * overtimeRate);
                         
                         expectedAmount.textContent = formatCurrency(salary);
                         expectedSalaryDiv.style.display = 'block';
@@ -1155,26 +502,21 @@
             }
         }
 
-        // Khởi tạo dropdown chọn tháng cho tính lương
         function initSalaryMonthSelect() {
             const salaryMonthSelect = document.getElementById('selectedMonth');
             const months = new Set();
             
-            // Thêm option cho tháng hiện tại
             const currentMonthYear = `${currentMonth + 1}/${currentYear}`;
             months.add(currentMonthYear);
             
-            // Lấy tất cả các tháng có trong dữ liệu
             workData.forEach(record => {
                 const date = new Date(record.timestamp);
                 const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
                 months.add(monthYear);
             });
             
-            // Xóa các option cũ
             salaryMonthSelect.innerHTML = '';
             
-            // Thêm các option mới
             const monthsArray = Array.from(months).sort((a, b) => {
                 const [aMonth, aYear] = a.split('/').map(Number);
                 const [bMonth, bYear] = b.split('/').map(Number);
@@ -1195,61 +537,24 @@
             });
         }
 
-        // Áp dụng logic theo ngày
-        function applyDayLogic() {
-            const startBtn = document.getElementById('startWorkBtn');
-            const endBtn = document.getElementById('endWorkBtn');
-            
-            if (isWeekday) {
-                // Thứ 2 đến thứ 7: Ẩn nút Bắt đầu, chỉ hiện nút Tan ca
-                startBtn.style.display = 'none';
-                endBtn.style.display = 'flex';
-                
-                // Tự động bắt đầu làm việc lúc 7:45
-                if (!workStartTime) {
-                    // Tạo thời gian bắt đầu là 7:45 sáng hôm nay
-                    const startTimeToday = new Date(today);
-                    startTimeToday.setHours(7, 45, 0, 0);
-                    
-                    // Nếu bây giờ đã qua 7:45, dùng 7:45 sáng
-                    // Nếu bây giờ trước 7:45, vẫn dùng 7:45 sáng (cho đúng logic)
-                    workStartTime = startTimeToday;
-                    isWorking = true;
-                    
-                    // Cập nhật UI
-                    document.getElementById('startTime').textContent = '07:45';
-                    document.getElementById('workStatus').textContent = 'Đang làm việc (tự động 7:45)';
-                    document.getElementById('workStatus').style.color = 'var(--success)';
-                    
-                    // Bắt đầu đếm thời gian
-                    startTimer();
-                    
-                    showNotification('Tự động bắt đầu làm việc từ 7:45 (thứ 2 - thứ 7)', 'info');
-                }
-            } else if (isSunday) {
-                // Chủ nhật: Hiển thị cả 2 nút
-                startBtn.style.display = 'flex';
-                endBtn.style.display = 'flex';
-                
-                // Nếu chưa bắt đầu, disable nút Tan ca
-                if (!isWorking) {
-                    endBtn.disabled = true;
-                }
-            }
-        }
-
-        // Kiểm tra trạng thái làm việc hôm nay
         function checkTodayWorkStatus() {
             const todayStr = formatDate(today);
             const todayRecord = workData.find(record => record.date === todayStr);
             
             if (todayRecord) {
-                // Đã có bản ghi hôm nay
                 workStartTime = parseTimeString(todayRecord.startTime, today);
                 workEndTime = todayRecord.endTime ? parseTimeString(todayRecord.endTime, today) : null;
                 isWorking = !todayRecord.endTime;
                 
-                // Cập nhật UI
+                if (todayRecord.isAutoStarted) {
+                    autoStartTriggered = true;
+                    const startBtn = document.getElementById('startWorkBtn');
+                    startBtn.classList.add('auto-activated');
+                    
+                    const autoStartInfo = document.getElementById('autoStartInfo');
+                    autoStartInfo.style.display = 'flex';
+                }
+                
                 document.getElementById('startTime').textContent = formatTime(workStartTime);
                 
                 if (workEndTime) {
@@ -1257,66 +562,54 @@
                     document.getElementById('workStatus').textContent = 'Đã kết thúc làm việc';
                     document.getElementById('workStatus').style.color = 'var(--warning)';
                     
-                    // Tính toán và hiển thị tổng thời gian
                     const totalHours = parseFloat(todayRecord.totalHours);
                     const overtime = parseFloat(todayRecord.overtime);
                     
                     document.getElementById('totalTime').innerHTML = `${totalHours.toFixed(2)}<span class="info-unit">giờ</span>`;
                     document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
                     
-                    // Cập nhật lương tăng ca dự kiến
                     updateExpectedSalary();
                 } else {
                     document.getElementById('endTime').textContent = '--:--';
                     document.getElementById('workStatus').textContent = 'Đang làm việc';
                     document.getElementById('workStatus').style.color = 'var(--success)';
-                    
-                    // Bắt đầu đếm thời gian
                     startTimer();
                 }
-            } else if (isWeekday) {
-                // Thứ 2 đến thứ 7: Tự động tạo bản ghi với startTime là 7:45
-                const startTimeToday = new Date(today);
-                startTimeToday.setHours(7, 45, 0, 0);
-                workStartTime = startTimeToday;
-                isWorking = true;
-                
-                // Cập nhật UI
-                document.getElementById('startTime').textContent = '07:45';
-                document.getElementById('workStatus').textContent = 'Đang làm việc (tự động 7:45)';
-                document.getElementById('workStatus').style.color = 'var(--success)';
-                
-                // Bắt đầu đếm thời gian
-                startTimer();
             }
             
-            // Cập nhật trạng thái nút
             updateButtonStates();
         }
 
-        // Cập nhật trạng thái nút
         function updateButtonStates() {
             const startBtn = document.getElementById('startWorkBtn');
             const endBtn = document.getElementById('endWorkBtn');
             
-            if (isSunday) {
-                // Chủ nhật
-                startBtn.disabled = isWorking;
-                endBtn.disabled = !isWorking;
-            } else {
-                // Thứ 2 đến thứ 7
-                startBtn.style.display = 'none';
-                endBtn.disabled = !isWorking;
+            if (isWeekday) {
+                startBtn.style.display = 'flex';
+                endBtn.style.display = 'flex';
+                
+                if (isWorking) {
+                    startBtn.disabled = true;
+                    endBtn.disabled = false;
+                } else {
+                    startBtn.disabled = false;
+                    endBtn.disabled = true;
+                }
+            } else if (isSunday) {
+                startBtn.style.display = 'flex';
+                endBtn.style.display = 'flex';
+                
+                if (isWorking) {
+                    startBtn.disabled = true;
+                    endBtn.disabled = false;
+                } else {
+                    startBtn.disabled = false;
+                    endBtn.disabled = true;
+                }
             }
         }
 
-        // Bắt đầu làm việc (chỉ dùng cho chủ nhật)
         function startWork() {
-            if (!isSunday) {
-                showNotification('Hôm nay không phải chủ nhật, không cần ấn nút Bắt đầu', 'warning');
-                return;
-            }
-            
             if (isWorking) {
                 showNotification('Bạn đã bắt đầu làm việc trước đó!', 'warning');
                 return;
@@ -1325,21 +618,28 @@
             workStartTime = new Date();
             isWorking = true;
             
-            // Cập nhật UI
             document.getElementById('startTime').textContent = formatTime(workStartTime);
             document.getElementById('workStatus').textContent = 'Đang làm việc';
             document.getElementById('workStatus').style.color = 'var(--success)';
             
-            // Cập nhật trạng thái nút
-            updateButtonStates();
+            const autoStartInfo = document.getElementById('autoStartInfo');
+            autoStartInfo.style.display = 'none';
             
-            // Bắt đầu đếm thời gian
+            const startBtn = document.getElementById('startWorkBtn');
+            startBtn.classList.remove('auto-activated');
+            
+            updateButtonStates();
             startTimer();
             
-            showNotification('Đã bắt đầu làm việc (chủ nhật)!', 'success');
+            const todayStr = formatDate(today);
+            const autoRecordIndex = workData.findIndex(record => record.date === todayStr && record.isAutoStarted);
+            if (autoRecordIndex >= 0) {
+                workData.splice(autoRecordIndex, 1);
+            }
+            
+            showNotification('Đã bắt đầu làm việc thủ công!', 'success');
         }
 
-        // Kết thúc làm việc
         function endWork() {
             if (!isWorking) {
                 showNotification('Bạn chưa bắt đầu làm việc!', 'warning');
@@ -1349,63 +649,46 @@
             workEndTime = new Date();
             isWorking = false;
             
-            // Dừng đếm thời gian
             stopTimer();
             
-            // Tính toán thời gian làm việc
             const workDuration = calculateWorkDuration(workStartTime, workEndTime);
             const overtime = calculateOvertime(workDuration);
             
-            // Cập nhật UI
             document.getElementById('endTime').textContent = formatTime(workEndTime);
             document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
             document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
             document.getElementById('workStatus').textContent = 'Đã kết thúc làm việc';
             document.getElementById('workStatus').style.color = 'var(--warning)';
             
-            // Cập nhật trạng thái nút
             updateButtonStates();
-            
-            // Lưu dữ liệu làm việc
             saveWorkData(workStartTime, workEndTime, workDuration, overtime);
-            
-            // Cập nhật lịch sử
             updateWorkHistory();
-            
-            // Cập nhật lương tăng ca dự kiến
             updateExpectedSalary();
             
             showNotification(`Đã kết thúc làm việc. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
         }
 
-        // Tính thời gian làm việc
         function calculateWorkDuration(startTime, endTime) {
             const diffMs = endTime - startTime;
             const diffMinutes = diffMs / (1000 * 60);
             const diffHours = diffMinutes / 60;
-            
             return diffHours;
         }
 
-        // Tính thời gian tăng ca (so với 9 giờ 15 phút = 9.25 giờ)
         function calculateOvertime(totalHours) {
-            const standardWorkHours = 9.25; // 9 giờ 15 phút
+            const standardWorkHours = 9.25;
             const overtime = totalHours - standardWorkHours;
-            
             return overtime > 0 ? overtime : 0;
         }
 
-        // Định dạng thời gian
         function formatTime(date) {
             return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Định dạng ngày
         function formatDate(date) {
             return date.toLocaleDateString('vi-VN');
         }
 
-        // Định dạng ngày thành chuỗi YYYY-MM-DD
         function formatDateISO(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1413,7 +696,6 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Parse time string thành Date object
         function parseTimeString(timeStr, baseDate) {
             if (!timeStr) return null;
             
@@ -1423,13 +705,11 @@
             return date;
         }
 
-        // Parse date string thành Date object
         function parseDateString(dateStr) {
             const [day, month, year] = dateStr.split('/').map(Number);
             return new Date(year, month - 1, day);
         }
 
-        // Bắt đầu đếm thời gian
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             
@@ -1445,7 +725,6 @@
             }, 1000);
         }
 
-        // Dừng đếm thời gian
         function stopTimer() {
             if (timerInterval) {
                 clearInterval(timerInterval);
@@ -1453,11 +732,9 @@
             }
         }
 
-        // Lưu dữ liệu làm việc
         function saveWorkData(startTime, endTime, totalHours, overtime) {
             const todayStr = formatDate(today);
             
-            // Kiểm tra xem đã có bản ghi hôm nay chưa
             const existingIndex = workData.findIndex(record => record.date === todayStr);
             
             const workRecord = {
@@ -1468,40 +745,37 @@
                 endTime: endTime ? formatTime(endTime) : null,
                 totalHours: totalHours.toFixed(2),
                 overtime: overtime.toFixed(2),
-                lunchOvertime: 0, // Mặc định không có tăng ca trưa
+                manualOvertime: '0.00',
+                lunchOvertime: 0,
                 timestamp: startTime.getTime(),
-                isWeekday: isWeekday
+                isWeekday: isWeekday,
+                isAutoStarted: false
             };
             
             if (existingIndex >= 0) {
-                // Giữ lại lunchOvertime nếu đã có
                 if (workData[existingIndex].lunchOvertime) {
                     workRecord.lunchOvertime = workData[existingIndex].lunchOvertime;
-                    // Cộng thêm lunchOvertime vào overtime
                     workRecord.overtime = (parseFloat(workRecord.overtime) + workRecord.lunchOvertime).toFixed(2);
                 }
+                if (workData[existingIndex].manualOvertime) {
+                    workRecord.manualOvertime = workData[existingIndex].manualOvertime;
+                    workRecord.overtime = (parseFloat(workRecord.overtime) + parseFloat(workRecord.manualOvertime)).toFixed(2);
+                }
                 
-                // Cập nhật bản ghi đã có
                 workData[existingIndex] = workRecord;
             } else {
-                // Thêm bản ghi mới
                 workData.unshift(workRecord);
             }
             
-            // Giới hạn lưu trữ 100 bản ghi gần nhất
             if (workData.length > 100) {
                 workData = workData.slice(0, 100);
             }
             
-            // Lưu vào localStorage
             localStorage.setItem('workAttendanceData', JSON.stringify(workData));
-            
-            // Cập nhật dropdown tháng
             updateMonthSelect();
             initSalaryMonthSelect();
         }
 
-        // Tải dữ liệu làm việc
         function loadWorkData() {
             const savedData = localStorage.getItem('workAttendanceData');
             
@@ -1513,7 +787,6 @@
             }
         }
 
-        // Cập nhật lịch sử làm việc
         function updateWorkHistory() {
             const historyContainer = document.getElementById('workHistory');
             
@@ -1534,11 +807,12 @@
                 const todayClass = isTodayRecord ? 'style="color: var(--primary); font-weight: 700;"' : '';
                 const totalOvertime = parseFloat(record.overtime);
                 const lunchOvertime = record.lunchOvertime || 0;
+                const autoStarted = record.isAutoStarted || false;
                 
                 historyHTML += `
                     <div class="history-item">
                         <div>
-                            <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'}</div>
+                            <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'} ${autoStarted ? '<i class="fas fa-robot" style="color: var(--success); margin-left: 5px;"></i>' : ''}</div>
                             <div class="history-time">${record.startTime} - ${record.endTime || '--:--'}</div>
                         </div>
                         <div class="history-overtime">${record.endTime ? `+${totalOvertime.toFixed(2)} giờ` : 'Đang làm'} ${lunchOvertime > 0 ? '<i class="fas fa-utensils" style="color: var(--warning); margin-left: 5px;"></i>' : ''}</div>
@@ -1549,29 +823,24 @@
             historyContainer.innerHTML = historyHTML;
         }
 
-        // Khởi tạo dropdown chọn tháng
         function initMonthSelect() {
             updateMonthSelect();
         }
 
-        // Cập nhật dropdown chọn tháng
         function updateMonthSelect() {
             const monthSelect = document.getElementById('monthSelect');
             const months = new Set();
             
-            // Lấy tất cả các tháng có trong dữ liệu
             workData.forEach(record => {
                 const date = new Date(record.timestamp);
                 const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
                 months.add(monthYear);
             });
             
-            // Xóa các option cũ (giữ option đầu tiên)
             while (monthSelect.options.length > 1) {
                 monthSelect.remove(1);
             }
             
-            // Thêm các option mới
             const monthsArray = Array.from(months).sort((a, b) => {
                 const [aMonth, aYear] = a.split('/').map(Number);
                 const [bMonth, bYear] = b.split('/').map(Number);
@@ -1588,13 +857,11 @@
                 monthSelect.appendChild(option);
             });
             
-            // Cập nhật sự kiện khi chọn tháng
             monthSelect.addEventListener('change', function() {
                 selectedMonth = this.value;
             });
         }
 
-        // Hiển thị xác nhận xóa
         function showDeleteConfirm() {
             if (!selectedMonth) {
                 showNotification('Vui lòng chọn tháng để xóa!', 'warning');
@@ -1609,13 +876,11 @@
             document.getElementById('confirmModal').style.display = 'flex';
         }
 
-        // Ẩn modal
         function hideModal() {
             document.getElementById('confirmModal').style.display = 'none';
             deleteAction = null;
         }
 
-        // Xác nhận xóa
         function confirmDelete() {
             if (deleteAction === 'month' && selectedMonth) {
                 deleteMonthData(selectedMonth);
@@ -1624,11 +889,9 @@
             hideModal();
         }
 
-        // Xóa dữ liệu theo tháng
         function deleteMonthData(monthYear) {
             const [month, year] = monthYear.split('/').map(Number);
             
-            // Lọc ra các bản ghi không thuộc tháng được chọn
             const filteredData = workData.filter(record => {
                 const recordDate = new Date(record.timestamp);
                 const recordMonth = recordDate.getMonth() + 1;
@@ -1637,35 +900,362 @@
                 return !(recordMonth === month && recordYear === year);
             });
             
-            // Cập nhật dữ liệu
             workData = filteredData;
             
-            // Lưu vào localStorage
             localStorage.setItem('workAttendanceData', JSON.stringify(workData));
             
-            // Cập nhật UI
             updateWorkHistory();
             updateMonthSelect();
             initSalaryMonthSelect();
             
-            // Reset selectedMonth
             selectedMonth = null;
             document.getElementById('monthSelect').value = '';
             
             showNotification(`Đã xóa dữ liệu tháng ${month}/${year}`, 'success');
         }
 
-        // Hiển thị modal tính lương
         function showSalaryModal() {
             document.getElementById('salaryModal').style.display = 'flex';
         }
 
-        // Ẩn modal tính lương
+        function showMonthCalendar() {
+            renderCalendar(currentMonth, currentYear);
+            document.getElementById('monthCalendarModal').style.display = 'flex';
+        }
+
+        function hideMonthModal() {
+            document.getElementById('monthCalendarModal').style.display = 'none';
+        }
+
+        function hideDayModal() {
+            document.getElementById('dayDetailModal').style.display = 'none';
+        }
+
         function hideSalaryModal() {
             document.getElementById('salaryModal').style.display = 'none';
         }
 
-        // Tính lương tăng ca
+        function renderCalendar(month, year) {
+            const calendarElement = document.getElementById('monthCalendar');
+            
+            const monthNames = [
+                'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+            ];
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const firstDayIndex = firstDay.getDay();
+            
+            let calendarHTML = `
+                <div class="calendar-header">
+                    <div class="calendar-month-year">${monthNames[month]} ${year}</div>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
+                        <button class="calendar-nav-btn" id="todayMonthBtn">Hôm nay</button>
+                        <button class="calendar-nav-btn" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-weekdays">
+                    <div>CN</div><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div>
+                </div>
+                <div class="calendar-days">
+            `;
+            
+            for (let i = 0; i < firstDayIndex; i++) {
+                calendarHTML += `<div class="calendar-day empty"></div>`;
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDate = new Date(year, month, day);
+                const dateStr = formatDate(currentDate);
+                const isToday = currentDate.toDateString() === today.toDateString();
+                const isSunday = currentDate.getDay() === 0;
+                
+                const dayData = workData.find(record => record.date === dateStr);
+                const hasData = !!dayData;
+                const hasLunchOvertime = hasData && dayData.lunchOvertime > 0;
+                const overtime = hasData ? parseFloat(dayData.overtime) : 0;
+                
+                let dayClass = 'calendar-day';
+                if (isToday) dayClass += ' today';
+                if (hasData) dayClass += ' has-data';
+                if (isSunday) dayClass += ' sunday';
+                
+                calendarHTML += `
+                    <div class="${dayClass}" data-date="${dateStr}">
+                        ${day}
+                        ${hasLunchOvertime ? '<div class="day-lunch"></div>' : ''}
+                        ${hasData && overtime > 0 ? `<div class="day-overtime">+${overtime.toFixed(1)}h</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            calendarHTML += `</div>`;
+            calendarElement.innerHTML = calendarHTML;
+            
+            document.getElementById('prevMonthBtn').addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+            
+            document.getElementById('nextMonthBtn').addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+            
+            document.getElementById('todayMonthBtn').addEventListener('click', function() {
+                const now = new Date();
+                currentMonth = now.getMonth();
+                currentYear = now.getFullYear();
+                renderCalendar(currentMonth, currentYear);
+            });
+            
+            setTimeout(() => {
+                const dayElements = document.querySelectorAll('.calendar-day:not(.empty)');
+                dayElements.forEach(dayElement => {
+                    dayElement.addEventListener('click', function() {
+                        const dateStr = this.getAttribute('data-date');
+                        showDayDetail(dateStr);
+                    });
+                });
+            }, 100);
+        }
+
+        function showDayDetail(dateStr) {
+            selectedDate = parseDateString(dateStr);
+            selectedDayData = workData.find(record => record.date === dateStr);
+            
+            const dayDetailElement = document.getElementById('dayDetailContent');
+            
+            if (selectedDayData) {
+                const totalOvertime = parseFloat(selectedDayData.overtime);
+                const lunchOvertime = selectedDayData.lunchOvertime || 0;
+                const manualOvertime = parseFloat(selectedDayData.manualOvertime || 0);
+                const workOvertime = totalOvertime - lunchOvertime - manualOvertime;
+                
+                dayDetailElement.innerHTML = `
+                    <div class="day-detail-info">
+                        <div class="detail-box">
+                            <h4>Ngày</h4>
+                            <div class="detail-value">${dateStr}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Loại ngày</h4>
+                            <div class="detail-value">${selectedDayData.isWeekday ? 'T2-T7' : 'Chủ nhật'}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Giờ vào</h4>
+                            <div class="detail-value">${selectedDayData.startTime}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Giờ tan</h4>
+                            <div class="detail-value">${selectedDayData.endTime || '--:--'}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Tổng giờ</h4>
+                            <div class="detail-value">${selectedDayData.totalHours} giờ</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Tăng ca</h4>
+                            <div class="detail-value">${totalOvertime.toFixed(2)} giờ</div>
+                        </div>
+                    </div>
+                    
+                    <div class="edit-time">
+                        <input type="time" id="editStartTime" class="time-input" value="${selectedDayData.startTime}">
+                        <span>đến</span>
+                        <input type="time" id="editEndTime" class="time-input" value="${selectedDayData.endTime || ''}">
+                    </div>
+                    
+                    <div class="edit-overtime">
+                        <label for="editManualOvertime">Sửa giờ tăng ca (giờ)</label>
+                        <input type="number" id="editManualOvertime" class="overtime-input" value="${manualOvertime.toFixed(2)}" step="0.25" min="0">
+                    </div>
+                    
+                    <div class="edit-buttons">
+                        <button class="btn btn-secondary btn-small" id="updateTimeBtn">
+                            <i class="fas fa-save"></i> Cập nhật
+                        </button>
+                        <button class="btn btn-lunch btn-small" id="addLunchOvertimeBtn">
+                            <i class="fas fa-utensils"></i> +1h Tăng ca trưa
+                        </button>
+                    </div>
+                    
+                    ${lunchOvertime > 0 ? `
+                        <div style="margin-top:15px;padding:10px;background-color:rgba(255,149,0,0.1);border-radius:10px;text-align:center;">
+                            <i class="fas fa-utensils" style="color:var(--warning);"></i> 
+                            <strong>Đã có ${lunchOvertime} giờ tăng ca trưa</strong>
+                        </div>
+                    ` : ''}
+                `;
+                
+                setTimeout(() => {
+                    document.getElementById('updateTimeBtn').addEventListener('click', updateDayTime);
+                    document.getElementById('addLunchOvertimeBtn').addEventListener('click', addLunchOvertime);
+                }, 100);
+            } else {
+                dayDetailElement.innerHTML = `
+                    <div style="text-align:center;padding:30px;color:var(--gray);">
+                        <i class="fas fa-calendar-times" style="font-size:40px;margin-bottom:10px;"></i>
+                        <p>Không có dữ liệu chấm công cho ngày ${dateStr}</p>
+                        <button class="btn btn-secondary btn-small" id="createDayRecordBtn" style="margin-top:10px;">
+                            <i class="fas fa-plus"></i> Tạo bản ghi mới
+                        </button>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    document.getElementById('createDayRecordBtn').addEventListener('click', function() {
+                        createNewDayRecord(dateStr);
+                    });
+                }, 100);
+            }
+            
+            hideMonthModal();
+            document.getElementById('dayDetailModal').style.display = 'flex';
+        }
+
+        function updateDayTime() {
+            const startTimeInput = document.getElementById('editStartTime').value;
+            const endTimeInput = document.getElementById('editEndTime').value;
+            const manualOvertimeInput = document.getElementById('editManualOvertime').value;
+            
+            if (!startTimeInput) {
+                showNotification('Vui lòng nhập giờ bắt đầu', 'warning');
+                return;
+            }
+            
+            const [startHour, startMinute] = startTimeInput.split(':').map(Number);
+            const startTime = new Date(selectedDate);
+            startTime.setHours(startHour, startMinute, 0, 0);
+            
+            let endTime = null;
+            let workDuration = 0;
+            let overtime = 0;
+            
+            if (endTimeInput) {
+                const [endHour, endMinute] = endTimeInput.split(':').map(Number);
+                endTime = new Date(selectedDate);
+                endTime.setHours(endHour, endMinute, 0, 0);
+                
+                if (endTime <= startTime) {
+                    showNotification('Giờ kết thúc phải sau giờ bắt đầu', 'warning');
+                    return;
+                }
+                
+                workDuration = calculateWorkDuration(startTime, endTime);
+                overtime = calculateOvertime(workDuration);
+            }
+            
+            const manualOvertime = parseFloat(manualOvertimeInput) || 0;
+            const lunchOvertime = selectedDayData ? (selectedDayData.lunchOvertime || 0) : 0;
+            const totalOvertime = overtime + lunchOvertime + manualOvertime;
+            
+            const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
+            
+            if (recordIndex >= 0) {
+                workData[recordIndex] = {
+                    ...workData[recordIndex],
+                    startTime: formatTime(startTime),
+                    endTime: endTime ? formatTime(endTime) : null,
+                    totalHours: workDuration.toFixed(2),
+                    overtime: totalOvertime.toFixed(2),
+                    manualOvertime: manualOvertime.toFixed(2),
+                    timestamp: startTime.getTime()
+                };
+            } else {
+                const isWeekdayNew = selectedDate.getDay() >= 1 && selectedDate.getDay() <= 6;
+                
+                workData.unshift({
+                    id: Date.now(),
+                    date: formatDate(selectedDate),
+                    dateISO: formatDateISO(startTime),
+                    startTime: formatTime(startTime),
+                    endTime: endTime ? formatTime(endTime) : null,
+                    totalHours: workDuration.toFixed(2),
+                    overtime: totalOvertime.toFixed(2),
+                    manualOvertime: manualOvertime.toFixed(2),
+                    lunchOvertime: lunchOvertime,
+                    timestamp: startTime.getTime(),
+                    isWeekday: isWeekdayNew,
+                    isAutoStarted: false
+                });
+            }
+            
+            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            updateWorkHistory();
+            renderCalendar(currentMonth, currentYear);
+            hideDayModal();
+            showNotification('Đã cập nhật giờ làm việc', 'success');
+        }
+
+        function addLunchOvertime() {
+            if (!selectedDayData) {
+                showNotification('Không có dữ liệu cho ngày này', 'warning');
+                return;
+            }
+            
+            const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
+            
+            if (recordIndex >= 0) {
+                const currentLunchOvertime = workData[recordIndex].lunchOvertime || 0;
+                const newLunchOvertime = currentLunchOvertime + 1;
+                
+                const currentOvertime = parseFloat(workData[recordIndex].overtime);
+                const newOvertime = currentOvertime + 1;
+                
+                workData[recordIndex] = {
+                    ...workData[recordIndex],
+                    lunchOvertime: newLunchOvertime,
+                    overtime: newOvertime.toFixed(2)
+                };
+                
+                localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+                updateWorkHistory();
+                renderCalendar(currentMonth, currentYear);
+                showDayDetail(formatDate(selectedDate));
+                showNotification('Đã thêm 1 giờ tăng ca trưa', 'success');
+            }
+        }
+
+        function createNewDayRecord(dateStr) {
+            const date = parseDateString(dateStr);
+            const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
+            
+            const workRecord = {
+                id: Date.now(),
+                date: dateStr,
+                dateISO: formatDateISO(date),
+                startTime: '07:45',
+                endTime: null,
+                totalHours: '0.00',
+                overtime: '0.00',
+                manualOvertime: '0.00',
+                lunchOvertime: 0,
+                timestamp: date.getTime(),
+                isWeekday: isWeekdayNew,
+                isAutoStarted: false
+            };
+            
+            workData.unshift(workRecord);
+            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            updateWorkHistory();
+            updateMonthSelect();
+            initSalaryMonthSelect();
+            showDayDetail(dateStr);
+            showNotification('Đã tạo bản ghi mới cho ngày ' + dateStr, 'success');
+        }
+
         function calculateSalary() {
             const basicSalaryInput = document.getElementById('basicSalary');
             const selectedMonthInput = document.getElementById('selectedMonth');
@@ -1685,16 +1275,13 @@
             
             const [month, year] = selectedMonthYear.split('/').map(Number);
             
-            // Lọc dữ liệu theo tháng được chọn
             const monthData = workData.filter(record => {
                 const recordDate = new Date(record.timestamp);
                 const recordMonth = recordDate.getMonth() + 1;
                 const recordYear = recordDate.getFullYear();
-                
                 return recordMonth === month && recordYear === year && record.endTime;
             });
             
-            // Tính tổng giờ tăng ca
             let totalOvertimeHours = 0;
             let totalDays = 0;
             let detailHTML = '';
@@ -1704,51 +1291,31 @@
                 if (overtime > 0) {
                     totalOvertimeHours += overtime;
                     totalDays++;
-                    
-                    detailHTML += `
-                        <div>
-                            <span>${record.date}:</span>
-                            <span>${overtime.toFixed(2)} giờ</span>
-                        </div>
-                    `;
+                    detailHTML += `<div><span>${record.date}:</span><span>${overtime.toFixed(2)} giờ</span></div>`;
                 }
             });
             
-            // Tính lương theo công thức: (Tổng giờ tăng ca × 2) × (Lương căn bản ÷ 26)
-            const dailySalary = salary / 26; // Lương một ngày
-            const overtimeRate = 2; // Hệ số tăng ca
-            const totalSalary = totalOvertimeHours * overtimeRate * dailySalary;
+            const dailySalary = salary / 26;
+            const hourlySalary = dailySalary / 8;
+            const overtimeRate = 2;
+            const totalSalary = totalOvertimeHours * (hourlySalary * overtimeRate);
             
-            // Format số tiền
             const formattedSalary = formatCurrency(totalSalary);
-            const formattedDailySalary = formatCurrency(dailySalary);
+            const formattedHourlySalary = formatCurrency(hourlySalary);
             
-            // Hiển thị kết quả
             document.getElementById('salaryAmount').textContent = formattedSalary;
             
             let details = `
-                <div>
-                    <span>Tổng giờ tăng ca:</span>
-                    <span>${totalOvertimeHours.toFixed(2)} giờ</span>
-                </div>
-                <div>
-                    <span>Số ngày có tăng ca:</span>
-                    <span>${totalDays} ngày</span>
-                </div>
-                <div>
-                    <span>Lương một ngày:</span>
-                    <span>${formattedDailySalary}</span>
-                </div>
-                <div>
-                    <span>Hệ số tăng ca:</span>
-                    <span>${overtimeRate}</span>
-                </div>
+                <div><span>Tổng giờ tăng ca:</span><span>${totalOvertimeHours.toFixed(2)} giờ</span></div>
+                <div><span>Số ngày có tăng ca:</span><span>${totalDays} ngày</span></div>
+                <div><span>Lương một giờ:</span><span>${formattedHourlySalary}/giờ</span></div>
+                <div><span>Hệ số tăng ca:</span><span>${overtimeRate}</span></div>
             `;
             
             if (detailHTML) {
                 details += `
-                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
-                        <div style="font-weight: 600; margin-bottom: 5px;">Chi tiết từng ngày:</div>
+                    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.1);">
+                        <div style="font-weight:600;margin-bottom:5px;">Chi tiết từng ngày:</div>
                         ${detailHTML}
                     </div>
                 `;
@@ -1760,7 +1327,6 @@
             showNotification(`Đã tính lương tăng ca tháng ${month}/${year}`, 'success');
         }
 
-        // Format tiền tệ
         function formatCurrency(amount) {
             return amount.toLocaleString('vi-VN', {
                 style: 'currency',
@@ -1768,35 +1334,26 @@
             });
         }
 
-        // Hiển thị thông báo
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             const messageElement = document.getElementById('notificationMessage');
             
-            // Đặt màu nền theo loại thông báo
             let bgColor = 'var(--primary)';
             if (type === 'success') bgColor = 'var(--success)';
             if (type === 'warning') bgColor = 'var(--warning)';
             if (type === 'danger') bgColor = 'var(--danger)';
             
             notification.style.backgroundColor = bgColor;
-            
-            // Thêm class theo type
             notification.className = 'notification';
             notification.classList.add(type);
-            
             messageElement.textContent = message;
-            
-            // Hiển thị thông báo
             notification.classList.add('show');
             
-            // Ẩn thông báo sau 3 giây
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
         }
 
-        // Thêm sự kiện trước khi đóng trang để cảnh báo nếu đang làm việc
         window.addEventListener('beforeunload', function(e) {
             if (isWorking) {
                 e.preventDefault();
