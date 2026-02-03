@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -228,8 +227,7 @@ html
     </div>
 
     <div class="footer">
-        <p>Ứng dụng Chấm Công Tăng Ca &copy; 2026</p>
-        <p>QUYSC.V:1.1</p>
+        <p>Ứng dụng Chấm Công Tăng Ca &copy; 2023</p>
         <p>Dữ liệu được lưu trữ cục bộ trên thiết bị</p>
     </div>
 
@@ -330,11 +328,12 @@ html
         });
 
         function initApp() {
+            console.log("Khởi động ứng dụng...");
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
             updateDayName();
-            loadWorkData();
+            loadWorkData(); // Tải dữ liệu từ localStorage
             initMonthSelect();
             initSalaryMonthSelect();
             loadBasicSalary();
@@ -355,6 +354,8 @@ html
             checkTodayWorkStatus();
             checkAutoStart();
             updateButtonStates();
+            
+            console.log("Dữ liệu đã tải:", workData.length, "bản ghi");
         }
 
         function updateCurrentTime() {
@@ -452,7 +453,8 @@ html
                 workData = workData.slice(0, 100);
             }
             
-            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            // LƯU VÀO LOCALSTORAGE
+            saveDataToStorage();
             updateWorkHistory();
         }
 
@@ -786,19 +788,42 @@ html
                 workData = workData.slice(0, 100);
             }
             
-            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            // LƯU VÀO LOCALSTORAGE
+            saveDataToStorage();
             updateMonthSelect();
             initSalaryMonthSelect();
         }
 
+        // HÀM QUAN TRỌNG: Lưu dữ liệu vào localStorage
+        function saveDataToStorage() {
+            try {
+                localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+                console.log('Đã lưu dữ liệu vào localStorage:', workData.length, 'bản ghi');
+            } catch (error) {
+                console.error('Lỗi khi lưu dữ liệu:', error);
+                showNotification('Lỗi khi lưu dữ liệu', 'danger');
+            }
+        }
+
+        // HÀM QUAN TRỌNG: Tải dữ liệu từ localStorage
         function loadWorkData() {
-            const savedData = localStorage.getItem('workAttendanceData');
-            
-            if (savedData) {
-                workData = JSON.parse(savedData);
-                updateWorkHistory();
-                updateMonthSelect();
-                initSalaryMonthSelect();
+            try {
+                const savedData = localStorage.getItem('workAttendanceData');
+                
+                if (savedData) {
+                    workData = JSON.parse(savedData);
+                    console.log('Đã tải dữ liệu từ localStorage:', workData.length, 'bản ghi');
+                    updateWorkHistory();
+                    updateMonthSelect();
+                    initSalaryMonthSelect();
+                } else {
+                    console.log('Không có dữ liệu cũ trong localStorage');
+                    workData = [];
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải dữ liệu:', error);
+                workData = [];
+                showNotification('Lỗi khi tải dữ liệu cũ', 'danger');
             }
         }
 
@@ -917,7 +942,8 @@ html
             
             workData = filteredData;
             
-            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            // LƯU VÀO LOCALSTORAGE SAU KHI XÓA
+            saveDataToStorage();
             
             updateWorkHistory();
             updateMonthSelect();
@@ -1222,7 +1248,8 @@ html
                 });
             }
             
-            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            // LƯU VÀO LOCALSTORAGE
+            saveDataToStorage();
             updateWorkHistory();
             renderCalendar(currentMonth, currentYear);
             hideDayModal();
@@ -1249,7 +1276,10 @@ html
             };
             
             workData.unshift(workRecord);
-            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            
+            // LƯU VÀO LOCALSTORAGE
+            saveDataToStorage();
+            
             updateWorkHistory();
             updateMonthSelect();
             initSalaryMonthSelect();
