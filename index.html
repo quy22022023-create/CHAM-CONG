@@ -27,6 +27,7 @@
             --card-bg: #FFFFFF;
             --sunday: #FF2D55;
             --today: #007AFF;
+            --salary: #5856D6;
         }
         
         body {
@@ -37,6 +38,31 @@
             overflow-x: hidden;
             padding-bottom: env(safe-area-inset-bottom);
             -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Nút tính lương */
+        .salary-btn {
+            position: fixed;
+            top: 80px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--salary);
+            color: white;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .salary-btn:active {
+            transform: scale(0.95);
         }
         
         /* Header */
@@ -233,6 +259,15 @@
         
         .btn-lunch:active {
             background-color: #E68500;
+        }
+        
+        .btn-salary {
+            background-color: var(--salary);
+            margin-top: 10px;
+        }
+        
+        .btn-salary:active {
+            background-color: #4A4AC8;
         }
         
         .btn:disabled {
@@ -565,6 +600,68 @@
             margin-top: 10px;
         }
         
+        /* Salary Calculator */
+        .salary-input-group {
+            margin-bottom: 20px;
+        }
+        
+        .salary-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .salary-input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: right;
+            background-color: var(--light);
+        }
+        
+        .salary-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .salary-result {
+            background-color: rgba(88, 86, 214, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .salary-result h4 {
+            color: var(--salary);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .salary-amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--salary);
+            margin-bottom: 5px;
+        }
+        
+        .salary-details {
+            font-size: 14px;
+            color: var(--gray);
+            margin-top: 10px;
+            text-align: left;
+        }
+        
+        .salary-details div {
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
         /* Thông báo */
         .notification {
             position: fixed;
@@ -647,13 +744,18 @@
         
         /* Tối ưu cho iPhone */
         @supports (-webkit-touch-callout: none) {
-            .btn, .month-select, .time-input {
+            .btn, .month-select, .time-input, .salary-input {
                 -webkit-appearance: none;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Nút tính lương -->
+    <button class="salary-btn" id="salaryBtn">
+        <i class="fas fa-calculator"></i>
+    </button>
+
     <!-- Header -->
     <header class="header">
         <div class="header-content">
@@ -789,6 +891,49 @@
         </div>
     </div>
 
+    <!-- Modal Tính Lương Tăng Ca -->
+    <div class="modal" id="salaryModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-calculator"></i> Tính Lương Tăng Ca
+                <button class="close-btn" id="closeSalaryModal">&times;</button>
+            </h3>
+            
+            <div class="salary-input-group">
+                <label for="basicSalary">Lương căn bản (VNĐ)</label>
+                <input type="number" id="basicSalary" class="salary-input" placeholder="Nhập lương căn bản" min="0" step="100000">
+            </div>
+            
+            <div class="salary-input-group">
+                <label for="selectedMonth">Chọn tháng</label>
+                <select id="selectedMonth" class="month-select">
+                    <!-- Options sẽ được thêm bằng JavaScript -->
+                </select>
+            </div>
+            
+            <button class="btn btn-salary btn-full" id="calculateSalaryBtn">
+                <i class="fas fa-calculator"></i> Tính Lương Tăng Ca
+            </button>
+            
+            <div class="salary-result" id="salaryResult" style="display: none;">
+                <h4>Tổng tiền tăng ca tháng này</h4>
+                <div class="salary-amount" id="salaryAmount">0 VNĐ</div>
+                <div class="salary-details" id="salaryDetails">
+                    <!-- Chi tiết tính toán sẽ được thêm ở đây -->
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background-color: rgba(0, 122, 255, 0.1); border-radius: 12px;">
+                <h4 style="color: var(--primary); margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> Công thức tính
+                </h4>
+                <p style="font-size: 13px; color: var(--gray);">
+                    Tiền tăng ca = (Tổng giờ tăng ca × 2) × (Lương căn bản ÷ 26)
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Thông báo -->
     <div class="notification" id="notification">
         <div id="notificationMessage">Thao tác thành công!</div>
@@ -811,6 +956,7 @@
         let currentYear = today.getFullYear();
         let selectedDate = null;
         let selectedDayData = null;
+        let basicSalary = localStorage.getItem('basicSalary') || 0;
 
         // Khởi tạo ứng dụng khi trang được tải
         document.addEventListener('DOMContentLoaded', function() {
@@ -831,6 +977,12 @@
             // Khởi tạo dropdown chọn tháng
             initMonthSelect();
             
+            // Khởi tạo dropdown chọn tháng cho tính lương
+            initSalaryMonthSelect();
+            
+            // Load lương căn bản đã lưu
+            loadBasicSalary();
+            
             // Gắn sự kiện cho các nút
             document.getElementById('startWorkBtn').addEventListener('click', startWork);
             document.getElementById('endWorkBtn').addEventListener('click', endWork);
@@ -841,6 +993,10 @@
             document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
             document.getElementById('closeMonthModal').addEventListener('click', hideMonthModal);
             document.getElementById('closeDayModal').addEventListener('click', hideDayModal);
+            document.getElementById('salaryBtn').addEventListener('click', showSalaryModal);
+            document.getElementById('closeSalaryModal').addEventListener('click', hideSalaryModal);
+            document.getElementById('calculateSalaryBtn').addEventListener('click', calculateSalary);
+            document.getElementById('basicSalary').addEventListener('change', saveBasicSalary);
             
             // Kiểm tra trạng thái làm việc hôm nay
             checkTodayWorkStatus();
@@ -882,6 +1038,64 @@
             } else {
                 dayIndicator.classList.remove('sunday');
             }
+        }
+
+        // Load lương căn bản đã lưu
+        function loadBasicSalary() {
+            const savedSalary = localStorage.getItem('basicSalary');
+            if (savedSalary) {
+                basicSalary = parseInt(savedSalary);
+                document.getElementById('basicSalary').value = basicSalary;
+            }
+        }
+
+        // Lưu lương căn bản
+        function saveBasicSalary() {
+            const salaryInput = document.getElementById('basicSalary');
+            const salary = parseInt(salaryInput.value) || 0;
+            basicSalary = salary;
+            localStorage.setItem('basicSalary', salary.toString());
+            showNotification('Đã lưu lương căn bản', 'success');
+        }
+
+        // Khởi tạo dropdown chọn tháng cho tính lương
+        function initSalaryMonthSelect() {
+            const salaryMonthSelect = document.getElementById('selectedMonth');
+            const months = new Set();
+            
+            // Thêm option cho tháng hiện tại
+            const currentMonthYear = `${currentMonth + 1}/${currentYear}`;
+            months.add(currentMonthYear);
+            
+            // Lấy tất cả các tháng có trong dữ liệu
+            workData.forEach(record => {
+                const date = new Date(record.timestamp);
+                const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+                months.add(monthYear);
+            });
+            
+            // Xóa các option cũ
+            salaryMonthSelect.innerHTML = '';
+            
+            // Thêm các option mới
+            const monthsArray = Array.from(months).sort((a, b) => {
+                const [aMonth, aYear] = a.split('/').map(Number);
+                const [bMonth, bYear] = b.split('/').map(Number);
+                
+                if (aYear !== bYear) return bYear - aYear;
+                return bMonth - bMonth;
+            });
+            
+            monthsArray.forEach(monthYear => {
+                const [month, year] = monthYear.split('/');
+                const option = document.createElement('option');
+                option.value = monthYear;
+                option.textContent = `Tháng ${month}/${year}`;
+                if (monthYear === currentMonthYear) {
+                    option.selected = true;
+                }
+                salaryMonthSelect.appendChild(option);
+            });
         }
 
         // Áp dụng logic theo ngày
@@ -1215,6 +1429,7 @@
             
             // Cập nhật dropdown tháng
             updateMonthSelect();
+            initSalaryMonthSelect();
         }
 
         // Tải dữ liệu làm việc
@@ -1225,6 +1440,7 @@
                 workData = JSON.parse(savedData);
                 updateWorkHistory();
                 updateMonthSelect();
+                initSalaryMonthSelect();
             }
         }
 
@@ -1361,6 +1577,7 @@
             // Cập nhật UI
             updateWorkHistory();
             updateMonthSelect();
+            initSalaryMonthSelect();
             
             // Reset selectedMonth
             selectedMonth = null;
@@ -1369,339 +1586,117 @@
             showNotification(`Đã xóa dữ liệu tháng ${month}/${year}`, 'success');
         }
 
-        // Hiển thị lịch tháng
-        function showMonthCalendar() {
-            renderCalendar(currentMonth, currentYear);
-            document.getElementById('monthCalendarModal').style.display = 'flex';
+        // Hiển thị modal tính lương
+        function showSalaryModal() {
+            document.getElementById('salaryModal').style.display = 'flex';
         }
 
-        // Ẩn modal lịch tháng
-        function hideMonthModal() {
-            document.getElementById('monthCalendarModal').style.display = 'none';
+        // Ẩn modal tính lương
+        function hideSalaryModal() {
+            document.getElementById('salaryModal').style.display = 'none';
         }
 
-        // Ẩn modal chi tiết ngày
-        function hideDayModal() {
-            document.getElementById('dayDetailModal').style.display = 'none';
-        }
-
-        // Render lịch tháng
-        function renderCalendar(month, year) {
-            const calendarElement = document.getElementById('monthCalendar');
+        // Tính lương tăng ca
+        function calculateSalary() {
+            const basicSalaryInput = document.getElementById('basicSalary');
+            const selectedMonthInput = document.getElementById('selectedMonth');
             
-            // Tên tháng
-            const monthNames = [
-                'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
-            ];
+            const salary = parseInt(basicSalaryInput.value) || 0;
+            const selectedMonthYear = selectedMonthInput.value;
             
-            // Ngày đầu tiên của tháng
-            const firstDay = new Date(year, month, 1);
-            // Ngày cuối cùng của tháng
-            const lastDay = new Date(year, month + 1, 0);
-            // Số ngày trong tháng
-            const daysInMonth = lastDay.getDate();
-            // Ngày đầu tiên của tháng là thứ mấy (0 = Chủ nhật, 1 = Thứ 2, ...)
-            const firstDayIndex = firstDay.getDay();
+            if (salary <= 0) {
+                showNotification('Vui lòng nhập lương căn bản hợp lệ', 'warning');
+                return;
+            }
             
-            // Tạo HTML cho lịch
-            let calendarHTML = `
-                <div class="calendar-header">
-                    <div class="calendar-month-year">${monthNames[month]} ${year}</div>
-                    <div class="calendar-nav">
-                        <button class="calendar-nav-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
-                        <button class="calendar-nav-btn" id="todayMonthBtn">Hôm nay</button>
-                        <button class="calendar-nav-btn" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
-                    </div>
+            if (!selectedMonthYear) {
+                showNotification('Vui lòng chọn tháng', 'warning');
+                return;
+            }
+            
+            const [month, year] = selectedMonthYear.split('/').map(Number);
+            
+            // Lọc dữ liệu theo tháng được chọn
+            const monthData = workData.filter(record => {
+                const recordDate = new Date(record.timestamp);
+                const recordMonth = recordDate.getMonth() + 1;
+                const recordYear = recordDate.getFullYear();
+                
+                return recordMonth === month && recordYear === year && record.endTime;
+            });
+            
+            // Tính tổng giờ tăng ca
+            let totalOvertimeHours = 0;
+            let totalDays = 0;
+            let detailHTML = '';
+            
+            monthData.forEach(record => {
+                const overtime = parseFloat(record.overtime);
+                if (overtime > 0) {
+                    totalOvertimeHours += overtime;
+                    totalDays++;
+                    
+                    detailHTML += `
+                        <div>
+                            <span>${record.date}:</span>
+                            <span>${overtime.toFixed(2)} giờ</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Tính lương theo công thức: (Tổng giờ tăng ca × 2) × (Lương căn bản ÷ 26)
+            const dailySalary = salary / 26; // Lương một ngày
+            const overtimeRate = 2; // Hệ số tăng ca
+            const totalSalary = totalOvertimeHours * overtimeRate * dailySalary;
+            
+            // Format số tiền
+            const formattedSalary = formatCurrency(totalSalary);
+            const formattedDailySalary = formatCurrency(dailySalary);
+            
+            // Hiển thị kết quả
+            document.getElementById('salaryAmount').textContent = formattedSalary;
+            
+            let details = `
+                <div>
+                    <span>Tổng giờ tăng ca:</span>
+                    <span>${totalOvertimeHours.toFixed(2)} giờ</span>
                 </div>
-                <div class="calendar-weekdays">
-                    <div>CN</div>
-                    <div>T2</div>
-                    <div>T3</div>
-                    <div>T4</div>
-                    <div>T5</div>
-                    <div>T6</div>
-                    <div>T7</div>
+                <div>
+                    <span>Số ngày có tăng ca:</span>
+                    <span>${totalDays} ngày</span>
                 </div>
-                <div class="calendar-days">
+                <div>
+                    <span>Lương một ngày:</span>
+                    <span>${formattedDailySalary}</span>
+                </div>
+                <div>
+                    <span>Hệ số tăng ca:</span>
+                    <span>${overtimeRate}</span>
+                </div>
             `;
             
-            // Thêm ô trống cho các ngày trước tháng
-            for (let i = 0; i < firstDayIndex; i++) {
-                calendarHTML += `<div class="calendar-day empty"></div>`;
-            }
-            
-            // Thêm các ngày trong tháng
-            for (let day = 1; day <= daysInMonth; day++) {
-                const currentDate = new Date(year, month, day);
-                const dateStr = formatDate(currentDate);
-                const dateISO = formatDateISO(currentDate);
-                const isToday = currentDate.toDateString() === today.toDateString();
-                const isSunday = currentDate.getDay() === 0;
-                
-                // Tìm dữ liệu cho ngày này
-                const dayData = workData.find(record => record.date === dateStr);
-                const hasData = !!dayData;
-                const hasLunchOvertime = hasData && dayData.lunchOvertime > 0;
-                const overtime = hasData ? parseFloat(dayData.overtime) : 0;
-                
-                let dayClass = 'calendar-day';
-                if (isToday) dayClass += ' today';
-                if (hasData) dayClass += ' has-data';
-                if (isSunday) dayClass += ' sunday';
-                
-                calendarHTML += `
-                    <div class="${dayClass}" data-date="${dateStr}" data-date-iso="${dateISO}">
-                        ${day}
-                        ${hasLunchOvertime ? '<div class="day-lunch"></div>' : ''}
-                        ${hasData && overtime > 0 ? `<div class="day-overtime">+${overtime.toFixed(1)}h</div>` : ''}
+            if (detailHTML) {
+                details += `
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                        <div style="font-weight: 600; margin-bottom: 5px;">Chi tiết từng ngày:</div>
+                        ${detailHTML}
                     </div>
                 `;
             }
             
-            calendarHTML += `</div>`;
-            calendarElement.innerHTML = calendarHTML;
+            document.getElementById('salaryDetails').innerHTML = details;
+            document.getElementById('salaryResult').style.display = 'block';
             
-            // Thêm sự kiện cho các nút điều hướng
-            document.getElementById('prevMonthBtn').addEventListener('click', () => {
-                currentMonth--;
-                if (currentMonth < 0) {
-                    currentMonth = 11;
-                    currentYear--;
-                }
-                renderCalendar(currentMonth, currentYear);
-            });
-            
-            document.getElementById('nextMonthBtn').addEventListener('click', () => {
-                currentMonth++;
-                if (currentMonth > 11) {
-                    currentMonth = 0;
-                    currentYear++;
-                }
-                renderCalendar(currentMonth, currentYear);
-            });
-            
-            document.getElementById('todayMonthBtn').addEventListener('click', () => {
-                const now = new Date();
-                currentMonth = now.getMonth();
-                currentYear = now.getFullYear();
-                renderCalendar(currentMonth, currentYear);
-            });
-            
-            // Thêm sự kiện click cho các ngày
-            const dayElements = document.querySelectorAll('.calendar-day:not(.empty)');
-            dayElements.forEach(dayElement => {
-                dayElement.addEventListener('click', () => {
-                    const dateStr = dayElement.getAttribute('data-date');
-                    showDayDetail(dateStr);
-                });
-            });
+            showNotification(`Đã tính lương tăng ca tháng ${month}/${year}`, 'success');
         }
 
-        // Hiển thị chi tiết ngày
-        function showDayDetail(dateStr) {
-            selectedDate = parseDateString(dateStr);
-            selectedDayData = workData.find(record => record.date === dateStr);
-            
-            const dayDetailElement = document.getElementById('dayDetailContent');
-            
-            if (selectedDayData) {
-                const totalOvertime = parseFloat(selectedDayData.overtime);
-                const lunchOvertime = selectedDayData.lunchOvertime || 0;
-                const workOvertime = totalOvertime - lunchOvertime;
-                
-                dayDetailElement.innerHTML = `
-                    <div class="day-detail-info">
-                        <div class="detail-box">
-                            <h4>Ngày</h4>
-                            <div class="detail-value">${dateStr}</div>
-                        </div>
-                        <div class="detail-box">
-                            <h4>Loại ngày</h4>
-                            <div class="detail-value">${selectedDayData.isWeekday ? 'T2-T7' : 'Chủ nhật'}</div>
-                        </div>
-                        <div class="detail-box">
-                            <h4>Giờ vào</h4>
-                            <div class="detail-value">${selectedDayData.startTime}</div>
-                        </div>
-                        <div class="detail-box">
-                            <h4>Giờ tan</h4>
-                            <div class="detail-value">${selectedDayData.endTime || '--:--'}</div>
-                        </div>
-                        <div class="detail-box">
-                            <h4>Tổng giờ</h4>
-                            <div class="detail-value">${selectedDayData.totalHours} giờ</div>
-                        </div>
-                        <div class="detail-box">
-                            <h4>Tăng ca</h4>
-                            <div class="detail-value">${totalOvertime.toFixed(2)} giờ</div>
-                        </div>
-                    </div>
-                    
-                    <div class="edit-time">
-                        <input type="time" id="editStartTime" class="time-input" value="${selectedDayData.startTime}">
-                        <span>đến</span>
-                        <input type="time" id="editEndTime" class="time-input" value="${selectedDayData.endTime || ''}">
-                    </div>
-                    
-                    <div class="edit-buttons">
-                        <button class="btn btn-secondary btn-small" id="updateTimeBtn">
-                            <i class="fas fa-save"></i> Cập nhật giờ
-                        </button>
-                        <button class="btn btn-lunch btn-small" id="addLunchOvertimeBtn">
-                            <i class="fas fa-utensils"></i> +1h Tăng ca trưa
-                        </button>
-                    </div>
-                    
-                    ${lunchOvertime > 0 ? `
-                        <div style="margin-top: 15px; padding: 10px; background-color: rgba(255, 149, 0, 0.1); border-radius: 10px; text-align: center;">
-                            <i class="fas fa-utensils" style="color: var(--warning);"></i> 
-                            <strong>Đã có ${lunchOvertime} giờ tăng ca trưa</strong>
-                        </div>
-                    ` : ''}
-                `;
-                
-                // Thêm sự kiện cho các nút
-                document.getElementById('updateTimeBtn').addEventListener('click', updateDayTime);
-                document.getElementById('addLunchOvertimeBtn').addEventListener('click', addLunchOvertime);
-            } else {
-                dayDetailElement.innerHTML = `
-                    <div style="text-align: center; padding: 30px; color: var(--gray);">
-                        <i class="fas fa-calendar-times" style="font-size: 40px; margin-bottom: 10px;"></i>
-                        <p>Không có dữ liệu chấm công cho ngày ${dateStr}</p>
-                    </div>
-                `;
-            }
-            
-            // Hiển thị modal chi tiết
-            hideMonthModal();
-            document.getElementById('dayDetailModal').style.display = 'flex';
-        }
-
-        // Cập nhật thời gian làm việc cho ngày
-        function updateDayTime() {
-            const startTimeInput = document.getElementById('editStartTime').value;
-            const endTimeInput = document.getElementById('editEndTime').value;
-            
-            if (!startTimeInput) {
-                showNotification('Vui lòng nhập giờ bắt đầu', 'warning');
-                return;
-            }
-            
-            if (!endTimeInput) {
-                showNotification('Vui lòng nhập giờ kết thúc', 'warning');
-                return;
-            }
-            
-            // Parse thời gian
-            const [startHour, startMinute] = startTimeInput.split(':').map(Number);
-            const [endHour, endMinute] = endTimeInput.split(':').map(Number);
-            
-            const startTime = new Date(selectedDate);
-            startTime.setHours(startHour, startMinute, 0, 0);
-            
-            const endTime = new Date(selectedDate);
-            endTime.setHours(endHour, endMinute, 0, 0);
-            
-            // Kiểm tra thời gian hợp lệ
-            if (endTime <= startTime) {
-                showNotification('Giờ kết thúc phải sau giờ bắt đầu', 'warning');
-                return;
-            }
-            
-            // Tính toán thời gian làm việc
-            const workDuration = calculateWorkDuration(startTime, endTime);
-            const overtime = calculateOvertime(workDuration);
-            
-            // Giữ lại lunchOvertime cũ nếu có
-            const lunchOvertime = selectedDayData ? (selectedDayData.lunchOvertime || 0) : 0;
-            const totalOvertime = overtime + lunchOvertime;
-            
-            // Tìm index của bản ghi
-            const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
-            
-            if (recordIndex >= 0) {
-                // Cập nhật bản ghi đã có
-                workData[recordIndex] = {
-                    ...workData[recordIndex],
-                    startTime: formatTime(startTime),
-                    endTime: formatTime(endTime),
-                    totalHours: workDuration.toFixed(2),
-                    overtime: totalOvertime.toFixed(2),
-                    timestamp: startTime.getTime()
-                };
-            } else {
-                // Tạo bản ghi mới
-                const isWeekday = selectedDate.getDay() >= 1 && selectedDate.getDay() <= 6;
-                
-                workData.unshift({
-                    id: Date.now(),
-                    date: formatDate(selectedDate),
-                    dateISO: formatDateISO(startTime),
-                    startTime: formatTime(startTime),
-                    endTime: formatTime(endTime),
-                    totalHours: workDuration.toFixed(2),
-                    overtime: totalOvertime.toFixed(2),
-                    lunchOvertime: lunchOvertime,
-                    timestamp: startTime.getTime(),
-                    isWeekday: isWeekday
-                });
-            }
-            
-            // Lưu vào localStorage
-            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
-            
-            // Cập nhật UI
-            updateWorkHistory();
-            
-            // Nếu đang xem lịch tháng, cập nhật lại
-            renderCalendar(currentMonth, currentYear);
-            
-            // Đóng modal chi tiết
-            hideDayModal();
-            
-            showNotification('Đã cập nhật giờ làm việc', 'success');
-        }
-
-        // Thêm tăng ca trưa
-        function addLunchOvertime() {
-            if (!selectedDayData) {
-                showNotification('Không có dữ liệu cho ngày này', 'warning');
-                return;
-            }
-            
-            // Tìm index của bản ghi
-            const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
-            
-            if (recordIndex >= 0) {
-                // Tăng lunchOvertime thêm 1 giờ
-                const currentLunchOvertime = workData[recordIndex].lunchOvertime || 0;
-                const newLunchOvertime = currentLunchOvertime + 1;
-                
-                // Cập nhật overtime tổng
-                const currentOvertime = parseFloat(workData[recordIndex].overtime);
-                const newOvertime = currentOvertime + 1;
-                
-                workData[recordIndex] = {
-                    ...workData[recordIndex],
-                    lunchOvertime: newLunchOvertime,
-                    overtime: newOvertime.toFixed(2)
-                };
-                
-                // Lưu vào localStorage
-                localStorage.setItem('workAttendanceData', JSON.stringify(workData));
-                
-                // Cập nhật UI
-                updateWorkHistory();
-                
-                // Nếu đang xem lịch tháng, cập nhật lại
-                renderCalendar(currentMonth, currentYear);
-                
-                // Cập nhật lại modal chi tiết
-                showDayDetail(formatDate(selectedDate));
-                
-                showNotification('Đã thêm 1 giờ tăng ca trưa', 'success');
-            }
+        // Format tiền tệ
+        function formatCurrency(amount) {
+            return amount.toLocaleString('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            });
         }
 
         // Hiển thị thông báo
