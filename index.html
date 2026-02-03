@@ -1,178 +1,1141 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kho Dao</title>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-
-<style>
-:root{--blue:#1976d2;--orange:#ff9800;--red:#d32f2f;--bg:#f4f6f8;}
-body{font-family:Segoe UI,Arial;background:var(--bg);margin:20px}
-h1{margin-bottom:10px}
-button{padding:8px 14px;border:0;border-radius:6px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
-.primary{background:var(--blue);color:#fff}
-.warn{background:var(--orange);color:#fff}
-.small{padding:6px 10px;font-size:13px}
-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
-th,td{padding:9px;border-bottom:1px solid #eee;font-size:14px}
-th{background:var(--blue);color:#fff}
-.low{color:var(--red);font-weight:700}
-.actions{display:flex;gap:5px}
-.toolbar,.filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-input,select{padding:7px;border-radius:6px;border:1px solid #ccc}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:1000}
-.box{background:#fff;padding:20px;border-radius:12px;width:420px}
-ul{padding-left:18px}
-
-@media (max-width:768px){
-body{margin:10px}
-h1{font-size:20px}
-table,thead,tbody,th,td,tr{display:block}
-thead{display:none}
-tr{background:#fff;border-radius:10px;margin-bottom:10px;padding:10px}
-td{border:none;padding:4px 0;font-size:13px}
-td::before{content:attr(data-label);font-weight:600;color:#555}
-.actions{flex-wrap:wrap}
-.modal .box{width:95%;max-height:85vh;overflow:auto}
-input,select{width:100%}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chấm Công Tăng Ca - iPhone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        :root {
+            --primary: #007AFF;
+            --primary-dark: #0056CC;
+            --success: #34C759;
+            --warning: #FF9500;
+            --danger: #FF3B30;
+            --light: #F2F2F7;
+            --dark: #1D1D1F;
+            --gray: #8E8E93;
+            --border: #C7C7CC;
+            --card-bg: #FFFFFF;
+            --sunday: #FF2D55;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.5;
+            max-width: 100%;
+            overflow-x: hidden;
+            padding-bottom: env(safe-area-inset-bottom);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), #5856D6);
+            color: white;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            padding: 15px 20px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            font-weight: 400;
+        }
+        
+        /* Thời gian hiện tại */
+        .current-time {
+            background-color: var(--card-bg);
+            margin: 15px;
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .current-time h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .time-display {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 10px 0;
+        }
+        
+        .date-display {
+            font-size: 16px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
+        /* Day indicator */
+        .day-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .day-indicator.sunday {
+            background-color: var(--sunday);
+        }
+        
+        /* Container chính */
+        .container {
+            max-width: 100%;
+            padding: 0 15px 20px;
+        }
+        
+        /* Card */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 i {
+            color: var(--primary);
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .btn {
+            flex: 1;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 10px;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:active {
+            transform: scale(0.97);
+        }
+        
+        .btn-start {
+            background-color: var(--success);
+        }
+        
+        .btn-start:active {
+            background-color: #2DAE4A;
+        }
+        
+        .btn-end {
+            background-color: var(--warning);
+        }
+        
+        .btn-end:active {
+            background-color: #E68500;
+        }
+        
+        .btn-reset {
+            background-color: var(--danger);
+        }
+        
+        .btn-reset:active {
+            background-color: #E02A20;
+        }
+        
+        .btn-small {
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 10px;
+        }
+        
+        .btn-secondary {
+            background-color: var(--light);
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:active {
+            background-color: #E5E5EA;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* Thông tin làm việc */
+        .work-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background-color: var(--light);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .info-box h3 {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .info-unit {
+            font-size: 14px;
+            color: var(--gray);
+            margin-left: 2px;
+        }
+        
+        /* Lịch sử làm việc */
+        .work-history {
+            max-height: 300px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-date {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--dark);
+        }
+        
+        .history-time {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .history-overtime {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--success);
+        }
+        
+        /* Xóa dữ liệu theo tháng */
+        .delete-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .month-select {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background-color: white;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            margin-top: 10px;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .modal p {
+            margin-bottom: 20px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Thông báo */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background-color: var(--success);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.warning {
+            background-color: var(--warning);
+        }
+        
+        .notification.info {
+            background-color: var(--primary);
+        }
+        
+        /* Info Box */
+        .info-message {
+            background-color: rgba(0, 122, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .info-message h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 350px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .work-info {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Hiệu ứng loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Tối ưu cho iPhone */
+        @supports (-webkit-touch-callout: none) {
+            .btn, .month-select {
+                -webkit-appearance: none;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-clock"></i> Chấm Công Tăng Ca</h1>
+            <p>Giờ làm việc: 7:45 - 17:00 | 60 phút = 1 giờ</p>
+            <div class="day-indicator" id="dayIndicator">
+                <i class="fas fa-calendar-day"></i> <span id="dayName">Đang tải...</span>
+            </div>
+        </div>
+    </header>
 
-<h1><i class="fa-solid fa-warehouse"></i> Kho Dao</h1>
+    <!-- Thời gian hiện tại -->
+    <div class="current-time">
+        <h2><i class="fas fa-calendar-alt"></i> Hôm nay</h2>
+        <div class="date-display" id="currentDate">Đang tải...</div>
+        <div class="time-display" id="currentTime">00:00:00</div>
+        <div id="workStatus" style="color: var(--primary); font-weight: 600; margin-top: 5px;">Chưa bắt đầu làm việc</div>
+    </div>
 
-<div class="toolbar">
-<button class="primary" onclick="openPass()"><i class="fa fa-lock"></i> Đăng nhập</button>
-<button class="primary" onclick="toggleForm()"><i class="fa fa-plus"></i> Thêm sản phẩm</button>
+    <!-- Container chính -->
+    <div class="container">
+        <!-- Thông tin logic -->
+        <div class="info-message">
+            <h4><i class="fas fa-info-circle"></i> Logic chấm công</h4>
+            <p><strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu lúc 7:45, chỉ cần ấn "Tan ca" khi kết thúc.</p>
+            <p><strong>Chủ nhật:</strong> Ấn "Bắt đầu" khi vào ca, ấn "Tan ca" khi kết thúc.</p>
+        </div>
+        
+        <!-- Điều khiển chính -->
+        <div class="card">
+            <h2><i class="fas fa-play-circle"></i> Điều khiển</h2>
+            <div class="controls">
+                <button class="btn btn-start" id="startWorkBtn">
+                    <i class="fas fa-play"></i> Bắt đầu
+                </button>
+                <button class="btn btn-end" id="endWorkBtn">
+                    <i class="fas fa-stop"></i> Tan ca
+                </button>
+                <button class="btn btn-reset" id="resetBtn">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+            </div>
+            
+            <div class="work-info">
+                <div class="info-box">
+                    <h3>Giờ bắt đầu</h3>
+                    <div class="info-value" id="startTime">--:--</div>
+                </div>
+                <div class="info-box">
+                    <h3>Giờ kết thúc</h3>
+                    <div class="info-value" id="endTime">--:--</div>
+                </div>
+                <div class="info-box">
+                    <h3>Tổng thời gian</h3>
+                    <div class="info-value" id="totalTime">0<span class="info-unit">giờ</span></div>
+                </div>
+                <div class="info-box">
+                    <h3>Tăng ca</h3>
+                    <div class="info-value" id="overtime">0<span class="info-unit">giờ</span></div>
+                </div>
+            </div>
+        </div>
 
-<button onclick="exportJSON()"><i class="fa fa-download"></i> Xuất JSON</button>
-<input type="file" id="importJSON" hidden accept=".json" onchange="importJSONFile(event)">
-<button onclick="importJSON.click()"><i class="fa fa-upload"></i> Nhập JSON</button>
+        <!-- Lịch sử làm việc -->
+        <div class="card">
+            <h2><i class="fas fa-history"></i> Lịch sử làm việc</h2>
+            <div class="work-history" id="workHistory">
+                <!-- Dữ liệu lịch sử sẽ được thêm ở đây bằng JavaScript -->
+                <div style="text-align: center; padding: 30px; color: var(--gray);">
+                    <i class="fas fa-history" style="font-size: 40px; margin-bottom: 10px;"></i>
+                    <p>Chưa có dữ liệu chấm công</p>
+                </div>
+            </div>
+            
+            <!-- Xóa dữ liệu theo tháng -->
+            <div class="delete-section">
+                <select class="month-select" id="monthSelect">
+                    <option value="">Chọn tháng để xóa</option>
+                </select>
+                <button class="btn btn-secondary btn-small" id="deleteMonthBtn">
+                    <i class="fas fa-trash-alt"></i> Xóa
+                </button>
+            </div>
+        </div>
+        
+        <!-- Thông tin ứng dụng -->
+        <div class="card">
+            <h2><i class="fas fa-info-circle"></i> Hướng dẫn sử dụng</h2>
+            <p>1. <strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu lúc 7:45, chỉ cần ấn "Tan ca" khi kết thúc</p>
+            <p>2. <strong>Chủ nhật:</strong> Ấn "Bắt đầu" khi vào ca, ấn "Tan ca" khi kết thúc</p>
+            <p>3. Ứng dụng tự tính thời gian làm việc và tăng ca</p>
+            <p>4. Giờ làm việc chuẩn: 7:45 - 17:00 (9 giờ 15 phút)</p>
+            <p>5. Dữ liệu được lưu tự động trên thiết bị của bạn</p>
+        </div>
+    </div>
 
-<button class="warn" onclick="saveOnline()"><i class="fa fa-cloud-upload"></i> Lưu online</button>
+    <!-- Footer -->
+    <div class="footer">
+        <p>Ứng dụng Chấm Công Tăng Ca &copy; 2023</p>
+        <p>Dữ liệu được lưu trữ cục bộ trên thiết bị</p>
+    </div>
 
-<select id="pdfMonth"></select>
-<select id="pdfYear"></select>
-<button class="warn" onclick="exportPDF()"><i class="fa fa-file-pdf"></i> PDF nhập / xuất</button>
-<button class="warn" onclick="exportFullStockPDF()"><i class="fa fa-file-pdf"></i> PDF toàn bộ kho</button>
-<button class="warn" onclick="clearAllHistory()"><i class="fa fa-trash"></i> Xóa toàn bộ lịch sử</button>
-</div>
+    <!-- Modal xác nhận xóa -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <p id="modalMessage">Bạn có chắc chắn muốn xóa dữ liệu này không?</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="cancelBtn">Hủy</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Xóa</button>
+            </div>
+        </div>
+    </div>
 
-<div class="filter">
-<select id="f_category"><option value="">Loại</option><option>dao cắt</option><option>dao răng</option><option>dao</option></select>
-<select id="f_size"><option value="">Size</option><option>0.7</option><option>1.05</option><option>1.42</option></select>
-<select id="f_leg"><option value="">Chân</option><option>có chân</option><option>không chân</option></select>
-<select id="f_blade"><option value="">Đầu</option><option>lưỡi tròn</option><option>lưỡi bằng</option><option>lưỡi bầu</option><option>lưỡi nhọn</option></select>
-<select id="f_origin"><option value="">Xuất xứ</option><option>Nhật</option><option>Trung Quốc</option></select>
-<select id="f_stock"><option value="">Số lượng</option><option value="low">Tồn thấp</option><option value="zero">Hết hàng</option></select>
-</div>
+    <!-- Thông báo -->
+    <div class="notification" id="notification">
+        <div id="notificationMessage">Thao tác thành công!</div>
+    </div>
 
-<table>
-<thead>
-<tr>
-<th>Tên</th><th>Loại</th><th>Size</th><th>Chân</th>
-<th>Đầu</th><th>Xuất xứ</th><th>SL</th><th>Hành động</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
+    <script>
+        // Khai báo biến toàn cục
+        let workStartTime = null;
+        let workEndTime = null;
+        let isWorking = false;
+        let timerInterval = null;
+        let workData = [];
+        let deleteAction = null;
+        let selectedMonth = null;
+        let today = new Date();
+        let dayOfWeek = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
+        let isSunday = (dayOfWeek === 0);
+        let isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6); // Thứ 2 đến thứ 7
 
-<!-- MODALS -->
-<div class="modal" id="passModal"><div class="box">
-<input type="password" id="pass" placeholder="Mật khẩu">
-<button class="primary" onclick="login()">Xác nhận</button>
-</div></div>
+        // Khởi tạo ứng dụng khi trang được tải
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
 
-<div class="modal" id="ioModal"><div class="box">
-<h3 id="ioTitle"></h3>
-<input id="ioQty" type="number" placeholder="Số lượng">
-<button class="warn" onclick="submitIO()">Xác nhận</button>
-</div></div>
+        function initApp() {
+            // Khởi tạo thời gian hiện tại
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            // Cập nhật tên ngày
+            updateDayName();
+            
+            // Tải dữ liệu đã lưu
+            loadWorkData();
+            
+            // Khởi tạo dropdown chọn tháng
+            initMonthSelect();
+            
+            // Gắn sự kiện cho các nút
+            document.getElementById('startWorkBtn').addEventListener('click', startWork);
+            document.getElementById('endWorkBtn').addEventListener('click', endWork);
+            document.getElementById('resetBtn').addEventListener('click', resetWork);
+            document.getElementById('deleteMonthBtn').addEventListener('click', showDeleteConfirm);
+            document.getElementById('cancelBtn').addEventListener('click', hideModal);
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+            
+            // Kiểm tra trạng thái làm việc hôm nay
+            checkTodayWorkStatus();
+            
+            // Áp dụng logic ngày trong tuần
+            applyDayLogic();
+        }
 
-<div class="modal" id="editModal"><div class="box">
-<input id="e_name">
-<select id="e_category"></select>
-<select id="e_size"></select>
-<select id="e_leg"></select>
-<select id="e_blade"></select>
-<select id="e_origin"></select>
-<input id="e_qty" type="number">
-<div class="actions">
-<button class="primary" onclick="saveEdit()">Lưu</button>
-<button class="warn" onclick="deleteProduct()">Xóa</button>
-</div>
-</div></div>
+        // Cập nhật thời gian hiện tại
+        function updateCurrentTime() {
+            const now = new Date();
+            today = now;
+            dayOfWeek = today.getDay();
+            isSunday = (dayOfWeek === 0);
+            isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6);
+            
+            const dateStr = now.toLocaleDateString('vi-VN', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            const timeStr = now.toLocaleTimeString('vi-VN');
+            
+            document.getElementById('currentDate').textContent = dateStr;
+            document.getElementById('currentTime').textContent = timeStr;
+        }
 
-<div class="modal" id="historyModal"><div class="box">
-<h3>Lịch sử nhập / xuất</h3>
-<ul id="historyList"></ul>
-</div></div>
+        // Cập nhật tên ngày và indicator
+        function updateDayName() {
+            const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+            const dayName = dayNames[dayOfWeek];
+            
+            document.getElementById('dayName').textContent = dayName;
+            
+            const dayIndicator = document.getElementById('dayIndicator');
+            if (isSunday) {
+                dayIndicator.classList.add('sunday');
+            } else {
+                dayIndicator.classList.remove('sunday');
+            }
+        }
 
-<script>
-/* ===== ONLINE CONFIG ===== */
-const GITHUB_TOKEN="DAN_TOKEN_CUA_BAN";
-const GIST_ID="GIST_ID_CUA_BAN";
-const GIST_FILE="kho_dao.json";
+        // Áp dụng logic theo ngày
+        function applyDayLogic() {
+            const startBtn = document.getElementById('startWorkBtn');
+            const endBtn = document.getElementById('endWorkBtn');
+            
+            if (isWeekday) {
+                // Thứ 2 đến thứ 7: Ẩn nút Bắt đầu, chỉ hiện nút Tan ca
+                startBtn.style.display = 'none';
+                endBtn.style.display = 'flex';
+                
+                // Tự động bắt đầu làm việc lúc 7:45
+                if (!workStartTime) {
+                    // Tạo thời gian bắt đầu là 7:45 sáng hôm nay
+                    const startTimeToday = new Date(today);
+                    startTimeToday.setHours(7, 45, 0, 0);
+                    
+                    // Nếu bây giờ đã qua 7:45, dùng 7:45 sáng
+                    // Nếu bây giờ trước 7:45, vẫn dùng 7:45 sáng (cho đúng logic)
+                    workStartTime = startTimeToday;
+                    isWorking = true;
+                    
+                    // Cập nhật UI
+                    document.getElementById('startTime').textContent = '07:45';
+                    document.getElementById('workStatus').textContent = 'Đang làm việc (tự động 7:45)';
+                    document.getElementById('workStatus').style.color = 'var(--success)';
+                    
+                    // Bắt đầu đếm thời gian
+                    startTimer();
+                    
+                    showNotification('Tự động bắt đầu làm việc từ 7:45 (thứ 2 - thứ 7)', 'info');
+                }
+            } else if (isSunday) {
+                // Chủ nhật: Hiển thị cả 2 nút
+                startBtn.style.display = 'flex';
+                endBtn.style.display = 'flex';
+                
+                // Nếu chưa bắt đầu, disable nút Tan ca
+                if (!isWorking) {
+                    endBtn.disabled = true;
+                }
+            }
+        }
 
-/* ===== CORE ===== */
-const PASSWORD="kgget1234",LOW_STOCK=5;
-let hasAccess=false,editIndex=-1,ioIndex=-1,ioType="",historyIndex=-1;
-const products=JSON.parse(localStorage.getItem("products")||"[]");
+        // Kiểm tra trạng thái làm việc hôm nay
+        function checkTodayWorkStatus() {
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            
+            if (todayRecord) {
+                // Đã có bản ghi hôm nay
+                workStartTime = parseTimeString(todayRecord.startTime, today);
+                workEndTime = todayRecord.endTime ? parseTimeString(todayRecord.endTime, today) : null;
+                isWorking = !todayRecord.endTime;
+                
+                // Cập nhật UI
+                document.getElementById('startTime').textContent = formatTime(workStartTime);
+                
+                if (workEndTime) {
+                    document.getElementById('endTime').textContent = formatTime(workEndTime);
+                    document.getElementById('workStatus').textContent = 'Đã kết thúc làm việc';
+                    document.getElementById('workStatus').style.color = 'var(--warning)';
+                    
+                    // Tính toán và hiển thị tổng thời gian
+                    const totalHours = parseFloat(todayRecord.totalHours);
+                    const overtime = parseFloat(todayRecord.overtime);
+                    
+                    document.getElementById('totalTime').innerHTML = `${totalHours.toFixed(2)}<span class="info-unit">giờ</span>`;
+                    document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+                } else {
+                    document.getElementById('endTime').textContent = '--:--';
+                    document.getElementById('workStatus').textContent = 'Đang làm việc';
+                    document.getElementById('workStatus').style.color = 'var(--success)';
+                    
+                    // Bắt đầu đếm thời gian
+                    startTimer();
+                }
+            } else if (isWeekday) {
+                // Thứ 2 đến thứ 7: Tự động tạo bản ghi với startTime là 7:45
+                const startTimeToday = new Date(today);
+                startTimeToday.setHours(7, 45, 0, 0);
+                workStartTime = startTimeToday;
+                isWorking = true;
+                
+                // Cập nhật UI
+                document.getElementById('startTime').textContent = '07:45';
+                document.getElementById('workStatus').textContent = 'Đang làm việc (tự động 7:45)';
+                document.getElementById('workStatus').style.color = 'var(--success)';
+                
+                // Bắt đầu đếm thời gian
+                startTimer();
+            }
+            
+            // Cập nhật trạng thái nút
+            updateButtonStates();
+        }
 
-/* ===== INIT ===== */
-const now=new Date();
-for(let m=0;m<12;m++)pdfMonth.innerHTML+=`<option value="${m}">${m+1}</option>`;
-for(let y=now.getFullYear()-2;y<=now.getFullYear();y++)pdfYear.innerHTML+=`<option>${y}</option>`;
-pdfMonth.value=now.getMonth();pdfYear.value=now.getFullYear();
+        // Cập nhật trạng thái nút
+        function updateButtonStates() {
+            const startBtn = document.getElementById('startWorkBtn');
+            const endBtn = document.getElementById('endWorkBtn');
+            
+            if (isSunday) {
+                // Chủ nhật
+                startBtn.disabled = isWorking;
+                endBtn.disabled = !isWorking;
+            } else {
+                // Thứ 2 đến thứ 7
+                startBtn.style.display = 'none';
+                endBtn.disabled = !isWorking;
+            }
+        }
 
-/* ===== LOGIN ===== */
-function openPass(){passModal.style.display="flex"}
-function login(){pass.value===PASSWORD?(hasAccess=true,passModal.style.display="none",alert("Đăng nhập thành công")):alert("Sai mật khẩu")}
+        // Bắt đầu làm việc (chỉ dùng cho chủ nhật)
+        function startWork() {
+            if (!isSunday) {
+                showNotification('Hôm nay không phải chủ nhật, không cần ấn nút Bắt đầu', 'warning');
+                return;
+            }
+            
+            if (isWorking) {
+                showNotification('Bạn đã bắt đầu làm việc trước đó!', 'warning');
+                return;
+            }
+            
+            workStartTime = new Date();
+            isWorking = true;
+            
+            // Cập nhật UI
+            document.getElementById('startTime').textContent = formatTime(workStartTime);
+            document.getElementById('workStatus').textContent = 'Đang làm việc';
+            document.getElementById('workStatus').style.color = 'var(--success)';
+            
+            // Cập nhật trạng thái nút
+            updateButtonStates();
+            
+            // Bắt đầu đếm thời gian
+            startTimer();
+            
+            showNotification('Đã bắt đầu làm việc (chủ nhật)!', 'success');
+        }
 
-/* ===== ONLINE SAVE ===== */
-async function saveOnline(){
-await fetch(`https://api.github.com/gists/${GIST_ID}`,{
-method:"PATCH",
-headers:{
-"Authorization":"token "+GITHUB_TOKEN,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(products,null,2)}}})
-});
-}
+        // Kết thúc làm việc
+        function endWork() {
+            if (!isWorking) {
+                showNotification('Bạn chưa bắt đầu làm việc!', 'warning');
+                return;
+            }
+            
+            workEndTime = new Date();
+            isWorking = false;
+            
+            // Dừng đếm thời gian
+            stopTimer();
+            
+            // Tính toán thời gian làm việc
+            const workDuration = calculateWorkDuration(workStartTime, workEndTime);
+            const overtime = calculateOvertime(workDuration);
+            
+            // Cập nhật UI
+            document.getElementById('endTime').textContent = formatTime(workEndTime);
+            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = 'Đã kết thúc làm việc';
+            document.getElementById('workStatus').style.color = 'var(--warning)';
+            
+            // Cập nhật trạng thái nút
+            updateButtonStates();
+            
+            // Lưu dữ liệu làm việc
+            saveWorkData(workStartTime, workEndTime, workDuration, overtime);
+            
+            // Cập nhật lịch sử
+            updateWorkHistory();
+            
+            showNotification(`Đã kết thúc làm việc. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
+        }
 
-/* ===== REALTIME SYNC LEVEL 1 ===== */
-let lastOnlineUpdate=null;
-setInterval(async()=>{
-try{
-const r=await fetch(`https://api.github.com/gists/${GIST_ID}`,{headers:{Authorization:"token "+GITHUB_TOKEN}});
-const d=await r.json();
-if(lastOnlineUpdate&&d.updated_at<=lastOnlineUpdate)return;
-const online=d.files[GIST_FILE].content;
-if(online!==localStorage.getItem("products")){
-localStorage.setItem("products",online);
-lastOnlineUpdate=d.updated_at;
-render();
-}
-}catch(e){}
-},5000);
+        // Reset làm việc
+        function resetWork() {
+            // Xóa bản ghi hôm nay nếu có
+            const todayStr = formatDate(today);
+            workData = workData.filter(record => record.date !== todayStr);
+            
+            // Lưu vào localStorage
+            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            
+            workStartTime = null;
+            workEndTime = null;
+            isWorking = false;
+            
+            // Dừng đếm thời gian
+            stopTimer();
+            
+            // Cập nhật UI
+            document.getElementById('startTime').textContent = '--:--';
+            document.getElementById('endTime').textContent = '--:--';
+            document.getElementById('totalTime').innerHTML = `0<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `0<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = 'Chưa bắt đầu làm việc';
+            document.getElementById('workStatus').style.color = 'var(--primary)';
+            
+            // Cập nhật trạng thái nút và áp dụng lại logic ngày
+            updateButtonStates();
+            applyDayLogic();
+            
+            // Cập nhật lịch sử
+            updateWorkHistory();
+            
+            showNotification('Đã reset dữ liệu làm việc hôm nay', 'info');
+        }
 
-/* ===== CORE LOGIC (GIỮ NGUYÊN) ===== */
-function toggleForm(){if(!hasAccess)return alert("Vui lòng đăng nhập")}
-function addProduct(){products.push({name:name.value,category:category.value,size:size.value,leg:leg.value,blade:blade.value,origin:origin.value,quantity:+qty.value,history:[],createdAt:new Date().toISOString()});save()}
-function openIO(i,t){ioIndex=i;ioType=t;ioTitle.innerText=t==="nhap"?"Nhập":"Xuất";ioModal.style.display="flex"}
-function submitIO(){const p=products[ioIndex],q=+ioQty.value;if(q<=0)return;if(ioType==="xuat"&&q>p.quantity)return;p.quantity+=ioType==="nhap"?q:-q;p.history.push({type:ioType,qty:q,date:new Date().toISOString()});save();ioModal.style.display="none"}
-function viewHistory(i){historyIndex=i;historyList.innerHTML=products[i].history.map(h=>`<li>${h.type} ${h.qty}</li>`).join("");historyModal.style.display="flex"}
-function save(){localStorage.setItem("products",JSON.stringify(products));render();saveOnline()}
-function render(){tbody.innerHTML="";products.forEach((p,i)=>{tbody.innerHTML+=`<tr><td>${p.name}</td><td>${p.category}</td><td>${p.size}</td><td>${p.leg}</td><td>${p.blade}</td><td>${p.origin}</td><td>${p.quantity}</td><td><button onclick="openIO(${i},'nhap')">+</button><button onclick="openIO(${i},'xuat')">-</button></td></tr>`})}
-render();
-</script>
+        // Tính thời gian làm việc
+        function calculateWorkDuration(startTime, endTime) {
+            const diffMs = endTime - startTime;
+            const diffMinutes = diffMs / (1000 * 60);
+            const diffHours = diffMinutes / 60;
+            
+            return diffHours;
+        }
 
+        // Tính thời gian tăng ca (so với 9 giờ 15 phút = 9.25 giờ)
+        function calculateOvertime(totalHours) {
+            const standardWorkHours = 9.25; // 9 giờ 15 phút
+            const overtime = totalHours - standardWorkHours;
+            
+            return overtime > 0 ? overtime : 0;
+        }
+
+        // Định dạng thời gian
+        function formatTime(date) {
+            return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Định dạng ngày
+        function formatDate(date) {
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // Parse time string thành Date object
+        function parseTimeString(timeStr, baseDate) {
+            if (!timeStr) return null;
+            
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const date = new Date(baseDate);
+            date.setHours(hours, minutes, 0, 0);
+            return date;
+        }
+
+        // Bắt đầu đếm thời gian
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                if (workStartTime && isWorking) {
+                    const now = new Date();
+                    const duration = calculateWorkDuration(workStartTime, now);
+                    const overtime = calculateOvertime(duration);
+                    
+                    document.getElementById('totalTime').innerHTML = `${duration.toFixed(2)}<span class="info-unit">giờ</span>`;
+                    document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+                }
+            }, 1000);
+        }
+
+        // Dừng đếm thời gian
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Lưu dữ liệu làm việc
+        function saveWorkData(startTime, endTime, totalHours, overtime) {
+            const todayStr = formatDate(today);
+            
+            // Kiểm tra xem đã có bản ghi hôm nay chưa
+            const existingIndex = workData.findIndex(record => record.date === todayStr);
+            
+            const workRecord = {
+                id: Date.now(),
+                date: todayStr,
+                startTime: formatTime(startTime),
+                endTime: formatTime(endTime),
+                totalHours: totalHours.toFixed(2),
+                overtime: overtime.toFixed(2),
+                timestamp: startTime.getTime(),
+                isWeekday: isWeekday
+            };
+            
+            if (existingIndex >= 0) {
+                // Cập nhật bản ghi đã có
+                workData[existingIndex] = workRecord;
+            } else {
+                // Thêm bản ghi mới
+                workData.unshift(workRecord);
+            }
+            
+            // Giới hạn lưu trữ 100 bản ghi gần nhất
+            if (workData.length > 100) {
+                workData = workData.slice(0, 100);
+            }
+            
+            // Lưu vào localStorage
+            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            
+            // Cập nhật dropdown tháng
+            updateMonthSelect();
+        }
+
+        // Tải dữ liệu làm việc
+        function loadWorkData() {
+            const savedData = localStorage.getItem('workAttendanceData');
+            
+            if (savedData) {
+                workData = JSON.parse(savedData);
+                updateWorkHistory();
+                updateMonthSelect();
+            }
+        }
+
+        // Cập nhật lịch sử làm việc
+        function updateWorkHistory() {
+            const historyContainer = document.getElementById('workHistory');
+            
+            if (workData.length === 0) {
+                historyContainer.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--gray);">
+                        <i class="fas fa-history" style="font-size: 40px; margin-bottom: 10px;"></i>
+                        <p>Chưa có dữ liệu chấm công</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let historyHTML = '';
+            
+            workData.forEach(record => {
+                const isTodayRecord = record.date === formatDate(today);
+                const todayClass = isTodayRecord ? 'style="color: var(--primary); font-weight: 700;"' : '';
+                
+                historyHTML += `
+                    <div class="history-item">
+                        <div>
+                            <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'}</div>
+                            <div class="history-time">${record.startTime} - ${record.endTime || '--:--'}</div>
+                        </div>
+                        <div class="history-overtime">${record.endTime ? `+${record.overtime} giờ` : 'Đang làm'}</div>
+                    </div>
+                `;
+            });
+            
+            historyContainer.innerHTML = historyHTML;
+        }
+
+        // Khởi tạo dropdown chọn tháng
+        function initMonthSelect() {
+            updateMonthSelect();
+        }
+
+        // Cập nhật dropdown chọn tháng
+        function updateMonthSelect() {
+            const monthSelect = document.getElementById('monthSelect');
+            const months = new Set();
+            
+            // Lấy tất cả các tháng có trong dữ liệu
+            workData.forEach(record => {
+                const date = new Date(record.timestamp);
+                const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+                months.add(monthYear);
+            });
+            
+            // Xóa các option cũ (giữ option đầu tiên)
+            while (monthSelect.options.length > 1) {
+                monthSelect.remove(1);
+            }
+            
+            // Thêm các option mới
+            const monthsArray = Array.from(months).sort((a, b) => {
+                const [aMonth, aYear] = a.split('/').map(Number);
+                const [bMonth, bYear] = b.split('/').map(Number);
+                
+                if (aYear !== bYear) return bYear - aYear;
+                return bMonth - aMonth;
+            });
+            
+            monthsArray.forEach(monthYear => {
+                const [month, year] = monthYear.split('/');
+                const option = document.createElement('option');
+                option.value = monthYear;
+                option.textContent = `Tháng ${month}/${year}`;
+                monthSelect.appendChild(option);
+            });
+            
+            // Cập nhật sự kiện khi chọn tháng
+            monthSelect.addEventListener('change', function() {
+                selectedMonth = this.value;
+            });
+        }
+
+        // Hiển thị xác nhận xóa
+        function showDeleteConfirm() {
+            if (!selectedMonth) {
+                showNotification('Vui lòng chọn tháng để xóa!', 'warning');
+                return;
+            }
+            
+            const [month, year] = selectedMonth.split('/');
+            document.getElementById('modalMessage').textContent = 
+                `Bạn có chắc chắn muốn xóa tất cả dữ liệu chấm công của tháng ${month}/${year}?`;
+            
+            deleteAction = 'month';
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+
+        // Ẩn modal
+        function hideModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            deleteAction = null;
+        }
+
+        // Xác nhận xóa
+        function confirmDelete() {
+            if (deleteAction === 'month' && selectedMonth) {
+                deleteMonthData(selectedMonth);
+            }
+            
+            hideModal();
+        }
+
+        // Xóa dữ liệu theo tháng
+        function deleteMonthData(monthYear) {
+            const [month, year] = monthYear.split('/').map(Number);
+            
+            // Lọc ra các bản ghi không thuộc tháng được chọn
+            const filteredData = workData.filter(record => {
+                const recordDate = new Date(record.timestamp);
+                const recordMonth = recordDate.getMonth() + 1;
+                const recordYear = recordDate.getFullYear();
+                
+                return !(recordMonth === month && recordYear === year);
+            });
+            
+            // Cập nhật dữ liệu
+            workData = filteredData;
+            
+            // Lưu vào localStorage
+            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            
+            // Cập nhật UI
+            updateWorkHistory();
+            updateMonthSelect();
+            
+            // Reset selectedMonth
+            selectedMonth = null;
+            document.getElementById('monthSelect').value = '';
+            
+            showNotification(`Đã xóa dữ liệu tháng ${month}/${year}`, 'success');
+        }
+
+        // Hiển thị thông báo
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notificationMessage');
+            
+            // Đặt màu nền theo loại thông báo
+            let bgColor = 'var(--primary)';
+            if (type === 'success') bgColor = 'var(--success)';
+            if (type === 'warning') bgColor = 'var(--warning)';
+            if (type === 'danger') bgColor = 'var(--danger)';
+            
+            notification.style.backgroundColor = bgColor;
+            
+            // Thêm class theo type
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            messageElement.textContent = message;
+            
+            // Hiển thị thông báo
+            notification.classList.add('show');
+            
+            // Ẩn thông báo sau 3 giây
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Thêm sự kiện trước khi đóng trang để cảnh báo nếu đang làm việc
+        window.addEventListener('beforeunload', function(e) {
+            if (isWorking) {
+                e.preventDefault();
+                e.returnValue = 'Bạn đang trong giờ làm việc. Bạn có chắc chắn muốn rời đi?';
+            }
+        });
+    </script>
 </body>
 </html>
