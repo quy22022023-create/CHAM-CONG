@@ -26,6 +26,7 @@
             --border: #C7C7CC;
             --card-bg: #FFFFFF;
             --sunday: #FF2D55;
+            --today: #007AFF;
         }
         
         body {
@@ -152,7 +153,6 @@
         }
         
         .btn {
-            flex: 1;
             background-color: var(--primary);
             color: white;
             border: none;
@@ -171,6 +171,10 @@
         
         .btn:active {
             transform: scale(0.97);
+        }
+        
+        .btn-full {
+            width: 100%;
         }
         
         .btn-start {
@@ -211,6 +215,24 @@
         
         .btn-secondary:active {
             background-color: #E5E5EA;
+        }
+        
+        .btn-month {
+            background-color: #5AC8FA;
+            margin-top: 15px;
+        }
+        
+        .btn-month:active {
+            background-color: #4AA8D8;
+        }
+        
+        .btn-lunch {
+            background-color: #FF9500;
+            margin-top: 10px;
+        }
+        
+        .btn-lunch:active {
+            background-color: #E68500;
         }
         
         .btn:disabled {
@@ -330,6 +352,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            overflow-y: auto;
         }
         
         .modal-content {
@@ -339,12 +362,26 @@
             width: 100%;
             max-width: 400px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal h3 {
             font-size: 20px;
             margin-bottom: 15px;
             color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal h3 .close-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
         }
         
         .modal p {
@@ -356,6 +393,176 @@
         .modal-buttons {
             display: flex;
             gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* Calendar */
+        .calendar {
+            width: 100%;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-month-year {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-nav-btn {
+            background-color: var(--light);
+            border: none;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .calendar-weekdays div {
+            padding: 8px 0;
+        }
+        
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .calendar-day:hover {
+            background-color: var(--light);
+        }
+        
+        .calendar-day.empty {
+            background-color: transparent;
+            cursor: default;
+        }
+        
+        .calendar-day.today {
+            background-color: rgba(0, 122, 255, 0.1);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .calendar-day.has-data {
+            background-color: rgba(52, 199, 89, 0.1);
+        }
+        
+        .calendar-day.sunday {
+            color: var(--sunday);
+        }
+        
+        .calendar-day.selected {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .day-overtime {
+            font-size: 10px;
+            margin-top: 2px;
+            color: var(--success);
+            font-weight: 700;
+        }
+        
+        .day-lunch {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 6px;
+            height: 6px;
+            background-color: var(--warning);
+            border-radius: 50%;
+        }
+        
+        /* Day Detail */
+        .day-detail {
+            margin-bottom: 20px;
+        }
+        
+        .day-detail-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-box {
+            background-color: var(--light);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .detail-box h4 {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .edit-time {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .time-input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background-color: white;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .edit-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
         }
         
         /* Thông báo */
@@ -413,6 +620,14 @@
             .work-info {
                 grid-template-columns: 1fr;
             }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .edit-time {
+                flex-direction: column;
+            }
         }
         
         /* Hiệu ứng loading */
@@ -432,7 +647,7 @@
         
         /* Tối ưu cho iPhone */
         @supports (-webkit-touch-callout: none) {
-            .btn, .month-select {
+            .btn, .month-select, .time-input {
                 -webkit-appearance: none;
             }
         }
@@ -500,6 +715,11 @@
                     <div class="info-value" id="overtime">0<span class="info-unit">giờ</span></div>
                 </div>
             </div>
+            
+            <!-- Nút xem lịch tháng -->
+            <button class="btn btn-month btn-full" id="viewMonthBtn">
+                <i class="fas fa-calendar-alt"></i> Xem Lịch Tháng
+            </button>
         </div>
 
         <!-- Lịch sử làm việc -->
@@ -523,16 +743,6 @@
                 </button>
             </div>
         </div>
-        
-        <!-- Thông tin ứng dụng -->
-        <div class="card">
-            <h2><i class="fas fa-info-circle"></i> Hướng dẫn sử dụng</h2>
-            <p>1. <strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu lúc 7:45, chỉ cần ấn "Tan ca" khi kết thúc</p>
-            <p>2. <strong>Chủ nhật:</strong> Ấn "Bắt đầu" khi vào ca, ấn "Tan ca" khi kết thúc</p>
-            <p>3. Ứng dụng tự tính thời gian làm việc và tăng ca</p>
-            <p>4. Giờ làm việc chuẩn: 7:45 - 17:00 (9 giờ 15 phút)</p>
-            <p>5. Dữ liệu được lưu tự động trên thiết bị của bạn</p>
-        </div>
     </div>
 
     <!-- Footer -->
@@ -549,6 +759,32 @@
             <div class="modal-buttons">
                 <button class="btn btn-secondary" id="cancelBtn">Hủy</button>
                 <button class="btn btn-danger" id="confirmDeleteBtn">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Lịch Tháng -->
+    <div class="modal" id="monthCalendarModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-calendar"></i> Lịch Tháng
+                <button class="close-btn" id="closeMonthModal">&times;</button>
+            </h3>
+            <div class="calendar" id="monthCalendar">
+                <!-- Calendar sẽ được tạo bằng JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chi Tiết Ngày -->
+    <div class="modal" id="dayDetailModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-calendar-day"></i> Chi Tiết Ngày
+                <button class="close-btn" id="closeDayModal">&times;</button>
+            </h3>
+            <div class="day-detail" id="dayDetailContent">
+                <!-- Nội dung chi tiết sẽ được thêm bằng JavaScript -->
             </div>
         </div>
     </div>
@@ -571,6 +807,10 @@
         let dayOfWeek = today.getDay(); // 0 = Chủ nhật, 1 = Thứ 2, ..., 6 = Thứ 7
         let isSunday = (dayOfWeek === 0);
         let isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6); // Thứ 2 đến thứ 7
+        let currentMonth = today.getMonth();
+        let currentYear = today.getFullYear();
+        let selectedDate = null;
+        let selectedDayData = null;
 
         // Khởi tạo ứng dụng khi trang được tải
         document.addEventListener('DOMContentLoaded', function() {
@@ -598,6 +838,9 @@
             document.getElementById('deleteMonthBtn').addEventListener('click', showDeleteConfirm);
             document.getElementById('cancelBtn').addEventListener('click', hideModal);
             document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+            document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
+            document.getElementById('closeMonthModal').addEventListener('click', hideMonthModal);
+            document.getElementById('closeDayModal').addEventListener('click', hideDayModal);
             
             // Kiểm tra trạng thái làm việc hôm nay
             checkTodayWorkStatus();
@@ -879,6 +1122,14 @@
             return date.toLocaleDateString('vi-VN');
         }
 
+        // Định dạng ngày thành chuỗi YYYY-MM-DD
+        function formatDateISO(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         // Parse time string thành Date object
         function parseTimeString(timeStr, baseDate) {
             if (!timeStr) return null;
@@ -887,6 +1138,12 @@
             const date = new Date(baseDate);
             date.setHours(hours, minutes, 0, 0);
             return date;
+        }
+
+        // Parse date string thành Date object
+        function parseDateString(dateStr) {
+            const [day, month, year] = dateStr.split('/').map(Number);
+            return new Date(year, month - 1, day);
         }
 
         // Bắt đầu đếm thời gian
@@ -923,15 +1180,24 @@
             const workRecord = {
                 id: Date.now(),
                 date: todayStr,
+                dateISO: formatDateISO(startTime),
                 startTime: formatTime(startTime),
-                endTime: formatTime(endTime),
+                endTime: endTime ? formatTime(endTime) : null,
                 totalHours: totalHours.toFixed(2),
                 overtime: overtime.toFixed(2),
+                lunchOvertime: 0, // Mặc định không có tăng ca trưa
                 timestamp: startTime.getTime(),
                 isWeekday: isWeekday
             };
             
             if (existingIndex >= 0) {
+                // Giữ lại lunchOvertime nếu đã có
+                if (workData[existingIndex].lunchOvertime) {
+                    workRecord.lunchOvertime = workData[existingIndex].lunchOvertime;
+                    // Cộng thêm lunchOvertime vào overtime
+                    workRecord.overtime = (parseFloat(workRecord.overtime) + workRecord.lunchOvertime).toFixed(2);
+                }
+                
                 // Cập nhật bản ghi đã có
                 workData[existingIndex] = workRecord;
             } else {
@@ -981,6 +1247,8 @@
             workData.forEach(record => {
                 const isTodayRecord = record.date === formatDate(today);
                 const todayClass = isTodayRecord ? 'style="color: var(--primary); font-weight: 700;"' : '';
+                const totalOvertime = parseFloat(record.overtime);
+                const lunchOvertime = record.lunchOvertime || 0;
                 
                 historyHTML += `
                     <div class="history-item">
@@ -988,7 +1256,7 @@
                             <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'}</div>
                             <div class="history-time">${record.startTime} - ${record.endTime || '--:--'}</div>
                         </div>
-                        <div class="history-overtime">${record.endTime ? `+${record.overtime} giờ` : 'Đang làm'}</div>
+                        <div class="history-overtime">${record.endTime ? `+${totalOvertime.toFixed(2)} giờ` : 'Đang làm'} ${lunchOvertime > 0 ? '<i class="fas fa-utensils" style="color: var(--warning); margin-left: 5px;"></i>' : ''}</div>
                     </div>
                 `;
             });
@@ -1099,6 +1367,341 @@
             document.getElementById('monthSelect').value = '';
             
             showNotification(`Đã xóa dữ liệu tháng ${month}/${year}`, 'success');
+        }
+
+        // Hiển thị lịch tháng
+        function showMonthCalendar() {
+            renderCalendar(currentMonth, currentYear);
+            document.getElementById('monthCalendarModal').style.display = 'flex';
+        }
+
+        // Ẩn modal lịch tháng
+        function hideMonthModal() {
+            document.getElementById('monthCalendarModal').style.display = 'none';
+        }
+
+        // Ẩn modal chi tiết ngày
+        function hideDayModal() {
+            document.getElementById('dayDetailModal').style.display = 'none';
+        }
+
+        // Render lịch tháng
+        function renderCalendar(month, year) {
+            const calendarElement = document.getElementById('monthCalendar');
+            
+            // Tên tháng
+            const monthNames = [
+                'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+            ];
+            
+            // Ngày đầu tiên của tháng
+            const firstDay = new Date(year, month, 1);
+            // Ngày cuối cùng của tháng
+            const lastDay = new Date(year, month + 1, 0);
+            // Số ngày trong tháng
+            const daysInMonth = lastDay.getDate();
+            // Ngày đầu tiên của tháng là thứ mấy (0 = Chủ nhật, 1 = Thứ 2, ...)
+            const firstDayIndex = firstDay.getDay();
+            
+            // Tạo HTML cho lịch
+            let calendarHTML = `
+                <div class="calendar-header">
+                    <div class="calendar-month-year">${monthNames[month]} ${year}</div>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
+                        <button class="calendar-nav-btn" id="todayMonthBtn">Hôm nay</button>
+                        <button class="calendar-nav-btn" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-weekdays">
+                    <div>CN</div>
+                    <div>T2</div>
+                    <div>T3</div>
+                    <div>T4</div>
+                    <div>T5</div>
+                    <div>T6</div>
+                    <div>T7</div>
+                </div>
+                <div class="calendar-days">
+            `;
+            
+            // Thêm ô trống cho các ngày trước tháng
+            for (let i = 0; i < firstDayIndex; i++) {
+                calendarHTML += `<div class="calendar-day empty"></div>`;
+            }
+            
+            // Thêm các ngày trong tháng
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDate = new Date(year, month, day);
+                const dateStr = formatDate(currentDate);
+                const dateISO = formatDateISO(currentDate);
+                const isToday = currentDate.toDateString() === today.toDateString();
+                const isSunday = currentDate.getDay() === 0;
+                
+                // Tìm dữ liệu cho ngày này
+                const dayData = workData.find(record => record.date === dateStr);
+                const hasData = !!dayData;
+                const hasLunchOvertime = hasData && dayData.lunchOvertime > 0;
+                const overtime = hasData ? parseFloat(dayData.overtime) : 0;
+                
+                let dayClass = 'calendar-day';
+                if (isToday) dayClass += ' today';
+                if (hasData) dayClass += ' has-data';
+                if (isSunday) dayClass += ' sunday';
+                
+                calendarHTML += `
+                    <div class="${dayClass}" data-date="${dateStr}" data-date-iso="${dateISO}">
+                        ${day}
+                        ${hasLunchOvertime ? '<div class="day-lunch"></div>' : ''}
+                        ${hasData && overtime > 0 ? `<div class="day-overtime">+${overtime.toFixed(1)}h</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            calendarHTML += `</div>`;
+            calendarElement.innerHTML = calendarHTML;
+            
+            // Thêm sự kiện cho các nút điều hướng
+            document.getElementById('prevMonthBtn').addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+            
+            document.getElementById('nextMonthBtn').addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar(currentMonth, currentYear);
+            });
+            
+            document.getElementById('todayMonthBtn').addEventListener('click', () => {
+                const now = new Date();
+                currentMonth = now.getMonth();
+                currentYear = now.getFullYear();
+                renderCalendar(currentMonth, currentYear);
+            });
+            
+            // Thêm sự kiện click cho các ngày
+            const dayElements = document.querySelectorAll('.calendar-day:not(.empty)');
+            dayElements.forEach(dayElement => {
+                dayElement.addEventListener('click', () => {
+                    const dateStr = dayElement.getAttribute('data-date');
+                    showDayDetail(dateStr);
+                });
+            });
+        }
+
+        // Hiển thị chi tiết ngày
+        function showDayDetail(dateStr) {
+            selectedDate = parseDateString(dateStr);
+            selectedDayData = workData.find(record => record.date === dateStr);
+            
+            const dayDetailElement = document.getElementById('dayDetailContent');
+            
+            if (selectedDayData) {
+                const totalOvertime = parseFloat(selectedDayData.overtime);
+                const lunchOvertime = selectedDayData.lunchOvertime || 0;
+                const workOvertime = totalOvertime - lunchOvertime;
+                
+                dayDetailElement.innerHTML = `
+                    <div class="day-detail-info">
+                        <div class="detail-box">
+                            <h4>Ngày</h4>
+                            <div class="detail-value">${dateStr}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Loại ngày</h4>
+                            <div class="detail-value">${selectedDayData.isWeekday ? 'T2-T7' : 'Chủ nhật'}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Giờ vào</h4>
+                            <div class="detail-value">${selectedDayData.startTime}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Giờ tan</h4>
+                            <div class="detail-value">${selectedDayData.endTime || '--:--'}</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Tổng giờ</h4>
+                            <div class="detail-value">${selectedDayData.totalHours} giờ</div>
+                        </div>
+                        <div class="detail-box">
+                            <h4>Tăng ca</h4>
+                            <div class="detail-value">${totalOvertime.toFixed(2)} giờ</div>
+                        </div>
+                    </div>
+                    
+                    <div class="edit-time">
+                        <input type="time" id="editStartTime" class="time-input" value="${selectedDayData.startTime}">
+                        <span>đến</span>
+                        <input type="time" id="editEndTime" class="time-input" value="${selectedDayData.endTime || ''}">
+                    </div>
+                    
+                    <div class="edit-buttons">
+                        <button class="btn btn-secondary btn-small" id="updateTimeBtn">
+                            <i class="fas fa-save"></i> Cập nhật giờ
+                        </button>
+                        <button class="btn btn-lunch btn-small" id="addLunchOvertimeBtn">
+                            <i class="fas fa-utensils"></i> +1h Tăng ca trưa
+                        </button>
+                    </div>
+                    
+                    ${lunchOvertime > 0 ? `
+                        <div style="margin-top: 15px; padding: 10px; background-color: rgba(255, 149, 0, 0.1); border-radius: 10px; text-align: center;">
+                            <i class="fas fa-utensils" style="color: var(--warning);"></i> 
+                            <strong>Đã có ${lunchOvertime} giờ tăng ca trưa</strong>
+                        </div>
+                    ` : ''}
+                `;
+                
+                // Thêm sự kiện cho các nút
+                document.getElementById('updateTimeBtn').addEventListener('click', updateDayTime);
+                document.getElementById('addLunchOvertimeBtn').addEventListener('click', addLunchOvertime);
+            } else {
+                dayDetailElement.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: var(--gray);">
+                        <i class="fas fa-calendar-times" style="font-size: 40px; margin-bottom: 10px;"></i>
+                        <p>Không có dữ liệu chấm công cho ngày ${dateStr}</p>
+                    </div>
+                `;
+            }
+            
+            // Hiển thị modal chi tiết
+            hideMonthModal();
+            document.getElementById('dayDetailModal').style.display = 'flex';
+        }
+
+        // Cập nhật thời gian làm việc cho ngày
+        function updateDayTime() {
+            const startTimeInput = document.getElementById('editStartTime').value;
+            const endTimeInput = document.getElementById('editEndTime').value;
+            
+            if (!startTimeInput) {
+                showNotification('Vui lòng nhập giờ bắt đầu', 'warning');
+                return;
+            }
+            
+            if (!endTimeInput) {
+                showNotification('Vui lòng nhập giờ kết thúc', 'warning');
+                return;
+            }
+            
+            // Parse thời gian
+            const [startHour, startMinute] = startTimeInput.split(':').map(Number);
+            const [endHour, endMinute] = endTimeInput.split(':').map(Number);
+            
+            const startTime = new Date(selectedDate);
+            startTime.setHours(startHour, startMinute, 0, 0);
+            
+            const endTime = new Date(selectedDate);
+            endTime.setHours(endHour, endMinute, 0, 0);
+            
+            // Kiểm tra thời gian hợp lệ
+            if (endTime <= startTime) {
+                showNotification('Giờ kết thúc phải sau giờ bắt đầu', 'warning');
+                return;
+            }
+            
+            // Tính toán thời gian làm việc
+            const workDuration = calculateWorkDuration(startTime, endTime);
+            const overtime = calculateOvertime(workDuration);
+            
+            // Giữ lại lunchOvertime cũ nếu có
+            const lunchOvertime = selectedDayData ? (selectedDayData.lunchOvertime || 0) : 0;
+            const totalOvertime = overtime + lunchOvertime;
+            
+            // Tìm index của bản ghi
+            const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
+            
+            if (recordIndex >= 0) {
+                // Cập nhật bản ghi đã có
+                workData[recordIndex] = {
+                    ...workData[recordIndex],
+                    startTime: formatTime(startTime),
+                    endTime: formatTime(endTime),
+                    totalHours: workDuration.toFixed(2),
+                    overtime: totalOvertime.toFixed(2),
+                    timestamp: startTime.getTime()
+                };
+            } else {
+                // Tạo bản ghi mới
+                const isWeekday = selectedDate.getDay() >= 1 && selectedDate.getDay() <= 6;
+                
+                workData.unshift({
+                    id: Date.now(),
+                    date: formatDate(selectedDate),
+                    dateISO: formatDateISO(startTime),
+                    startTime: formatTime(startTime),
+                    endTime: formatTime(endTime),
+                    totalHours: workDuration.toFixed(2),
+                    overtime: totalOvertime.toFixed(2),
+                    lunchOvertime: lunchOvertime,
+                    timestamp: startTime.getTime(),
+                    isWeekday: isWeekday
+                });
+            }
+            
+            // Lưu vào localStorage
+            localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+            
+            // Cập nhật UI
+            updateWorkHistory();
+            
+            // Nếu đang xem lịch tháng, cập nhật lại
+            renderCalendar(currentMonth, currentYear);
+            
+            // Đóng modal chi tiết
+            hideDayModal();
+            
+            showNotification('Đã cập nhật giờ làm việc', 'success');
+        }
+
+        // Thêm tăng ca trưa
+        function addLunchOvertime() {
+            if (!selectedDayData) {
+                showNotification('Không có dữ liệu cho ngày này', 'warning');
+                return;
+            }
+            
+            // Tìm index của bản ghi
+            const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
+            
+            if (recordIndex >= 0) {
+                // Tăng lunchOvertime thêm 1 giờ
+                const currentLunchOvertime = workData[recordIndex].lunchOvertime || 0;
+                const newLunchOvertime = currentLunchOvertime + 1;
+                
+                // Cập nhật overtime tổng
+                const currentOvertime = parseFloat(workData[recordIndex].overtime);
+                const newOvertime = currentOvertime + 1;
+                
+                workData[recordIndex] = {
+                    ...workData[recordIndex],
+                    lunchOvertime: newLunchOvertime,
+                    overtime: newOvertime.toFixed(2)
+                };
+                
+                // Lưu vào localStorage
+                localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+                
+                // Cập nhật UI
+                updateWorkHistory();
+                
+                // Nếu đang xem lịch tháng, cập nhật lại
+                renderCalendar(currentMonth, currentYear);
+                
+                // Cập nhật lại modal chi tiết
+                showDayDetail(formatDate(selectedDate));
+                
+                showNotification('Đã thêm 1 giờ tăng ca trưa', 'success');
+            }
         }
 
         // Hiển thị thông báo
