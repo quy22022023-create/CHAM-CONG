@@ -33,8 +33,6 @@
         .btn-start.auto-activated{background-color:#2DAE4A;border:2px solid #1E8C3E;}
         .btn-end{background-color:var(--warning);}
         .btn-end:active{background-color:#E68500;}
-        .btn-overtime-confirm{background-color:#AF52DE;margin-top:10px;}
-        .btn-overtime-confirm:active{background-color:#9B45C7;}
         .btn-salary-control{background:linear-gradient(135deg,var(--salary),#7D3CFF);margin-top:10px;grid-column:span 2;animation:pulse 2s infinite;}
         @keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.02);}100%{transform:scale(1);}}
         .btn-salary-control:active{transform:scale(0.97);animation:none;}
@@ -129,11 +127,6 @@
         .toggle-status{font-size:14px;font-weight:600;color:var(--gray);}
         .toggle-status.active{color:var(--success);}
         
-        /* Overtime Status */
-        .overtime-status{background-color:rgba(175,82,222,0.1);border-radius:10px;padding:12px;margin-top:10px;text-align:center;font-size:14px;color:#AF52DE;display:flex;align-items:center;justify-content:center;gap:8px;}
-        .overtime-status.confirmed{background-color:rgba(52,199,89,0.1);color:var(--success);}
-        .overtime-status.pending{background-color:rgba(255,149,0,0.1);color:var(--warning);}
-        
         @media (max-width:350px){.controls{grid-template-columns:1fr;}.btn-salary-control{grid-column:span 1;}.work-info{grid-template-columns:1fr;}.modal-content{padding:15px;}.edit-time{flex-direction:column;}}
         .loading{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 1s ease-in-out infinite;}
         @keyframes spin{to{transform:rotate(360deg);}}
@@ -160,10 +153,9 @@
 
     <div class="container">
         <div class="info-message">
-            <h4><i class="fas fa-info-circle"></i> Logic chấm công mới</h4>
-            <p><strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu 7:45, nếu ấn "Bắt đầu" trước 7:45 thì trước 7:45 là tăng ca. Mặc định tan ca 17:00 nếu không xác nhận tăng ca.</p>
+            <h4><i class="fas fa-info-circle"></i> Logic chấm công</h4>
+            <p><strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu 7:45, nếu ấn "Bắt đầu" trước 7:45 thì trước 7:45 là tăng ca. Tính tăng ca cho thời gian sau 17:00.</p>
             <p><strong>Chủ nhật:</strong> Toàn bộ thời gian từ Bắt đầu đến Tan ca đều tính là tăng ca.</p>
-            <p><strong>Xác nhận tăng ca:</strong> Chỉ dành cho ngày trong tuần, nếu làm sau 17:00 phải xác nhận.</p>
         </div>
         
         <div class="card">
@@ -179,10 +171,6 @@
             
             <div id="autoStartInfo" class="auto-start-info" style="display: none;">
                 <i class="fas fa-robot"></i> Tự động kích hoạt lúc 7:45 (T2-T7)
-            </div>
-            
-            <div id="overtimeStatus" class="overtime-status pending" style="display: none;">
-                <i class="fas fa-clock"></i> Chưa xác nhận tăng ca (mặc định tan ca 17:00)
             </div>
             
             <div class="work-info">
@@ -208,10 +196,6 @@
                 <h4><i class="fas fa-coins"></i> Lương tăng ca dự kiến hôm nay</h4>
                 <div class="expected-amount" id="expectedAmount">0 VNĐ</div>
             </div>
-            
-            <button class="btn btn-overtime-confirm btn-full" id="confirmOvertimeBtn" style="display: none;">
-                <i class="fas fa-check-circle"></i> Xác Nhận Có Tăng Ca
-            </button>
             
             <button class="btn btn-salary-control btn-full" id="salaryBtn">
                 <i class="fas fa-calculator"></i> Tính Lương Tăng Ca
@@ -243,9 +227,9 @@
     </div>
 
     <div class="footer">
-        <p>Ứng dụng Chấm Công Tăng Ca V1.0.7&copy; QUYSC-2026</p>
+        <p>Ứng dụng Chấm Công Tăng Ca &copy; QUYSC-2026</p>
         <p>Dữ liệu được lưu trữ cục bộ trên thiết bị</p>
-    </div>
+    </div>!
 
     <div class="modal" id="confirmModal">
         <div class="modal-content">
@@ -338,9 +322,8 @@
         let selectedDayData = null;
         let basicSalary = localStorage.getItem('basicSalary') || 0;
         let autoStartTriggered = false;
-        let overtimeConfirmed = false;
-        let earlyOvertime = 0; // Tăng ca sớm trước 7:45
-        let lateOvertime = 0; // Tăng ca muộn sau 17:00
+        let earlyOvertime = 0;
+        let lateOvertime = 0;
 
         document.addEventListener('DOMContentLoaded', function() {
             initApp();
@@ -359,7 +342,6 @@
             
             document.getElementById('startWorkBtn').addEventListener('click', startWork);
             document.getElementById('endWorkBtn').addEventListener('click', endWork);
-            document.getElementById('confirmOvertimeBtn').addEventListener('click', confirmOvertime);
             document.getElementById('deleteMonthBtn').addEventListener('click', showDeleteConfirm);
             document.getElementById('cancelBtn').addEventListener('click', hideModal);
             document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
@@ -464,7 +446,6 @@
                 lunchOvertime: 0,
                 earlyOvertime: 0,
                 lateOvertime: 0,
-                overtimeConfirmed: false,
                 timestamp: startTimeToday.getTime(),
                 isWeekday: true,
                 isAutoStarted: true
@@ -584,7 +565,6 @@
                 workStartTime = parseTimeString(todayRecord.startTime, today);
                 workEndTime = todayRecord.endTime ? parseTimeString(todayRecord.endTime, today) : null;
                 isWorking = !todayRecord.endTime;
-                overtimeConfirmed = todayRecord.overtimeConfirmed || false;
                 earlyOvertime = todayRecord.earlyOvertime || 0;
                 lateOvertime = todayRecord.lateOvertime || 0;
                 
@@ -610,39 +590,16 @@
                     document.getElementById('totalTime').innerHTML = `${totalHours.toFixed(2)}<span class="info-unit">giờ</span>`;
                     document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
                     
-                    updateOvertimeStatusDisplay();
                     updateExpectedSalary();
                 } else {
                     document.getElementById('endTime').textContent = '--:--';
                     document.getElementById('workStatus').textContent = 'Đang làm việc';
                     document.getElementById('workStatus').style.color = 'var(--success)';
                     startTimer();
-                    updateOvertimeStatusDisplay();
                 }
             }
             
             updateButtonStates();
-        }
-
-        function updateOvertimeStatusDisplay() {
-            const overtimeStatus = document.getElementById('overtimeStatus');
-            const confirmBtn = document.getElementById('confirmOvertimeBtn');
-            
-            if (isWorking && isWeekday) {
-                overtimeStatus.style.display = 'flex';
-                if (overtimeConfirmed) {
-                    overtimeStatus.className = 'overtime-status confirmed';
-                    overtimeStatus.innerHTML = '<i class="fas fa-check-circle"></i> Đã xác nhận có tăng ca';
-                    confirmBtn.style.display = 'none';
-                } else {
-                    overtimeStatus.className = 'overtime-status pending';
-                    overtimeStatus.innerHTML = '<i class="fas fa-clock"></i> Chưa xác nhận tăng ca (mặc định tan ca 17:00)';
-                    confirmBtn.style.display = 'flex';
-                }
-            } else {
-                overtimeStatus.style.display = 'none';
-                confirmBtn.style.display = 'none';
-            }
         }
 
         function updateButtonStates() {
@@ -682,7 +639,6 @@
             
             workStartTime = new Date();
             isWorking = true;
-            overtimeConfirmed = false;
             
             document.getElementById('startTime').textContent = formatTime(workStartTime);
             document.getElementById('workStatus').textContent = 'Đang làm việc';
@@ -696,7 +652,6 @@
             
             updateButtonStates();
             startTimer();
-            updateOvertimeStatusDisplay();
             
             const todayStr = formatDate(today);
             const autoRecordIndex = workData.findIndex(record => record.date === todayStr && record.isAutoStarted);
@@ -718,19 +673,11 @@
             
             stopTimer();
             
-            // Tính toán theo logic mới
             const workDuration = calculateWorkDuration(workStartTime, workEndTime);
             let overtime = 0;
-            let endTimeForCalculation = workEndTime;
             
             if (isWeekday) {
-                // Ngày trong tuần
-                if (!overtimeConfirmed) {
-                    // Nếu chưa xác nhận tăng ca, mặc định tan ca 17:00
-                    const defaultEndTime = new Date(workStartTime);
-                    defaultEndTime.setHours(17, 0, 0, 0);
-                    endTimeForCalculation = workEndTime > defaultEndTime ? defaultEndTime : workEndTime;
-                }
+                // Ngày trong tuần: tính tăng ca sớm và muộn
                 
                 // Tính tăng ca sớm (trước 7:45)
                 const standardStartTime = new Date(workStartTime);
@@ -746,7 +693,7 @@
                 const standardEndTime = new Date(workStartTime);
                 standardEndTime.setHours(17, 0, 0, 0);
                 
-                if (overtimeConfirmed && workEndTime > standardEndTime) {
+                if (workEndTime > standardEndTime) {
                     lateOvertime = calculateWorkDuration(standardEndTime, workEndTime);
                 } else {
                     lateOvertime = 0;
@@ -766,23 +713,11 @@
             document.getElementById('workStatus').style.color = 'var(--warning)';
             
             updateButtonStates();
-            saveWorkData(workStartTime, workEndTime, workDuration, overtime, endTimeForCalculation);
+            saveWorkData(workStartTime, workEndTime, workDuration, overtime);
             updateWorkHistory();
             updateExpectedSalary();
-            updateOvertimeStatusDisplay();
             
             showNotification(`Đã kết thúc làm việc. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
-        }
-
-        function confirmOvertime() {
-            if (!isWorking) {
-                showNotification('Bạn không đang làm việc!', 'warning');
-                return;
-            }
-            
-            overtimeConfirmed = true;
-            updateOvertimeStatusDisplay();
-            showNotification('Đã xác nhận có tăng ca!', 'success');
         }
 
         function calculateWorkDuration(startTime, endTime) {
@@ -841,14 +776,12 @@
                             earlyOvertime = calculateWorkDuration(workStartTime, standardStartTime);
                         }
                         
-                        // Tính tăng ca muộn (nếu đã xác nhận và sau 17:00)
-                        if (overtimeConfirmed) {
-                            const standardEndTime = new Date(workStartTime);
-                            standardEndTime.setHours(17, 0, 0, 0);
-                            
-                            if (now > standardEndTime) {
-                                lateOvertime = calculateWorkDuration(standardEndTime, now);
-                            }
+                        // Tính tăng ca muộn (sau 17:00)
+                        const standardEndTime = new Date(workStartTime);
+                        standardEndTime.setHours(17, 0, 0, 0);
+                        
+                        if (now > standardEndTime) {
+                            lateOvertime = calculateWorkDuration(standardEndTime, now);
                         }
                         
                         overtime = earlyOvertime + lateOvertime;
@@ -870,7 +803,7 @@
             }
         }
 
-        function saveWorkData(startTime, endTime, totalHours, overtime, endTimeForCalculation = null) {
+        function saveWorkData(startTime, endTime, totalHours, overtime) {
             const todayStr = formatDate(today);
             
             const existingIndex = workData.findIndex(record => record.date === todayStr);
@@ -881,14 +814,12 @@
                 dateISO: formatDateISO(startTime),
                 startTime: formatTime(startTime),
                 endTime: endTime ? formatTime(endTime) : null,
-                endTimeForCalculation: endTimeForCalculation ? formatTime(endTimeForCalculation) : formatTime(endTime),
                 totalHours: totalHours.toFixed(2),
                 overtime: overtime.toFixed(2),
                 manualOvertime: '0.00',
                 lunchOvertime: 0,
                 earlyOvertime: earlyOvertime.toFixed(2),
                 lateOvertime: lateOvertime.toFixed(2),
-                overtimeConfirmed: overtimeConfirmed,
                 timestamp: startTime.getTime(),
                 isWeekday: isWeekday,
                 isAutoStarted: false
@@ -970,19 +901,11 @@
                 const totalOvertime = parseFloat(record.overtime);
                 const lunchOvertime = record.lunchOvertime || 0;
                 const autoStarted = record.isAutoStarted || false;
-                const overtimeConfirmed = record.overtimeConfirmed || false;
-                
-                let overtimeIcon = '';
-                if (record.isWeekday) {
-                    if (overtimeConfirmed) {
-                        overtimeIcon = '<i class="fas fa-check-circle" style="color: var(--success); margin-left: 5px;"></i>';
-                    }
-                }
                 
                 historyHTML += `
                     <div class="history-item">
                         <div>
-                            <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'} ${autoStarted ? '<i class="fas fa-robot" style="color: var(--success); margin-left: 5px;"></i>' : ''}${overtimeIcon}</div>
+                            <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'} ${autoStarted ? '<i class="fas fa-robot" style="color: var(--success); margin-left: 5px;"></i>' : ''}</div>
                             <div class="history-time">${record.startTime} - ${record.endTime || '--:--'}</div>
                         </div>
                         <div class="history-overtime">${record.endTime ? `+${totalOvertime.toFixed(2)} giờ` : 'Đang làm'} ${lunchOvertime > 0 ? '<i class="fas fa-utensils" style="color: var(--warning); margin-left: 5px;"></i>' : ''}</div>
@@ -1147,7 +1070,6 @@
                 const hasData = !!dayData;
                 const hasLunchOvertime = hasData && dayData.lunchOvertime > 0;
                 const overtime = hasData ? parseFloat(dayData.overtime) : 0;
-                const overtimeConfirmed = hasData ? (dayData.overtimeConfirmed || false) : false;
                 
                 let dayClass = 'calendar-day';
                 if (isToday) dayClass += ' today';
@@ -1158,7 +1080,6 @@
                     <div class="${dayClass}" data-date="${dateStr}">
                         ${day}
                         ${hasLunchOvertime ? '<div class="day-lunch"></div>' : ''}
-                        ${overtimeConfirmed ? '<i class="fas fa-check-circle" style="color: var(--success); font-size: 10px; position: absolute; top: 2px; left: 2px;"></i>' : ''}
                         ${hasData && overtime > 0 ? `<div class="day-overtime">+${overtime.toFixed(1)}h</div>` : ''}
                     </div>
                 `;
@@ -1216,7 +1137,6 @@
                 const earlyOvertime = parseFloat(selectedDayData.earlyOvertime || 0);
                 const lateOvertime = parseFloat(selectedDayData.lateOvertime || 0);
                 const workOvertime = totalOvertime - lunchOvertime - manualOvertime;
-                const overtimeConfirmed = selectedDayData.overtimeConfirmed || false;
                 const isWeekdayDetail = selectedDayData.isWeekday;
                 
                 let logicInfo = '';
@@ -1227,8 +1147,7 @@
                                 <strong><i class="fas fa-calculator"></i> Logic tính tăng ca:</strong><br>
                                 • Sớm trước 7:45: ${earlyOvertime.toFixed(2)} giờ<br>
                                 • Muộn sau 17:00: ${lateOvertime.toFixed(2)} giờ<br>
-                                • Trưa: ${lunchOvertime.toFixed(2)} giờ<br>
-                                • Xác nhận tăng ca: ${overtimeConfirmed ? 'Có ✓' : 'Không (mặc định 17:00)'}
+                                • Trưa: ${lunchOvertime.toFixed(2)} giờ
                             </div>
                         </div>
                     `;
@@ -1299,24 +1218,6 @@
                         </div>
                     </div>
                     
-                    ${isWeekdayDetail ? `
-                    <div class="toggle-container">
-                        <div class="toggle-label">
-                            <i class="fas fa-check-circle" style="color: var(--success);"></i>
-                            <span>Xác nhận có tăng ca</span>
-                        </div>
-                        <div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="overtimeConfirmToggle" ${overtimeConfirmed ? 'checked' : ''}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="toggle-status ${overtimeConfirmed ? 'active' : ''}" id="overtimeConfirmStatus">
-                                ${overtimeConfirmed ? 'ĐÃ XÁC NHẬN' : 'CHƯA XÁC NHẬN'}
-                            </div>
-                        </div>
-                    </div>
-                    ` : ''}
-                    
                     <div class="edit-buttons">
                         <button class="btn btn-secondary btn-small" id="updateTimeBtn">
                             <i class="fas fa-save"></i> Cập nhật
@@ -1334,16 +1235,6 @@
                         toggleStatus.textContent = this.checked ? 'BẬT' : 'TẮT';
                         toggleStatus.classList.toggle('active', this.checked);
                     });
-                    
-                    const overtimeConfirmToggle = document.getElementById('overtimeConfirmToggle');
-                    const overtimeConfirmStatus = document.getElementById('overtimeConfirmStatus');
-                    
-                    if (overtimeConfirmToggle) {
-                        overtimeConfirmToggle.addEventListener('change', function() {
-                            overtimeConfirmStatus.textContent = this.checked ? 'ĐÃ XÁC NHẬN' : 'CHƯA XÁC NHẬN';
-                            overtimeConfirmStatus.classList.toggle('active', this.checked);
-                        });
-                    }
                 }, 100);
             } else {
                 dayDetailElement.innerHTML = `
@@ -1372,7 +1263,6 @@
             const endTimeInput = document.getElementById('editEndTime').value;
             const manualOvertimeInput = document.getElementById('editManualOvertime').value;
             const lunchToggle = document.getElementById('lunchOvertimeToggle');
-            const overtimeConfirmToggle = document.getElementById('overtimeConfirmToggle');
             
             if (!startTimeInput) {
                 showNotification('Vui lòng nhập giờ bắt đầu', 'warning');
@@ -1416,9 +1306,7 @@
                     const standardEndTime = new Date(startTime);
                     standardEndTime.setHours(17, 0, 0, 0);
                     
-                    const overtimeConfirmedNew = overtimeConfirmToggle ? overtimeConfirmToggle.checked : false;
-                    
-                    if (overtimeConfirmedNew && endTime > standardEndTime) {
+                    if (endTime > standardEndTime) {
                         lateOvertimeNew = calculateWorkDuration(standardEndTime, endTime);
                     }
                     
@@ -1431,7 +1319,6 @@
             
             const manualOvertime = parseFloat(manualOvertimeInput) || 0;
             const lunchOvertime = lunchToggle.checked ? 1 : 0;
-            const overtimeConfirmedNew = overtimeConfirmToggle ? overtimeConfirmToggle.checked : false;
             const totalOvertime = overtime + lunchOvertime + manualOvertime;
             
             const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
@@ -1447,7 +1334,6 @@
                     lunchOvertime: lunchOvertime,
                     earlyOvertime: earlyOvertimeNew.toFixed(2),
                     lateOvertime: lateOvertimeNew.toFixed(2),
-                    overtimeConfirmed: overtimeConfirmedNew,
                     timestamp: startTime.getTime()
                 };
             } else {
@@ -1465,7 +1351,6 @@
                     lunchOvertime: lunchOvertime,
                     earlyOvertime: earlyOvertimeNew.toFixed(2),
                     lateOvertime: lateOvertimeNew.toFixed(2),
-                    overtimeConfirmed: overtimeConfirmedNew,
                     timestamp: startTime.getTime(),
                     isWeekday: isWeekdayNew,
                     isAutoStarted: false
@@ -1495,7 +1380,6 @@
                 lunchOvertime: 0,
                 earlyOvertime: 0,
                 lateOvertime: 0,
-                overtimeConfirmed: false,
                 timestamp: date.getTime(),
                 isWeekday: isWeekdayNew,
                 isAutoStarted: false
@@ -1631,4 +1515,3 @@
     </script>
 </body>
 </html>
-
