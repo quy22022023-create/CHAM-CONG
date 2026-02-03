@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -8,7 +9,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,sans-serif;}
-        :root{--primary:#007AFF;--success:#34C759;--warning:#FF9500;--danger:#FF3B30;--light:#F2F2F7;--dark:#1D1D1F;--gray:#8E8E93;--border:#C7C7CC;--card-bg:#FFFFFF;--sunday:#FF2D55;--salary:#5856D6;}
+        :root{--primary:#007AFF;--success:#34C759;--warning:#FF9500;--danger:#FF3B30;--light:#F2F2F7;--dark:#1D1D1F;--gray:#8E8E93;--border:#C7C7CC;--card-bg:#FFFFFF;--sunday:#FF2D55;--salary:#5856D6;--toggle-on:#34C759;--toggle-off:#E5E5EA;}
         body{background-color:var(--light);color:var(--dark);line-height:1.5;max-width:100%;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent;}
         .header{background:linear-gradient(135deg,var(--primary),#5856D6);color:white;padding-top:env(safe-area-inset-top);padding-bottom:20px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
         .header-content{padding:15px 20px;}
@@ -114,6 +115,19 @@
         .notification.info{background-color:var(--primary);}
         .info-message{background-color:rgba(0,122,255,0.1);border-radius:12px;padding:15px;margin-bottom:20px;border-left:4px solid var(--primary);}
         .info-message h4{color:var(--primary);margin-bottom:5px;font-size:16px;display:flex;align-items:center;gap:8px;}
+        
+        /* Toggle Switch Styles */
+        .toggle-container{display:flex;justify-content:space-between;align-items:center;margin:15px 0;padding:15px;background-color:var(--light);border-radius:12px;}
+        .toggle-label{font-weight:600;color:var(--dark);display:flex;align-items:center;gap:10px;}
+        .toggle-switch{position:relative;display:inline-block;width:60px;height:34px;}
+        .toggle-switch input{opacity:0;width:0;height:0;}
+        .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--toggle-off);transition:.4s;border-radius:34px;}
+        .toggle-slider:before{position:absolute;content:"";height:26px;width:26px;left:4px;bottom:4px;background-color:white;transition:.4s;border-radius:50%;}
+        input:checked + .toggle-slider{background-color:var(--toggle-on);}
+        input:checked + .toggle-slider:before{transform:translateX(26px);}
+        .toggle-status{font-size:14px;font-weight:600;color:var(--gray);}
+        .toggle-status.active{color:var(--success);}
+        
         @media (max-width:350px){.controls{grid-template-columns:1fr;}.btn-salary-control{grid-column:span 1;}.work-info{grid-template-columns:1fr;}.modal-content{padding:15px;}.edit-time{flex-direction:column;}}
         .loading{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:white;animation:spin 1s ease-in-out infinite;}
         @keyframes spin{to{transform:rotate(360deg);}}
@@ -1082,26 +1096,39 @@
                         <input type="number" id="editManualOvertime" class="overtime-input" value="${manualOvertime.toFixed(2)}" step="0.25" min="0">
                     </div>
                     
+                    <div class="toggle-container">
+                        <div class="toggle-label">
+                            <i class="fas fa-utensils" style="color: var(--warning);"></i>
+                            <span>Tăng ca trưa (1 giờ)</span>
+                        </div>
+                        <div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="lunchOvertimeToggle" ${lunchOvertime > 0 ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="toggle-status ${lunchOvertime > 0 ? 'active' : ''}" id="toggleStatus">
+                                ${lunchOvertime > 0 ? 'BẬT' : 'TẮT'}
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="edit-buttons">
                         <button class="btn btn-secondary btn-small" id="updateTimeBtn">
                             <i class="fas fa-save"></i> Cập nhật
                         </button>
-                        <button class="btn btn-lunch btn-small" id="addLunchOvertimeBtn">
-                            <i class="fas fa-utensils"></i> +1h Tăng ca trưa
-                        </button>
                     </div>
-                    
-                    ${lunchOvertime > 0 ? `
-                        <div style="margin-top:15px;padding:10px;background-color:rgba(255,149,0,0.1);border-radius:10px;text-align:center;">
-                            <i class="fas fa-utensils" style="color:var(--warning);"></i> 
-                            <strong>Đã có ${lunchOvertime} giờ tăng ca trưa</strong>
-                        </div>
-                    ` : ''}
                 `;
                 
                 setTimeout(() => {
                     document.getElementById('updateTimeBtn').addEventListener('click', updateDayTime);
-                    document.getElementById('addLunchOvertimeBtn').addEventListener('click', addLunchOvertime);
+                    
+                    const lunchToggle = document.getElementById('lunchOvertimeToggle');
+                    const toggleStatus = document.getElementById('toggleStatus');
+                    
+                    lunchToggle.addEventListener('change', function() {
+                        toggleStatus.textContent = this.checked ? 'BẬT' : 'TẮT';
+                        toggleStatus.classList.toggle('active', this.checked);
+                    });
                 }, 100);
             } else {
                 dayDetailElement.innerHTML = `
@@ -1129,6 +1156,7 @@
             const startTimeInput = document.getElementById('editStartTime').value;
             const endTimeInput = document.getElementById('editEndTime').value;
             const manualOvertimeInput = document.getElementById('editManualOvertime').value;
+            const lunchToggle = document.getElementById('lunchOvertimeToggle');
             
             if (!startTimeInput) {
                 showNotification('Vui lòng nhập giờ bắt đầu', 'warning');
@@ -1158,7 +1186,7 @@
             }
             
             const manualOvertime = parseFloat(manualOvertimeInput) || 0;
-            const lunchOvertime = selectedDayData ? (selectedDayData.lunchOvertime || 0) : 0;
+            const lunchOvertime = lunchToggle.checked ? 1 : 0;
             const totalOvertime = overtime + lunchOvertime + manualOvertime;
             
             const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
@@ -1171,6 +1199,7 @@
                     totalHours: workDuration.toFixed(2),
                     overtime: totalOvertime.toFixed(2),
                     manualOvertime: manualOvertime.toFixed(2),
+                    lunchOvertime: lunchOvertime,
                     timestamp: startTime.getTime()
                 };
             } else {
@@ -1197,35 +1226,6 @@
             renderCalendar(currentMonth, currentYear);
             hideDayModal();
             showNotification('Đã cập nhật giờ làm việc', 'success');
-        }
-
-        function addLunchOvertime() {
-            if (!selectedDayData) {
-                showNotification('Không có dữ liệu cho ngày này', 'warning');
-                return;
-            }
-            
-            const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
-            
-            if (recordIndex >= 0) {
-                const currentLunchOvertime = workData[recordIndex].lunchOvertime || 0;
-                const newLunchOvertime = currentLunchOvertime + 1;
-                
-                const currentOvertime = parseFloat(workData[recordIndex].overtime);
-                const newOvertime = currentOvertime + 1;
-                
-                workData[recordIndex] = {
-                    ...workData[recordIndex],
-                    lunchOvertime: newLunchOvertime,
-                    overtime: newOvertime.toFixed(2)
-                };
-                
-                localStorage.setItem('workAttendanceData', JSON.stringify(workData));
-                updateWorkHistory();
-                renderCalendar(currentMonth, currentYear);
-                showDayDetail(formatDate(selectedDate));
-                showNotification('Đã thêm 1 giờ tăng ca trưa', 'success');
-            }
         }
 
         function createNewDayRecord(dateStr) {
