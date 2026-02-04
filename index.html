@@ -213,6 +213,11 @@
             margin-top: 10px;
         }
         
+        .btn-settings {
+            background-color: #8E8E93;
+            margin-top: 10px;
+        }
+        
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -274,6 +279,28 @@
             font-size: 14px;
             color: #8E8E93;
             margin-left: 2px;
+        }
+        
+        /* SALARY INFO */
+        .salary-info-box {
+            background: linear-gradient(135deg, rgba(88,86,214,0.1), rgba(125,60,255,0.1));
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .salary-info-box h3 {
+            font-size: 14px;
+            color: #5856D6;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .salary-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #5856D6;
         }
         
         /* HISTORY */
@@ -596,6 +623,29 @@
             background: #E5E5EA;
         }
         
+        /* SETTINGS INPUT */
+        .settings-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #F2F2F7;
+            border-radius: 12px;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        
+        .settings-input:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+        
+        .settings-label {
+            display: block;
+            margin: 15px 0 8px;
+            font-weight: 600;
+            color: #1D1D1F;
+        }
+        
         /* RESPONSIVE */
         @media (max-width: 350px) {
             .controls { grid-template-columns: 1fr; }
@@ -643,6 +693,12 @@
             .quick-action-btn {
                 background-color: #2C2C2E;
                 color: white;
+            }
+            
+            .settings-input {
+                background-color: #2C2C2E;
+                color: white;
+                border-color: #3A3A3C;
             }
         }
     </style>
@@ -707,6 +763,15 @@
                 </div>
             </div>
             
+            <!-- SALARY INFO SECTION -->
+            <div class="salary-info-box" id="salaryInfoBox">
+                <h3><i class="fas fa-money-bill-wave"></i> Lương căn bản</h3>
+                <div class="salary-value" id="currentSalary">0 VNĐ</div>
+                <div style="font-size: 12px; color: #8E8E93; margin-top: 5px;">
+                    Nhấn để chỉnh sửa
+                </div>
+            </div>
+            
             <button class="btn btn-salary btn-full" id="salaryBtn">
                 <i class="fas fa-calculator"></i> 🧮 Tính Lương Tăng Ca
             </button>
@@ -717,6 +782,10 @@
             
             <button class="btn btn-month btn-full" id="viewMonthBtn">
                 <i class="fas fa-calendar-alt"></i> 📅 Xem Lịch Tháng
+            </button>
+            
+            <button class="btn btn-settings btn-full" id="settingsBtn">
+                <i class="fas fa-cog"></i> ⚙️ Cài Đặt
             </button>
         </div>
         
@@ -793,7 +862,7 @@
         </div>
     </div>
     
-    <!-- Edit Time Modal - MỚI THÊM -->
+    <!-- Edit Time Modal -->
     <div class="modal" id="editTimeModal">
         <div class="modal-content">
             <h3>
@@ -801,6 +870,19 @@
                 <button class="close-btn" id="closeEditModal">&times;</button>
             </h3>
             <div id="editTimeContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-cog"></i> ⚙️ Cài Đặt
+                <button class="close-btn" id="closeSettingsModal">&times;</button>
+            </h3>
+            <div id="settingsContent">
                 <!-- Dynamic content -->
             </div>
         </div>
@@ -847,6 +929,7 @@
             loadAllData();
             setupEventListeners();
             setupAutoBackup();
+            updateSalaryDisplay();
             
             // iOS specific optimizations
             if (isIOS) {
@@ -1093,6 +1176,116 @@
             return date;
         }
         
+        function formatCurrency(amount) {
+            if (!amount) return '0 VNĐ';
+            return amount.toLocaleString('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            });
+        }
+        
+        // ==================== SALARY FUNCTIONS ====================
+        function updateSalaryDisplay() {
+            const salaryDisplay = document.getElementById('currentSalary');
+            salaryDisplay.textContent = formatCurrency(basicSalary);
+            
+            // Add click event to salary info box
+            document.getElementById('salaryInfoBox').onclick = showSalarySettings;
+        }
+        
+        function showSalarySettings() {
+            const content = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; color: #5856D6; margin-bottom: 15px;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 style="margin-bottom: 5px;">Cài đặt lương</h3>
+                    <p style="color: #8E8E93; margin-bottom: 20px;">
+                        Lương căn bản hiện tại: <strong>${formatCurrency(basicSalary)}</strong>
+                    </p>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <label class="settings-label">
+                        <i class="fas fa-money-bill-alt"></i> Lương căn bản (tháng)
+                    </label>
+                    <input type="number" 
+                           id="salaryInputBasic" 
+                           class="settings-input"
+                           value="${basicSalary || ''}"
+                           placeholder="Nhập lương tháng (VNĐ)"
+                           min="0"
+                           step="100000">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <button class="quick-action-btn" onclick="setQuickSalary(5000000)">
+                            5 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setQuickSalary(10000000)">
+                            10 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setQuickSalary(15000000)">
+                            15 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setQuickSalary(20000000)">
+                            20 Triệu
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(0,122,255,0.1); border-radius: 12px;">
+                    <h4 style="color: #007AFF; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> Thông tin tính lương
+                    </h4>
+                    <p style="font-size: 13px; color: #8E8E93;">
+                        • Lương ngày = Lương tháng / 26<br>
+                        • Lương giờ = Lương ngày / 8<br>
+                        • Lương tăng ca/giờ = Lương giờ × 2<br>
+                        • CN: Toàn bộ thời gian = Tăng ca
+                    </p>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-salary" style="flex: 2;" onclick="saveSalarySettings()">
+                        <i class="fas fa-save"></i> 💾 Lưu Lương
+                    </button>
+                    <button class="btn btn-settings" style="flex: 1;" onclick="hideModal('settingsModal')">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('settingsContent').innerHTML = content;
+            document.getElementById('settingsModal').style.display = 'flex';
+            
+            // Focus on input
+            setTimeout(() => {
+                document.getElementById('salaryInputBasic').focus();
+            }, 100);
+        }
+        
+        function setQuickSalary(amount) {
+            document.getElementById('salaryInputBasic').value = amount;
+            document.getElementById('salaryInputBasic').dispatchEvent(new Event('change'));
+        }
+        
+        function saveSalarySettings() {
+            const salaryInput = document.getElementById('salaryInputBasic');
+            const newSalary = parseInt(salaryInput.value) || 0;
+            
+            if (newSalary < 0) {
+                showNotification('⚠️ Lương không hợp lệ!', 'warning');
+                return;
+            }
+            
+            basicSalary = newSalary;
+            localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+            updateSalaryDisplay();
+            
+            showNotification(`✅ Đã lưu lương: ${formatCurrency(basicSalary)}`, 'success');
+            hideModal('settingsModal');
+        }
+        
         // ==================== TIMER ====================
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
@@ -1192,6 +1385,7 @@
                 return true;
             } catch (error) {
                 console.error('Lỗi lưu dữ liệu:', error);
+                showNotification('❌ Lỗi lưu dữ liệu', 'danger');
                 return false;
             }
         }
@@ -1202,26 +1396,34 @@
                 const savedData = localStorage.getItem('chamcong_work_data');
                 if (savedData) {
                     workData = JSON.parse(savedData);
+                } else {
+                    workData = [];
                 }
                 
                 // Load basic salary
                 const savedSalary = localStorage.getItem('chamcong_basic_salary');
                 if (savedSalary) {
                     basicSalary = parseInt(savedSalary) || 0;
+                } else {
+                    basicSalary = 0;
                 }
                 
                 // Restore work state
                 const savedState = localStorage.getItem('chamcong_current_state');
                 if (savedState) {
-                    const state = JSON.parse(savedState);
-                    const lastUpdate = new Date(state.lastUpdate);
-                    const now = new Date();
-                    const diffMinutes = (now - lastUpdate) / (1000 * 60);
-                    
-                    if (diffMinutes < 30 && state.isWorking) {
-                        workStartTime = new Date(state.workStartTime);
-                        isWorking = true;
-                        startTimer();
+                    try {
+                        const state = JSON.parse(savedState);
+                        const lastUpdate = new Date(state.lastUpdate);
+                        const now = new Date();
+                        const diffMinutes = (now - lastUpdate) / (1000 * 60);
+                        
+                        if (diffMinutes < 30 && state.isWorking) {
+                            workStartTime = new Date(state.workStartTime);
+                            isWorking = true;
+                            startTimer();
+                        }
+                    } catch (e) {
+                        console.log('Không thể khôi phục trạng thái:', e);
                     }
                 }
                 
@@ -1233,9 +1435,15 @@
                 updateSaveTime();
                 
                 console.log('📊 Dữ liệu đã tải:', workData.length, 'bản ghi');
+                console.log('💰 Lương căn bản:', formatCurrency(basicSalary));
+                
+                return true;
             } catch (error) {
                 console.error('Lỗi tải dữ liệu:', error);
                 workData = [];
+                basicSalary = 0;
+                showNotification('⚠️ Lỗi tải dữ liệu, đã khởi tạo mới', 'warning');
+                return false;
             }
         }
         
@@ -1428,7 +1636,7 @@
             let lastDataHash = '';
             
             setInterval(() => {
-                const currentHash = JSON.stringify(workData).length + '-' + workData.length;
+                const currentHash = JSON.stringify(workData).length + '-' + workData.length + '-' + basicSalary;
                 
                 if (currentHash !== lastDataHash) {
                     lastDataHash = currentHash;
@@ -1463,6 +1671,7 @@
             
             const date = parseDate(dateStr);
             const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
+            const isSundayNew = date.getDay() === 0;
             
             let content = '';
             
@@ -1697,24 +1906,44 @@
             }
         }
         
+        function parseDate(dateStr) {
+            const [day, month, year] = dateStr.split('/').map(Number);
+            return new Date(year, month - 1, day);
+        }
+        
         // ==================== MODAL FUNCTIONS ====================
         function showSalaryModal() {
             const content = `
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+                    <label class="settings-label">
                         <i class="fas fa-money-bill-wave"></i> Lương căn bản (VNĐ)
                     </label>
                     <input type="number" id="salaryInput" 
                            value="${basicSalary || ''}"
                            placeholder="Nhập lương căn bản"
-                           style="width: 100%; padding: 12px; border: 1px solid #C7C7CC; border-radius: 10px; font-size: 16px;">
+                           class="settings-input">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <button class="quick-action-btn" onclick="setSalaryQuick(5000000)">
+                            5 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setSalaryQuick(10000000)">
+                            10 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setSalaryQuick(15000000)">
+                            15 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setSalaryQuick(20000000)">
+                            20 Triệu
+                        </button>
+                    </div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+                    <label class="settings-label">
                         <i class="fas fa-calendar"></i> Chọn tháng
                     </label>
-                    <select id="monthSelect" style="width: 100%; padding: 12px; border: 1px solid #C7C7CC; border-radius: 10px; font-size: 16px;">
+                    <select id="monthSelect" class="settings-input">
                         <option value="">Chọn tháng...</option>
                     </select>
                 </div>
@@ -1740,8 +1969,17 @@
                 document.getElementById('salaryInput').addEventListener('change', function() {
                     basicSalary = parseInt(this.value) || 0;
                     localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                    updateSalaryDisplay();
                 });
             }, 100);
+        }
+        
+        function setSalaryQuick(amount) {
+            document.getElementById('salaryInput').value = amount;
+            basicSalary = amount;
+            localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+            updateSalaryDisplay();
+            showNotification(`✅ Đã đặt lương: ${formatCurrency(amount)}`, 'success');
         }
         
         function populateMonthSelect() {
@@ -1780,7 +2018,7 @@
         }
         
         function calculateSalary() {
-            const salary = parseInt(document.getElementById('salaryInput').value) || 0;
+            const salary = basicSalary || parseInt(document.getElementById('salaryInput').value) || 0;
             const monthYear = document.getElementById('monthSelect').value;
             
             if (!salary) {
@@ -1851,6 +2089,7 @@
                     <div>Tổng giờ tăng ca: <strong>${totalOvertime.toFixed(2)} giờ</strong></div>
                     <div>Số ngày có tăng ca: <strong>${details.length} ngày</strong></div>
                     <div>Lương/giờ: <strong>${formatCurrency(hourlySalary)}</strong></div>
+                    <div>Lương tăng ca/giờ: <strong>${formatCurrency(hourlySalary * 2)}</strong></div>
                 </div>
                 ${details.length > 0 ? `
                     <div style="margin-top: 15px; max-height: 200px; overflow-y: auto;">
@@ -1858,16 +2097,16 @@
                         ${detailsHtml}
                     </div>
                 ` : ''}
+                
+                <div style="margin-top: 20px; padding: 12px; background: rgba(52,199,89,0.1); border-radius: 10px;">
+                    <div style="font-size: 13px; color: #34C759; text-align: center;">
+                        <i class="fas fa-info-circle"></i> 
+                        Lương tháng: ${formatCurrency(salary)} | Ngày làm: ${monthData.length} ngày
+                    </div>
+                </div>
             `;
             
             showNotification('💰 Đã tính lương thành công', 'success');
-        }
-        
-        function formatCurrency(amount) {
-            return amount.toLocaleString('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-            });
         }
         
         function showBackupModal() {
@@ -1885,6 +2124,7 @@
                     <h3 style="margin-bottom: 10px;">Sao lưu & Khôi phục</h3>
                     <p style="color: #8E8E93; margin-bottom: 20px;">
                         Tổng: <strong>${workData.length}</strong> bản ghi<br>
+                        Lương: <strong>${formatCurrency(basicSalary)}</strong><br>
                         Lần backup cuối: <strong>${lastBackupStr}</strong>
                     </p>
                 </div>
@@ -1914,7 +2154,8 @@
                     <p style="font-size: 13px; color: #8E8E93;">
                         • Dữ liệu tự động backup mỗi 6 giờ<br>
                         • File backup được lưu trong Downloads<br>
-                        • Khôi phục từ file JSON bất kỳ lúc nào
+                        • Khôi phục từ file JSON bất kỳ lúc nào<br>
+                        • Lưu cả dữ liệu chấm công và lương căn bản
                     </p>
                 </div>
             `;
@@ -1991,6 +2232,7 @@
                             if (backupData.basicSalary) {
                                 basicSalary = backupData.basicSalary;
                                 localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                                updateSalaryDisplay();
                             }
                             
                             // Sắp xếp lại
@@ -2027,6 +2269,9 @@
                 if (confirm(`Khôi phục bản backup từ ${new Date(backupData.timestamp).toLocaleString('vi-VN')}?\n\nDữ liệu hiện tại sẽ bị thay thế.`)) {
                     workData = backupData.workData || [];
                     basicSalary = backupData.basicSalary || 0;
+                    
+                    localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                    updateSalaryDisplay();
                     
                     saveData();
                     updateHistory();
@@ -2140,11 +2385,6 @@
             }, 100);
         }
         
-        function parseDate(dateStr) {
-            const [day, month, year] = dateStr.split('/').map(Number);
-            return new Date(year, month - 1, day);
-        }
-        
         function hideModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
@@ -2159,6 +2399,7 @@
             document.getElementById('salaryBtn').addEventListener('click', showSalaryModal);
             document.getElementById('backupBtn').addEventListener('click', showBackupModal);
             document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
+            document.getElementById('settingsBtn').addEventListener('click', showSalarySettings);
             
             // Close buttons
             document.getElementById('closeSalaryModal').addEventListener('click', () => hideModal('salaryModal'));
@@ -2166,6 +2407,7 @@
             document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
             document.getElementById('closeDayModal').addEventListener('click', () => hideModal('dayDetailModal'));
             document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editTimeModal'));
+            document.getElementById('closeSettingsModal').addEventListener('click', () => hideModal('settingsModal'));
             
             // Close modals when clicking outside
             document.querySelectorAll('.modal').forEach(modal => {
@@ -2289,6 +2531,7 @@
             if (isIOS) {
                 if (type === 'success') window.navigator.vibrate(10);
                 if (type === 'warning') window.navigator.vibrate(20);
+                if (type === 'danger') window.navigator.vibrate(30);
             }
             
             setTimeout(() => {
