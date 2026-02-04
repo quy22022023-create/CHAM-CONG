@@ -213,6 +213,11 @@
             margin-top: 10px;
         }
         
+        .btn-refresh {
+            background-color: #5AC8FA;
+            margin-top: 10px;
+        }
+        
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -687,6 +692,40 @@
             backdrop-filter: blur(10px);
         }
         
+        /* REFRESH BUTTON - FLOATING */
+        .refresh-floating-btn {
+            position: fixed;
+            bottom: 170px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #5AC8FA, #007AFF);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,122,255,0.3);
+            z-index: 998;
+            transition: all 0.3s;
+        }
+        
+        .refresh-floating-btn:active {
+            transform: scale(0.9);
+            background: linear-gradient(135deg, #007AFF, #5AC8FA);
+        }
+        
+        .refresh-floating-btn .loading {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
         /* LOADING */
         .loading {
             display: inline-block;
@@ -821,6 +860,11 @@
             .switch-container {
                 background-color: #2C2C2E;
             }
+            
+            .refresh-floating-btn {
+                background: linear-gradient(135deg, #007AFF, #5856D6);
+                box-shadow: 0 4px 15px rgba(0,122,255,0.5);
+            }
         }
     </style>
 </head>
@@ -895,6 +939,10 @@
             <button class="btn btn-month btn-full" id="viewMonthBtn">
                 <i class="fas fa-calendar-alt"></i> 📅 Xem Lịch Tháng
             </button>
+            
+            <button class="btn btn-refresh btn-full" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> 🔄 Load Lại Dữ Liệu
+            </button>
         </div>
         
         <!-- HISTORY CARD -->
@@ -911,6 +959,11 @@
     
     <!-- SAFE AREA BOTTOM -->
     <div class="safe-bottom"></div>
+    
+    <!-- FLOATING REFRESH BUTTON -->
+    <button class="refresh-floating-btn" id="floatingRefreshBtn" title="Load lại dữ liệu">
+        <i class="fas fa-sync-alt"></i>
+    </button>
     
     <!-- STATUS INDICATORS -->
     <div class="data-status" id="dataStatus">
@@ -1006,6 +1059,9 @@
         let lastBackupTime = null;
         let backupInterval = null;
         let isBackupRunning = false;
+        
+        // Refresh state
+        let isRefreshing = false;
         
         // Constants
         const STANDARD_START_TIME = '07:45'; // Giờ bắt đầu chuẩn
@@ -1355,6 +1411,54 @@
             }
         }
         
+        // ==================== REFRESH FUNCTION ====================
+        function refreshData() {
+            if (isRefreshing) return;
+            
+            isRefreshing = true;
+            const floatingBtn = document.getElementById('floatingRefreshBtn');
+            const mainBtn = document.getElementById('refreshBtn');
+            
+            // Show loading state
+            if (floatingBtn) {
+                floatingBtn.innerHTML = '<div class="loading"></div>';
+            }
+            if (mainBtn) {
+                const originalText = mainBtn.innerHTML;
+                mainBtn.innerHTML = '<div class="loading"></div> Đang tải...';
+                mainBtn.disabled = true;
+            }
+            
+            // Haptic feedback
+            if (isIOS && window.navigator.vibrate) {
+                window.navigator.vibrate(10);
+            }
+            
+            // Simulate loading
+            setTimeout(() => {
+                // Force reload all data
+                loadAllData();
+                
+                // Update UI
+                updateHistory();
+                checkTodayStatus();
+                updateSaveTime();
+                
+                // Restore button state
+                if (floatingBtn) {
+                    floatingBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                }
+                if (mainBtn) {
+                    mainBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 🔄 Load Lại Dữ Liệu';
+                    mainBtn.disabled = false;
+                }
+                
+                isRefreshing = false;
+                
+                showNotification('🔄 Dữ liệu đã được làm mới', 'success');
+            }, 800);
+        }
+        
         // ==================== DATA MANAGEMENT ====================
         function saveWorkRecord(startTime, endTime, totalHours, overtime, isAutoEnded = false) {
             const todayStr = formatDate(today);
@@ -1446,7 +1550,7 @@
                     workData = [];
                 }
                 
-                // Load basic salary
+                // Load basic salary - REMEMBER LAST INPUT
                 const savedSalary = localStorage.getItem('chamcong_basic_salary');
                 if (savedSalary) {
                     basicSalary = parseInt(savedSalary) || 0;
@@ -1623,7 +1727,7 @@
                     basicSalary: basicSalary,
                     lunchOvertimeSettings: lunchOvertimeSettings,
                     timestamp: new Date().toISOString(),
-                    version: '4.0'
+                    version: '5.0'
                 };
                 
                 // Lưu vào localStorage
@@ -1650,7 +1754,7 @@
                     basicSalary: basicSalary,
                     lunchOvertimeSettings: lunchOvertimeSettings,
                     timestamp: new Date().toISOString(),
-                    version: '4.0',
+                    version: '5.0',
                     totalRecords: workData.length
                 };
                 
@@ -2168,7 +2272,11 @@
                     window.navigator.vibrate(10);
                 }
                 
-                showNotification(`✅ Đã đặt lương: ${formatCurrency(amount)}`, 'success');
+                // Lưu lương vừa nhập
+                basicSalary = amount;
+                localStorage.setItem('chamcong_basic_salary', amount.toString());
+                
+                showNotification(`✅ Đã đặt & lưu lương: ${formatCurrency(amount)}`, 'success');
             }
         }
         
@@ -2224,6 +2332,10 @@
                 showNotification('⚠️ Vui lòng chọn tháng', 'warning');
                 return;
             }
+            
+            // LƯU LƯƠNG CĂN BẢN - NHỚ SỐ TRƯỚC
+            basicSalary = salary;
+            localStorage.setItem('chamcong_basic_salary', salary.toString());
             
             const [month, year] = monthYear.split('/').map(Number);
             
@@ -2288,6 +2400,7 @@
                     <div>Số ngày có tăng ca: <strong>${details.length} ngày</strong></div>
                     <div>Lương/giờ: <strong>${formatCurrency(hourlySalary)}</strong></div>
                     <div>Lương tăng ca/giờ: <strong>${formatCurrency(hourlySalary * 2)}</strong></div>
+                    <div>Lương căn bản: <strong>${formatCurrency(salary)}</strong></div>
                 </div>
                 ${details.length > 0 ? `
                     <div style="margin-top: 15px;">
@@ -2656,6 +2769,10 @@
             document.getElementById('backupBtn').addEventListener('click', showBackupModal);
             document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
             
+            // Refresh buttons
+            document.getElementById('refreshBtn').addEventListener('click', refreshData);
+            document.getElementById('floatingRefreshBtn').addEventListener('click', refreshData);
+            
             // Close buttons
             document.getElementById('closeSalaryModal').addEventListener('click', () => hideModal('salaryModal'));
             document.getElementById('closeBackupModal').addEventListener('click', () => hideModal('backupModal'));
@@ -2692,6 +2809,22 @@
                     }
                 }
             });
+            
+            // Pull to refresh simulation
+            let startY = 0;
+            document.addEventListener('touchstart', function(e) {
+                startY = e.touches[0].pageY;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function(e) {
+                const endY = e.changedTouches[0].pageY;
+                const diff = startY - endY;
+                
+                // Pull down to refresh (swipe down > 100px from top)
+                if (diff < -100 && startY < 100) {
+                    refreshData();
+                }
+            }, { passive: true });
         }
         
         // ==================== iOS OPTIMIZATIONS ====================
@@ -2730,7 +2863,7 @@
             }
             
             // Add haptic to buttons
-            document.querySelectorAll('.btn, .quick-action-btn, .number-btn, .calendar-nav-btn').forEach(btn => {
+            document.querySelectorAll('.btn, .quick-action-btn, .number-btn, .calendar-nav-btn, .refresh-floating-btn').forEach(btn => {
                 btn.addEventListener('touchstart', () => hapticFeedback('light'));
             });
             
