@@ -117,7 +117,6 @@
         .info-message{background-color:rgba(0,122,255,0.1);border-radius:12px;padding:15px;margin-bottom:20px;border-left:4px solid var(--primary);}
         .info-message h4{color:var(--primary);margin-bottom:5px;font-size:16px;display:flex;align-items:center;gap:8px;}
         
-        /* Toggle Switch Styles */
         .toggle-container{display:flex;justify-content:space-between;align-items:center;margin:15px 0;padding:15px;background-color:var(--light);border-radius:12px;}
         .toggle-label{font-weight:600;color:var(--dark);display:flex;align-items:center;gap:10px;}
         .toggle-switch{position:relative;display:inline-block;width:60px;height:34px;}
@@ -129,11 +128,6 @@
         .toggle-status{font-size:14px;font-weight:600;color:var(--gray);}
         .toggle-status.active{color:var(--success);}
         
-        /* Overtime Status */
-        .overtime-status{background-color:rgba(175,82,222,0.1);border-radius:10px;padding:12px;margin-top:10px;text-align:center;font-size:14px;color:#AF52DE;display:flex;align-items:center;justify-content:center;gap:8px;}
-        .overtime-status.active{background-color:rgba(52,199,89,0.1);color:var(--success);}
-        
-        /* Data Status */
         .data-status{position:fixed;bottom:20px;right:20px;background-color:rgba(0,122,255,0.1);color:var(--primary);padding:8px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:5px;z-index:999;}
         
         @media (max-width:350px){.controls{grid-template-columns:1fr;}.btn-salary-control{grid-column:span 1;}.work-info{grid-template-columns:1fr;}.modal-content{padding:15px;}.edit-time{flex-direction:column;}}
@@ -165,7 +159,7 @@
             <h4><i class="fas fa-info-circle"></i> Logic chấm công</h4>
             <p><strong>Thứ 2 - Thứ 7:</strong> Tự động bắt đầu 7:45, nếu ấn "Bắt đầu" trước 7:45 thì trước 7:45 là tăng ca.</p>
             <p><strong>Chủ nhật:</strong> Toàn bộ thời gian từ Bắt đầu đến Tan ca đều tính là tăng ca.</p>
-            <p><strong>Mặc định 17:00 tan ca:</strong> Nếu không ấn "Có Tăng Ca" sẽ tính đến 17:00.</p>
+            <p><strong>Mặc định 17:00 tan ca:</strong> Nếu không ấn "Tan Ca" sẽ tự động tan ca lúc 17:00.</p>
         </div>
         
         <div class="card">
@@ -181,10 +175,6 @@
             
             <div id="autoStartInfo" class="auto-start-info" style="display: none;">
                 <i class="fas fa-robot"></i> Tự động kích hoạt lúc 7:45 (T2-T7)
-            </div>
-            
-            <div id="overtimeStatus" class="overtime-status" style="display: none;">
-                <i class="fas fa-clock"></i> Chưa xác nhận tăng ca (mặc định tan ca 17:00)
             </div>
             
             <div class="work-info">
@@ -210,10 +200,6 @@
                 <h4><i class="fas fa-coins"></i> Lương tăng ca dự kiến hôm nay</h4>
                 <div class="expected-amount" id="expectedAmount">0 VNĐ</div>
             </div>
-            
-            <button class="btn btn-overtime btn-full" id="overtimeBtn">
-                <i class="fas fa-moon"></i> Có Tăng Ca
-            </button>
             
             <button class="btn btn-salary-control btn-full" id="salaryBtn">
                 <i class="fas fa-calculator"></i> Tính Lương Tăng Ca
@@ -245,16 +231,14 @@
     </div>
 
     <div class="footer">
-        <p>Ứng dụng Chấm Công Tăng Ca V1.8&copy; QUYSC-2026</p>
-        <p>Dữ liệu được lưu trữ cục bộ trên thiết bị - Tự động lưu mỗi phút</p>
+        <p>Ứng dụng Chấm Công Tăng Ca &copy; 2023</p>
+        <p>Dữ liệu được lưu trữ vĩnh viễn trên thiết bị - Tự động lưu mỗi phút</p>
     </div>
 
-    <!-- Data Status Indicator -->
     <div class="data-status" id="dataStatus">
         <i class="fas fa-database"></i> <span id="lastSaveTime">Đã lưu</span>
     </div>
 
-    <!-- Modals -->
     <div class="modal" id="confirmModal">
         <div class="modal-content">
             <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
@@ -329,7 +313,6 @@
     </div>
 
     <script>
-        // Biến toàn cục
         let workStartTime = null;
         let workEndTime = null;
         let isWorking = false;
@@ -350,14 +333,12 @@
         let autoStartTriggered = false;
         let earlyOvertime = 0;
         let lateOvertime = 0;
-        let hasOvertime = false; // Biến mới: có tăng ca hay không
 
         document.addEventListener('DOMContentLoaded', function() {
             initApp();
         });
 
         function initApp() {
-            console.log("Khởi động ứng dụng...");
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             
@@ -367,10 +348,8 @@
             initSalaryMonthSelect();
             loadBasicSalary();
             
-            // Event listeners
             document.getElementById('startWorkBtn').addEventListener('click', startWork);
             document.getElementById('endWorkBtn').addEventListener('click', endWork);
-            document.getElementById('overtimeBtn').addEventListener('click', toggleOvertime);
             document.getElementById('deleteMonthBtn').addEventListener('click', showDeleteConfirm);
             document.getElementById('cancelBtn').addEventListener('click', hideModal);
             document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
@@ -386,10 +365,7 @@
             checkAutoStart();
             updateButtonStates();
             
-            // Bắt đầu tự động lưu mỗi phút
             startAutoSave();
-            
-            console.log("Dữ liệu đã tải:", workData.length, "bản ghi");
         }
 
         function updateCurrentTime() {
@@ -411,7 +387,7 @@
             document.getElementById('currentTime').textContent = timeStr;
             
             checkAutoStart();
-            checkAutoEnd(); // Kiểm tra tự động tan ca lúc 17:00
+            checkAutoEnd();
         }
 
         function checkAutoStart() {
@@ -430,13 +406,11 @@
         }
 
         function checkAutoEnd() {
-            // Chỉ kiểm tra nếu đang làm việc và là ngày trong tuần
-            if (isWorking && isWeekday && !hasOvertime) {
+            if (isWorking && isWeekday) {
                 const now = new Date();
                 const currentHour = now.getHours();
                 const currentMinute = now.getMinutes();
                 
-                // Nếu đã qua 17:00 và không có tăng ca
                 if (currentHour >= 17 && currentMinute > 0) {
                     autoEndWork();
                 }
@@ -458,7 +432,6 @@
             
             workStartTime = startTimeToday;
             isWorking = true;
-            hasOvertime = false;
             
             document.getElementById('startTime').textContent = '07:45';
             document.getElementById('workStatus').textContent = 'Đang làm việc (tự động 7:45)';
@@ -470,7 +443,6 @@
             const autoStartInfo = document.getElementById('autoStartInfo');
             autoStartInfo.style.display = 'flex';
             
-            updateOvertimeStatus();
             updateButtonStates();
             startTimer();
             createAutoWorkRecord();
@@ -491,11 +463,9 @@
             
             const workDuration = calculateWorkDuration(workStartTime, workEndTime);
             
-            // Tính toán tăng ca
             let overtime = 0;
             
             if (isWeekday) {
-                // Tính tăng ca sớm (trước 7:45)
                 const standardStartTime = new Date(workStartTime);
                 standardStartTime.setHours(7, 45, 0, 0);
                 
@@ -505,24 +475,9 @@
                     earlyOvertime = 0;
                 }
                 
-                // Tính tăng ca muộn (sau 17:00) - chỉ nếu có xác nhận tăng ca
-                if (hasOvertime) {
-                    const standardEndTime = new Date(workStartTime);
-                    standardEndTime.setHours(17, 0, 0, 0);
-                    
-                    if (workEndTime > standardEndTime) {
-                        lateOvertime = calculateWorkDuration(standardEndTime, workEndTime);
-                    } else {
-                        lateOvertime = 0;
-                    }
-                } else {
-                    lateOvertime = 0;
-                }
-                
-                overtime = earlyOvertime + lateOvertime;
+                overtime = earlyOvertime;
                 
             } else if (isSunday) {
-                // Chủ nhật: toàn bộ thời gian đều là tăng ca
                 overtime = workDuration;
             }
             
@@ -557,7 +512,6 @@
                 lunchOvertime: 0,
                 earlyOvertime: 0,
                 lateOvertime: 0,
-                hasOvertime: false,
                 isAutoEnded: false,
                 timestamp: startTimeToday.getTime(),
                 isWeekday: true,
@@ -566,8 +520,8 @@
             
             workData.unshift(workRecord);
             
-            if (workData.length > 100) {
-                workData = workData.slice(0, 100);
+            if (workData.length > 1000) {
+                workData = workData.slice(0, 1000);
             }
             
             saveDataToStorage();
@@ -585,55 +539,6 @@
                 dayIndicator.classList.add('sunday');
             } else {
                 dayIndicator.classList.remove('sunday');
-            }
-        }
-
-        function updateOvertimeStatus() {
-            const overtimeStatus = document.getElementById('overtimeStatus');
-            const overtimeBtn = document.getElementById('overtimeBtn');
-            
-            if (isWorking && isWeekday) {
-                overtimeStatus.style.display = 'flex';
-                if (hasOvertime) {
-                    overtimeStatus.className = 'overtime-status active';
-                    overtimeStatus.innerHTML = '<i class="fas fa-check-circle"></i> Đã xác nhận có tăng ca';
-                    overtimeBtn.innerHTML = '<i class="fas fa-moon"></i> Hủy Tăng Ca';
-                    overtimeBtn.style.backgroundColor = 'var(--warning)';
-                } else {
-                    overtimeStatus.className = 'overtime-status';
-                    overtimeStatus.innerHTML = '<i class="fas fa-clock"></i> Chưa xác nhận tăng ca (mặc định tan ca 17:00)';
-                    overtimeBtn.innerHTML = '<i class="fas fa-moon"></i> Có Tăng Ca';
-                    overtimeBtn.style.backgroundColor = '#AF52DE';
-                }
-                overtimeBtn.style.display = 'flex';
-            } else {
-                overtimeStatus.style.display = 'none';
-                overtimeBtn.style.display = 'none';
-            }
-        }
-
-        function toggleOvertime() {
-            if (!isWorking) {
-                showNotification('Bạn không đang làm việc!', 'warning');
-                return;
-            }
-            
-            hasOvertime = !hasOvertime;
-            updateOvertimeStatus();
-            
-            if (hasOvertime) {
-                showNotification('Đã xác nhận có tăng ca! Sẽ không tự động tan ca lúc 17:00', 'success');
-            } else {
-                showNotification('Đã hủy tăng ca! Sẽ tự động tan ca lúc 17:00', 'warning');
-            }
-            
-            // Lưu trạng thái tăng ca vào dữ liệu hiện tại
-            const todayStr = formatDate(today);
-            const recordIndex = workData.findIndex(record => record.date === todayStr);
-            
-            if (recordIndex >= 0) {
-                workData[recordIndex].hasOvertime = hasOvertime;
-                saveDataToStorage();
             }
         }
 
@@ -727,7 +632,6 @@
                 workStartTime = parseTimeString(todayRecord.startTime, today);
                 workEndTime = todayRecord.endTime ? parseTimeString(todayRecord.endTime, today) : null;
                 isWorking = !todayRecord.endTime;
-                hasOvertime = todayRecord.hasOvertime || false;
                 earlyOvertime = todayRecord.earlyOvertime || 0;
                 lateOvertime = todayRecord.lateOvertime || 0;
                 
@@ -761,8 +665,6 @@
                     document.getElementById('workStatus').style.color = 'var(--success)';
                     startTimer();
                 }
-                
-                updateOvertimeStatus();
             }
             
             updateButtonStates();
@@ -805,7 +707,6 @@
             
             workStartTime = new Date();
             isWorking = true;
-            hasOvertime = false;
             
             document.getElementById('startTime').textContent = formatTime(workStartTime);
             document.getElementById('workStatus').textContent = 'Đang làm việc';
@@ -818,7 +719,6 @@
             startBtn.classList.remove('auto-activated');
             
             updateButtonStates();
-            updateOvertimeStatus();
             startTimer();
             
             const todayStr = formatDate(today);
@@ -845,9 +745,6 @@
             let overtime = 0;
             
             if (isWeekday) {
-                // Ngày trong tuần: tính tăng ca sớm và muộn
-                
-                // Tính tăng ca sớm (trước 7:45)
                 const standardStartTime = new Date(workStartTime);
                 standardStartTime.setHours(7, 45, 0, 0);
                 
@@ -857,11 +754,10 @@
                     earlyOvertime = 0;
                 }
                 
-                // Tính tăng ca muộn (sau 17:00) - chỉ nếu có xác nhận tăng ca
                 const standardEndTime = new Date(workStartTime);
                 standardEndTime.setHours(17, 0, 0, 0);
                 
-                if (hasOvertime && workEndTime > standardEndTime) {
+                if (workEndTime > standardEndTime) {
                     lateOvertime = calculateWorkDuration(standardEndTime, workEndTime);
                 } else {
                     lateOvertime = 0;
@@ -870,7 +766,6 @@
                 overtime = earlyOvertime + lateOvertime;
                 
             } else if (isSunday) {
-                // Chủ nhật: toàn bộ thời gian đều là tăng ca
                 overtime = workDuration;
             }
             
@@ -881,7 +776,6 @@
             document.getElementById('workStatus').style.color = 'var(--warning)';
             
             updateButtonStates();
-            updateOvertimeStatus();
             saveWorkData(workStartTime, workEndTime, workDuration, overtime, false);
             updateWorkHistory();
             updateExpectedSalary();
@@ -933,11 +827,9 @@
                     const now = new Date();
                     const duration = calculateWorkDuration(workStartTime, now);
                     
-                    // Tính tăng ca tạm thời để hiển thị
                     let overtime = 0;
                     
                     if (isWeekday) {
-                        // Tính tăng ca sớm
                         const standardStartTime = new Date(workStartTime);
                         standardStartTime.setHours(7, 45, 0, 0);
                         
@@ -945,17 +837,15 @@
                             earlyOvertime = calculateWorkDuration(workStartTime, standardStartTime);
                         }
                         
-                        // Tính tăng ca muộn (sau 17:00) - chỉ nếu có xác nhận tăng ca
                         const standardEndTime = new Date(workStartTime);
                         standardEndTime.setHours(17, 0, 0, 0);
                         
-                        if (hasOvertime && now > standardEndTime) {
+                        if (now > standardEndTime) {
                             lateOvertime = calculateWorkDuration(standardEndTime, now);
                         }
                         
                         overtime = earlyOvertime + lateOvertime;
                     } else if (isSunday) {
-                        // Chủ nhật: toàn bộ thời gian
                         overtime = duration;
                     }
                     
@@ -989,7 +879,6 @@
                 lunchOvertime: 0,
                 earlyOvertime: earlyOvertime.toFixed(2),
                 lateOvertime: lateOvertime.toFixed(2),
-                hasOvertime: hasOvertime,
                 isAutoEnded: isAutoEnded,
                 timestamp: startTime.getTime(),
                 isWeekday: isWeekday,
@@ -1011,8 +900,8 @@
                 workData.unshift(workRecord);
             }
             
-            if (workData.length > 100) {
-                workData = workData.slice(0, 100);
+            if (workData.length > 1000) {
+                workData = workData.slice(0, 1000);
             }
             
             saveDataToStorage();
@@ -1020,24 +909,18 @@
             initSalaryMonthSelect();
         }
 
-        // HÀM QUAN TRỌNG: Tự động lưu dữ liệu
         function startAutoSave() {
-            // Lưu ngay lần đầu
             updateDataStatus();
             
-            // Thiết lập lưu tự động mỗi phút
             autoSaveInterval = setInterval(() => {
                 saveDataToStorage();
                 updateDataStatus();
-                console.log('Tự động lưu dữ liệu...');
-            }, 60000); // 60 giây = 1 phút
+            }, 60000);
             
-            // Cũng lưu khi người dùng rời trang
             window.addEventListener('beforeunload', function() {
                 saveDataToStorage();
             });
             
-            // Lưu khi ứng dụng bị ẩn (trên mobile)
             document.addEventListener('visibilitychange', function() {
                 if (document.hidden) {
                     saveDataToStorage();
@@ -1047,15 +930,12 @@
 
         function saveDataToStorage() {
             try {
-                // Lưu workData
                 localStorage.setItem('workAttendanceData', JSON.stringify(workData));
                 
-                // Lưu trạng thái làm việc hiện tại
                 if (isWorking && workStartTime) {
                     const currentWorkState = {
                         isWorking: isWorking,
                         workStartTime: workStartTime.getTime(),
-                        hasOvertime: hasOvertime,
                         lastUpdate: Date.now()
                     };
                     localStorage.setItem('currentWorkState', JSON.stringify(currentWorkState));
@@ -1063,15 +943,12 @@
                     localStorage.removeItem('currentWorkState');
                 }
                 
-                // Cập nhật thời gian lưu
                 const now = new Date();
                 const lastSaveTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                 localStorage.setItem('lastSaveTime', lastSaveTime);
                 
-                console.log('Đã lưu dữ liệu vào localStorage:', workData.length, 'bản ghi');
                 return true;
             } catch (error) {
-                console.error('Lỗi khi lưu dữ liệu:', error);
                 showNotification('Lỗi khi lưu dữ liệu', 'danger');
                 return false;
             }
@@ -1084,14 +961,11 @@
 
         function loadWorkData() {
             try {
-                // Tải dữ liệu công việc
                 const savedData = localStorage.getItem('workAttendanceData');
                 
                 if (savedData) {
                     workData = JSON.parse(savedData);
-                    console.log('Đã tải dữ liệu từ localStorage:', workData.length, 'bản ghi');
                     
-                    // Tải trạng thái làm việc hiện tại nếu có
                     const currentWorkState = localStorage.getItem('currentWorkState');
                     if (currentWorkState) {
                         const state = JSON.parse(currentWorkState);
@@ -1099,17 +973,13 @@
                         const now = new Date();
                         const diffMinutes = (now - lastUpdate) / (1000 * 60);
                         
-                        // Chỉ khôi phục nếu chưa quá 30 phút
                         if (diffMinutes < 30 && state.isWorking) {
                             workStartTime = new Date(state.workStartTime);
-                            hasOvertime = state.hasOvertime || false;
                             
-                            // Kiểm tra xem hôm nay đã có bản ghi chưa
                             const todayStr = formatDate(today);
                             const todayRecord = workData.find(record => record.date === todayStr);
                             
                             if (!todayRecord) {
-                                // Tạo bản ghi mới từ trạng thái đã lưu
                                 const newRecord = {
                                     id: Date.now(),
                                     date: todayStr,
@@ -1122,7 +992,6 @@
                                     lunchOvertime: 0,
                                     earlyOvertime: 0,
                                     lateOvertime: 0,
-                                    hasOvertime: hasOvertime,
                                     isAutoEnded: false,
                                     timestamp: workStartTime.getTime(),
                                     isWeekday: isWeekday,
@@ -1130,7 +999,6 @@
                                 };
                                 workData.unshift(newRecord);
                                 isWorking = true;
-                                console.log('Đã khôi phục trạng thái làm việc từ lúc:', formatTime(workStartTime));
                             }
                         }
                     }
@@ -1140,11 +1008,9 @@
                     initSalaryMonthSelect();
                     updateDataStatus();
                 } else {
-                    console.log('Không có dữ liệu cũ trong localStorage');
                     workData = [];
                 }
             } catch (error) {
-                console.error('Lỗi khi tải dữ liệu:', error);
                 workData = [];
                 showNotification('Lỗi khi tải dữ liệu cũ', 'danger');
             }
@@ -1173,15 +1039,10 @@
                 const autoStarted = record.isAutoStarted || false;
                 const isAutoEnded = record.isAutoEnded || false;
                 
-                let overtimeIcon = '';
-                if (record.isWeekday && record.hasOvertime) {
-                    overtimeIcon = '<i class="fas fa-moon" style="color: #AF52DE; margin-left: 5px;"></i>';
-                }
-                
                 historyHTML += `
                     <div class="history-item">
                         <div>
-                            <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'} ${autoStarted ? '<i class="fas fa-robot" style="color: var(--success); margin-left: 5px;"></i>' : ''}${overtimeIcon}${isAutoEnded ? ' <i class="fas fa-clock" style="color: var(--warning);" title="Tự động tan ca 17:00"></i>' : ''}</div>
+                            <div class="history-date" ${todayClass}>${record.date} ${record.isWeekday ? '(T2-T7)' : '(CN)'} ${autoStarted ? '<i class="fas fa-robot" style="color: var(--success); margin-left: 5px;"></i>' : ''}${isAutoEnded ? ' <i class="fas fa-clock" style="color: var(--warning);" title="Tự động tan ca 17:00"></i>' : ''}</div>
                             <div class="history-time">${record.startTime} - ${record.endTime || '--:--'}</div>
                         </div>
                         <div class="history-overtime">${record.endTime ? `+${totalOvertime.toFixed(2)} giờ` : 'Đang làm'} ${lunchOvertime > 0 ? '<i class="fas fa-utensils" style="color: var(--warning); margin-left: 5px;"></i>' : ''}</div>
@@ -1192,7 +1053,6 @@
             historyContainer.innerHTML = historyHTML;
         }
 
-        // Các hàm khác giữ nguyên...
         function initMonthSelect() {
             updateMonthSelect();
         }
@@ -1347,7 +1207,6 @@
                 const hasData = !!dayData;
                 const hasLunchOvertime = hasData && dayData.lunchOvertime > 0;
                 const overtime = hasData ? parseFloat(dayData.overtime) : 0;
-                const hasOvertimeDay = hasData ? (dayData.hasOvertime || false) : false;
                 const isAutoEnded = hasData ? (dayData.isAutoEnded || false) : false;
                 
                 let dayClass = 'calendar-day';
@@ -1356,9 +1215,7 @@
                 if (isSunday) dayClass += ' sunday';
                 
                 let overtimeIcon = '';
-                if (hasOvertimeDay) {
-                    overtimeIcon = '<i class="fas fa-moon" style="color: #AF52DE; font-size: 10px; position: absolute; top: 2px; left: 2px;"></i>';
-                } else if (isAutoEnded) {
+                if (isAutoEnded) {
                     overtimeIcon = '<i class="fas fa-clock" style="color: var(--warning); font-size: 10px; position: absolute; top: 2px; left: 2px;"></i>';
                 }
                 
@@ -1423,8 +1280,6 @@
                 const manualOvertime = parseFloat(selectedDayData.manualOvertime || 0);
                 const earlyOvertime = parseFloat(selectedDayData.earlyOvertime || 0);
                 const lateOvertime = parseFloat(selectedDayData.lateOvertime || 0);
-                const workOvertime = totalOvertime - lunchOvertime - manualOvertime;
-                const hasOvertimeDetail = selectedDayData.hasOvertime || false;
                 const isWeekdayDetail = selectedDayData.isWeekday;
                 const isAutoEnded = selectedDayData.isAutoEnded || false;
                 
@@ -1436,8 +1291,7 @@
                                 <strong><i class="fas fa-calculator"></i> Logic tính tăng ca:</strong><br>
                                 • Sớm trước 7:45: ${earlyOvertime.toFixed(2)} giờ<br>
                                 • Muộn sau 17:00: ${lateOvertime.toFixed(2)} giờ<br>
-                                • Trưa: ${lunchOvertime.toFixed(2)} giờ<br>
-                                • Xác nhận tăng ca: ${hasOvertimeDetail ? 'Có ✓' : 'Không (mặc định 17:00)'}
+                                • Trưa: ${lunchOvertime.toFixed(2)} giờ
                                 ${isAutoEnded ? '<br>• <i class="fas fa-clock" style="color: var(--warning);"></i> Tự động tan ca 17:00' : ''}
                             </div>
                         </div>
@@ -1509,24 +1363,6 @@
                         </div>
                     </div>
                     
-                    ${isWeekdayDetail ? `
-                    <div class="toggle-container">
-                        <div class="toggle-label">
-                            <i class="fas fa-moon" style="color: #AF52DE;"></i>
-                            <span>Có tăng ca (sau 17:00)</span>
-                        </div>
-                        <div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="overtimeToggle" ${hasOvertimeDetail ? 'checked' : ''}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <div class="toggle-status ${hasOvertimeDetail ? 'active' : ''}" id="overtimeStatus">
-                                ${hasOvertimeDetail ? 'CÓ' : 'KHÔNG'}
-                            </div>
-                        </div>
-                    </div>
-                    ` : ''}
-                    
                     <div class="edit-buttons">
                         <button class="btn btn-secondary btn-small" id="updateTimeBtn">
                             <i class="fas fa-save"></i> Cập nhật
@@ -1544,16 +1380,6 @@
                         toggleStatus.textContent = this.checked ? 'BẬT' : 'TẮT';
                         toggleStatus.classList.toggle('active', this.checked);
                     });
-                    
-                    const overtimeToggle = document.getElementById('overtimeToggle');
-                    const overtimeStatus = document.getElementById('overtimeStatus');
-                    
-                    if (overtimeToggle) {
-                        overtimeToggle.addEventListener('change', function() {
-                            overtimeStatus.textContent = this.checked ? 'CÓ' : 'KHÔNG';
-                            overtimeStatus.classList.toggle('active', this.checked);
-                        });
-                    }
                 }, 100);
             } else {
                 dayDetailElement.innerHTML = `
@@ -1582,7 +1408,6 @@
             const endTimeInput = document.getElementById('editEndTime').value;
             const manualOvertimeInput = document.getElementById('editManualOvertime').value;
             const lunchToggle = document.getElementById('lunchOvertimeToggle');
-            const overtimeToggle = document.getElementById('overtimeToggle');
             
             if (!startTimeInput) {
                 showNotification('Vui lòng nhập giờ bắt đầu', 'warning');
@@ -1615,7 +1440,6 @@
                 const isWeekdayDetail = selectedDate.getDay() >= 1 && selectedDate.getDay() <= 6;
                 
                 if (isWeekdayDetail) {
-                    // Tính tăng ca sớm (trước 7:45)
                     const standardStartTime = new Date(startTime);
                     standardStartTime.setHours(7, 45, 0, 0);
                     
@@ -1623,31 +1447,25 @@
                         earlyOvertimeNew = calculateWorkDuration(startTime, standardStartTime);
                     }
                     
-                    // Tính tăng ca muộn (sau 17:00)
                     const standardEndTime = new Date(startTime);
                     standardEndTime.setHours(17, 0, 0, 0);
                     
-                    const hasOvertimeNew = overtimeToggle ? overtimeToggle.checked : false;
-                    
-                    if (hasOvertimeNew && endTime > standardEndTime) {
+                    if (endTime > standardEndTime) {
                         lateOvertimeNew = calculateWorkDuration(standardEndTime, endTime);
                     }
                     
-                    // Kiểm tra xem có phải tự động tan ca 17:00 không
-                    if (!hasOvertimeNew && endTime.getHours() === 17 && endTime.getMinutes() === 0) {
+                    if (endTime.getHours() === 17 && endTime.getMinutes() === 0) {
                         isAutoEndedNew = true;
                     }
                     
                     overtime = earlyOvertimeNew + lateOvertimeNew;
                 } else {
-                    // Chủ nhật: toàn bộ thời gian
                     overtime = workDuration;
                 }
             }
             
             const manualOvertime = parseFloat(manualOvertimeInput) || 0;
             const lunchOvertime = lunchToggle.checked ? 1 : 0;
-            const hasOvertimeNew = overtimeToggle ? overtimeToggle.checked : false;
             const totalOvertime = overtime + lunchOvertime + manualOvertime;
             
             const recordIndex = workData.findIndex(record => record.date === formatDate(selectedDate));
@@ -1663,7 +1481,6 @@
                     lunchOvertime: lunchOvertime,
                     earlyOvertime: earlyOvertimeNew.toFixed(2),
                     lateOvertime: lateOvertimeNew.toFixed(2),
-                    hasOvertime: hasOvertimeNew,
                     isAutoEnded: isAutoEndedNew,
                     timestamp: startTime.getTime()
                 };
@@ -1682,7 +1499,6 @@
                     lunchOvertime: lunchOvertime,
                     earlyOvertime: earlyOvertimeNew.toFixed(2),
                     lateOvertime: lateOvertimeNew.toFixed(2),
-                    hasOvertime: hasOvertimeNew,
                     isAutoEnded: isAutoEndedNew,
                     timestamp: startTime.getTime(),
                     isWeekday: isWeekdayNew,
@@ -1713,7 +1529,6 @@
                 lunchOvertime: 0,
                 earlyOvertime: 0,
                 lateOvertime: 0,
-                hasOvertime: false,
                 isAutoEnded: false,
                 timestamp: date.getTime(),
                 isWeekday: isWeekdayNew,
