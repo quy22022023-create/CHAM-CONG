@@ -3,18 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>⏱️ Chấm Công Tăng Ca - Auto Sync</title>
-    <!-- Các thẻ meta và CSS giữ nguyên... -->
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>⏱️ Chấm Công iOS - Auto Backup</title>
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Chấm Công">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json,{&#34;name&#34;:&#34;Chấm Công&#34;,&#34;short_name&#34;:&#34;ChamCong&#34;,&#34;start_url&#34;:&#34;.&#34;,&#34;display&#34;:&#34;standalone&#34;,&#34;background_color&#34;:&#34;#007AFF&#34;,&#34;theme_color&#34;:&#34;#007AFF&#34;,&#34;icons&#34;:[{&#34;src&#34;:&#34;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%23007AFF'/><path fill='white' d='M378 224H134c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h244c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16z'/></svg>&#34;,&#34;sizes&#34;:&#34;512x512&#34;,&#34;type&#34;:&#34;image/svg+xml&#34;}]}">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    
     <style>
-        /* Thêm styles cho Google Drive Auto Sync */
-        .sync-status {
+        /* RESET & BASE */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F2F2F7;
+            color: #1D1D1F;
+            line-height: 1.5;
+            max-width: 100%;
+            overflow-x: hidden;
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-top: env(safe-area-inset-top);
+        }
+        
+        /* iOS SAFE AREAS */
+        .safe-top {
+            padding-top: env(safe-area-inset-top);
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+        }
+        
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+        
+        .day-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .day-indicator.sunday {
+            background-color: #FF2D55;
+        }
+        
+        /* CURRENT TIME */
+        .current-time {
+            background-color: white;
+            margin: 15px;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .current-time h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #007AFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .time-display {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1D1D1F;
+            margin: 10px 0;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .date-display {
+            font-size: 16px;
+            color: #8E8E93;
+            font-weight: 500;
+        }
+        
+        /* CONTAINER & CARDS */
+        .container {
+            max-width: 100%;
+            padding: 0 15px 20px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #1D1D1F;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* BUTTONS - iOS STYLE */
+        .btn {
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 10px;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            -webkit-user-select: none;
+            user-select: none;
+            min-height: 44px;
+        }
+        
+        .btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+        
+        .btn-full {
+            width: 100%;
+        }
+        
+        .btn-start {
+            background-color: #34C759;
+        }
+        
+        .btn-end {
+            background-color: #FF9500;
+        }
+        
+        .btn-salary {
+            background: linear-gradient(135deg, #5856D6, #7D3CFF);
+            margin-top: 10px;
+        }
+        
+        .btn-backup {
+            background-color: #FF9500;
+            margin-top: 10px;
+        }
+        
+        .btn-month {
+            background-color: #5AC8FA;
+            margin-top: 10px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* CONTROLS */
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .auto-start-info {
+            background-color: rgba(52,199,89,0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #34C759;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        /* WORK INFO */
+        .work-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background-color: #F2F2F7;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .info-box h3 {
+            font-size: 14px;
+            color: #8E8E93;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1D1D1F;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .info-unit {
+            font-size: 14px;
+            color: #8E8E93;
+            margin-left: 2px;
+        }
+        
+        /* HISTORY */
+        .work-history {
+            max-height: 300px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #F2F2F7;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-date {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1D1D1F;
+        }
+        
+        .history-time {
+            font-size: 14px;
+            color: #8E8E93;
+        }
+        
+        .history-overtime {
+            font-weight: 700;
+            font-size: 16px;
+            color: #34C759;
+        }
+        
+        /* MODALS */
+        .modal {
+            display: none;
             position: fixed;
-            bottom: 60px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .modal h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #1D1D1F;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal h3 .close-btn {
+            background: none;
+            border: none;
+            color: #8E8E93;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* CALENDAR */
+        .calendar {
+            width: 100%;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-month-year {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1D1D1F;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-nav-btn {
+            background-color: #F2F2F7;
+            border: none;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #8E8E93;
+        }
+        
+        .calendar-weekdays div {
+            padding: 8px 0;
+        }
+        
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 44px;
+        }
+        
+        .calendar-day.empty {
+            background-color: transparent;
+            cursor: default;
+        }
+        
+        .calendar-day.today {
+            background-color: rgba(0,122,255,0.1);
+            color: #007AFF;
+            font-weight: 700;
+        }
+        
+        .calendar-day.has-data {
+            background-color: rgba(52,199,89,0.1);
+        }
+        
+        .calendar-day.sunday {
+            color: #FF2D55;
+        }
+        
+        /* NOTIFICATION */
+        .notification {
+            position: fixed;
+            top: 100px;
             right: 20px;
-            background-color: rgba(66, 133, 244, 0.1);
-            color: #4285F4;
+            background-color: #34C759;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1001;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* DATA STATUS */
+        .data-status {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: rgba(0,122,255,0.1);
+            color: #007AFF;
             padding: 8px 12px;
             border-radius: 20px;
             font-size: 12px;
@@ -22,683 +476,1618 @@
             align-items: center;
             gap: 5px;
             z-index: 999;
-            transition: all 0.3s;
+            backdrop-filter: blur(10px);
         }
-        .sync-status.syncing {
-            background-color: rgba(255, 149, 0, 0.1);
+        
+        /* BACKUP STATUS */
+        .backup-status {
+            position: fixed;
+            bottom: 120px;
+            right: 20px;
+            background-color: rgba(255,149,0,0.1);
             color: #FF9500;
-        }
-        .sync-status.success {
-            background-color: rgba(52, 199, 89, 0.1);
-            color: #34C759;
-        }
-        .sync-status.error {
-            background-color: rgba(255, 59, 48, 0.1);
-            color: #FF3B30;
-        }
-        .google-signin-btn {
-            margin-top: 10px;
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            background-color: white;
-            border: 1px solid #dadce0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            font-weight: 500;
+            gap: 5px;
+            z-index: 999;
+            backdrop-filter: blur(10px);
         }
-        .google-signin-btn:hover {
-            background-color: #f8f9fa;
+        
+        /* LOADING */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
         }
-        .drive-file-info {
-            background-color: rgba(66, 133, 244, 0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 350px) {
+            .controls { grid-template-columns: 1fr; }
+            .work-info { grid-template-columns: 1fr; }
+            .modal-content { padding: 15px; }
+        }
+        
+        /* iOS SPECIFIC FIXES */
+        input, select, textarea {
+            font-size: 16px; /* Prevent zoom on focus */
+        }
+        
+        .btn, .calendar-day, .calendar-nav-btn {
+            min-height: 44px; /* Apple HIG minimum touch target */
+        }
+        
+        /* HAPTIC FEEDBACK */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:active {
+                background-color: rgba(0,122,255,0.8);
+            }
+        }
+        
+        /* DARK MODE SUPPORT */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #000;
+                color: #fff;
+            }
+            
+            .card, .current-time {
+                background-color: #1C1C1E;
+            }
+            
+            .info-box {
+                background-color: #2C2C2E;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header và các phần giao diện giữ nguyên... -->
+    <!-- SAFE AREA TOP -->
+    <div class="safe-top"></div>
     
-    <!-- Thêm sync status indicator -->
-    <div class="sync-status" id="syncStatus">
-        <i class="fas fa-sync"></i>
-        <span>Chưa kết nối Google Drive</span>
+    <!-- HEADER -->
+    <header class="header">
+        <h1><i class="fas fa-clock"></i> ⏱️ Chấm Công</h1>
+        <p>⏰ 7:45 - 17:00 (T2-T7) | 🎯 CN: Toàn bộ tăng ca</p>
+        <div class="day-indicator" id="dayIndicator">
+            <i class="fas fa-calendar-day"></i> <span id="dayName">Đang tải...</span>
+        </div>
+    </header>
+    
+    <!-- CURRENT TIME -->
+    <div class="current-time">
+        <h2><i class="fas fa-calendar-alt"></i> 📅 Hôm nay</h2>
+        <div class="date-display" id="currentDate">Đang tải...</div>
+        <div class="time-display" id="currentTime">00:00:00</div>
+        <div id="workStatus" style="color: #007AFF; font-weight: 600; margin-top: 5px;">
+            🟡 Chưa bắt đầu làm việc
+        </div>
     </div>
-
-    <!-- Thêm modal Google Drive Auto Sync -->
-    <div class="modal" id="googleDriveModal">
-        <div class="modal-content">
-            <h3>
-                <i class="fab fa-google-drive"></i> ☁️ Google Drive Auto Sync
-                <button class="close-btn" id="closeGoogleDriveModal">&times;</button>
-            </h3>
+    
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <!-- CONTROL CARD -->
+        <div class="card">
+            <h2><i class="fas fa-play-circle"></i> 🎮 Điều khiển</h2>
+            <div class="controls">
+                <button class="btn btn-start" id="startWorkBtn">
+                    <i class="fas fa-play"></i> 🚀 Bắt đầu
+                </button>
+                <button class="btn btn-end" id="endWorkBtn">
+                    <i class="fas fa-stop"></i> 🏁 Tan ca
+                </button>
+            </div>
             
-            <div id="driveSetupContent">
-                <!-- Nội dung sẽ được cập nhật bằng JavaScript -->
+            <div id="autoStartInfo" class="auto-start-info" style="display: none;">
+                <i class="fas fa-robot"></i> 🤖 Tự động kích hoạt lúc 7:45 (T2-T7)
+            </div>
+            
+            <div class="work-info">
+                <div class="info-box">
+                    <h3><i class="fas fa-sign-in-alt"></i> Giờ bắt đầu</h3>
+                    <div class="info-value" id="startTime">--:--</div>
+                </div>
+                <div class="info-box">
+                    <h3><i class="fas fa-sign-out-alt"></i> Giờ kết thúc</h3>
+                    <div class="info-value" id="endTime">--:--</div>
+                </div>
+                <div class="info-box">
+                    <h3><i class="fas fa-clock"></i> Tổng thời gian</h3>
+                    <div class="info-value" id="totalTime">0<span class="info-unit">giờ</span></div>
+                </div>
+                <div class="info-box">
+                    <h3><i class="fas fa-moon"></i> Tăng ca hôm nay</h3>
+                    <div class="info-value" id="overtime">0<span class="info-unit">giờ</span></div>
+                </div>
+            </div>
+            
+            <button class="btn btn-salary btn-full" id="salaryBtn">
+                <i class="fas fa-calculator"></i> 🧮 Tính Lương Tăng Ca
+            </button>
+            
+            <button class="btn btn-backup btn-full" id="backupBtn">
+                <i class="fas fa-database"></i> 💾 Sao Lưu & Khôi Phục
+            </button>
+            
+            <button class="btn btn-month btn-full" id="viewMonthBtn">
+                <i class="fas fa-calendar-alt"></i> 📅 Xem Lịch Tháng
+            </button>
+        </div>
+        
+        <!-- HISTORY CARD -->
+        <div class="card">
+            <h2><i class="fas fa-history"></i> 📜 Lịch sử làm việc</h2>
+            <div class="work-history" id="workHistory">
+                <div style="text-align: center; padding: 30px; color: #8E8E93;">
+                    <i class="fas fa-history" style="font-size: 40px; margin-bottom: 10px;"></i>
+                    <p>Chưa có dữ liệu chấm công</p>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Các modal khác giữ nguyên... -->
-
+    
+    <!-- SAFE AREA BOTTOM -->
+    <div class="safe-bottom"></div>
+    
+    <!-- STATUS INDICATORS -->
+    <div class="data-status" id="dataStatus">
+        <i class="fas fa-database"></i> <span id="lastSaveTime">🟢 Đã lưu</span>
+    </div>
+    
+    <div class="backup-status" id="backupStatus" style="display: none;">
+        <i class="fas fa-cloud"></i> <span id="backupStatusText">Đang đồng bộ...</span>
+    </div>
+    
+    <!-- MODALS -->
+    <!-- Salary Modal -->
+    <div class="modal" id="salaryModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-calculator"></i> 🧮 Tính Lương
+                <button class="close-btn" id="closeSalaryModal">&times;</button>
+            </h3>
+            <div id="salaryContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Backup Modal -->
+    <div class="modal" id="backupModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-database"></i> 💾 Sao Lưu
+                <button class="close-btn" id="closeBackupModal">&times;</button>
+            </h3>
+            <div id="backupContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Month Calendar Modal -->
+    <div class="modal" id="monthCalendarModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-calendar"></i> 📅 Lịch Tháng
+                <button class="close-btn" id="closeMonthModal">&times;</button>
+            </h3>
+            <div class="calendar" id="monthCalendar"></div>
+        </div>
+    </div>
+    
+    <!-- Day Detail Modal -->
+    <div class="modal" id="dayDetailModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-calendar-day"></i> 📋 Chi Tiết Ngày
+                <button class="close-btn" id="closeDayModal">&times;</button>
+            </h3>
+            <div id="dayDetailContent"></div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div id="notificationMessage">✅ Thao tác thành công!</div>
+    </div>
+    
     <script>
-        // ==================== GOOGLE DRIVE AUTO SYNC ====================
+        // ==================== CORE VARIABLES ====================
+        let workStartTime = null;
+        let workEndTime = null;
+        let isWorking = false;
+        let timerInterval = null;
+        let autoSaveInterval = null;
+        let workData = [];
+        let today = new Date();
+        let dayOfWeek = today.getDay();
+        let isSunday = (dayOfWeek === 0);
+        let isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6);
+        let currentMonth = today.getMonth();
+        let currentYear = today.getFullYear();
+        let basicSalary = 0;
+        let autoStartTriggered = false;
         
-        // Biến cấu hình Google Drive
-        const GOOGLE_CONFIG = {
-            apiKey: 'AIzaSyB3D2kL6n7Kj9JpP8qM5zXyVwT8uR1sT2v3', // Thay bằng API Key thật
-            clientId: 'YOUR_CLIENT_ID.apps.googleusercontent.com', // Thay bằng Client ID thật
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            scope: 'https://www.googleapis.com/auth/drive.file'
-        };
+        // iOS Detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         
-        // Biến trạng thái sync
-        let isGoogleDriveEnabled = false;
-        let googleDriveFileId = null;
-        let lastSyncTime = null;
-        let autoSyncInterval = null;
-        let isSyncing = false;
+        // Backup System
+        let lastBackupTime = null;
+        let backupInterval = null;
+        let isBackupRunning = false;
         
-        // Khởi tạo Google Drive Auto Sync
-        async function initGoogleDriveAutoSync() {
-            try {
-                // Kiểm tra nếu đã bật auto sync
-                const savedConfig = localStorage.getItem('chamcong_google_drive_config');
-                if (savedConfig) {
-                    const config = JSON.parse(savedConfig);
-                    isGoogleDriveEnabled = config.enabled || false;
-                    googleDriveFileId = config.fileId || null;
-                    lastSyncTime = config.lastSyncTime || null;
-                    
-                    if (isGoogleDriveEnabled) {
-                        // Khởi tạo Google API
-                        await initGoogleAPI();
-                        
-                        // Tự động đăng nhập nếu có token
-                        if (gapi.client.getToken()) {
-                            startAutoSync();
-                            updateSyncStatus('success', 'Đã kết nối Google Drive');
-                        } else {
-                            updateSyncStatus('error', 'Chưa đăng nhập Google');
-                        }
-                    }
-                }
-                
-                // Cập nhật UI
-                updateGoogleDriveUI();
-                
-            } catch (error) {
-                console.error('Lỗi khởi tạo Google Drive:', error);
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Ứng dụng đang khởi động...');
+            
+            // Initialize core
+            initTime();
+            loadAllData();
+            setupEventListeners();
+            setupAutoBackup();
+            
+            // iOS specific optimizations
+            if (isIOS) {
+                setupIOSOptimizations();
+            }
+            
+            // Show welcome notification
+            setTimeout(() => {
+                showNotification('✅ Ứng dụng đã sẵn sàng!', 'success');
+            }, 500);
+        });
+        
+        // ==================== TIME FUNCTIONS ====================
+        function initTime() {
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+        }
+        
+        function updateCurrentTime() {
+            const now = new Date();
+            today = now;
+            dayOfWeek = today.getDay();
+            isSunday = (dayOfWeek === 0);
+            isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6);
+            
+            const dateStr = now.toLocaleDateString('vi-VN', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            const timeStr = now.toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            document.getElementById('currentDate').textContent = dateStr;
+            document.getElementById('currentTime').textContent = timeStr;
+            
+            updateDayName();
+            checkAutoStart();
+            checkAutoEnd();
+        }
+        
+        function updateDayName() {
+            const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+            const dayName = dayNames[dayOfWeek];
+            
+            document.getElementById('dayName').textContent = dayName;
+            
+            const dayIndicator = document.getElementById('dayIndicator');
+            if (isSunday) {
+                dayIndicator.classList.add('sunday');
+            } else {
+                dayIndicator.classList.remove('sunday');
             }
         }
         
-        // Khởi tạo Google API
-        async function initGoogleAPI() {
-            return new Promise((resolve, reject) => {
-                gapi.load('client', async () => {
-                    try {
-                        await gapi.client.init({
-                            apiKey: GOOGLE_CONFIG.apiKey,
-                            discoveryDocs: GOOGLE_CONFIG.discoveryDocs,
-                        });
-                        resolve();
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
-            });
-        }
-        
-        // Xác thực Google
-        function authenticateGoogle() {
-            const tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: GOOGLE_CONFIG.clientId,
-                scope: GOOGLE_CONFIG.scope,
-                callback: async (response) => {
-                    if (response.error) {
-                        updateSyncStatus('error', 'Lỗi đăng nhập Google');
-                        return;
-                    }
-                    
-                    // Lưu config
-                    isGoogleDriveEnabled = true;
-                    saveGoogleDriveConfig();
-                    
-                    // Khởi động auto sync
-                    startAutoSync();
-                    
-                    // Tìm hoặc tạo file trên Google Drive
-                    await setupGoogleDriveFile();
-                    
-                    // Tải dữ liệu từ Google Drive nếu có
-                    await autoLoadFromGoogleDrive();
-                    
-                    updateSyncStatus('success', 'Đã kết nối Google Drive');
-                    showNotification('✅ Đã bật Google Drive Auto Sync', 'success');
-                }
-            });
+        // ==================== WORK CONTROL ====================
+        function startWork() {
+            if (isWorking) {
+                showNotification('⚠️ Bạn đã bắt đầu làm việc trước đó!', 'warning');
+                return;
+            }
             
-            tokenClient.requestAccessToken({ prompt: 'consent' });
+            workStartTime = new Date();
+            isWorking = true;
+            
+            document.getElementById('startTime').textContent = formatTime(workStartTime);
+            document.getElementById('workStatus').textContent = '🟢 Đang làm việc';
+            document.getElementById('workStatus').style.color = '#34C759';
+            
+            updateButtonStates();
+            startTimer();
+            
+            showNotification('🚀 Đã bắt đầu làm việc', 'success');
         }
         
-        // Thiết lập file trên Google Drive
-        async function setupGoogleDriveFile() {
+        function endWork() {
+            if (!isWorking) {
+                showNotification('⚠️ Bạn chưa bắt đầu làm việc!', 'warning');
+                return;
+            }
+            
+            workEndTime = new Date();
+            isWorking = false;
+            
+            stopTimer();
+            
+            const workDuration = calculateWorkDuration(workStartTime, workEndTime);
+            let overtime = calculateOvertime(workStartTime, workEndTime);
+            
+            document.getElementById('endTime').textContent = formatTime(workEndTime);
+            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = '🟡 Đã kết thúc làm việc';
+            document.getElementById('workStatus').style.color = '#FF9500';
+            
+            updateButtonStates();
+            saveWorkRecord(workStartTime, workEndTime, workDuration, overtime);
+            
+            showNotification(`🏁 Đã tan ca. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
+        }
+        
+        function checkAutoStart() {
+            if (autoStartTriggered || !isWeekday) return;
+            
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            if (currentHour === 7 && currentMinute >= 45) {
+                autoStartWork();
+            }
+        }
+        
+        function autoStartWork() {
+            autoStartTriggered = true;
+            
+            const startTimeToday = new Date(today);
+            startTimeToday.setHours(7, 45, 0, 0);
+            
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            
+            if (todayRecord) return;
+            
+            workStartTime = startTimeToday;
+            isWorking = true;
+            
+            document.getElementById('startTime').textContent = '07:45';
+            document.getElementById('workStatus').textContent = '🟢 Đang làm việc (tự động 7:45)';
+            document.getElementById('workStatus').style.color = '#34C759';
+            
+            const autoStartInfo = document.getElementById('autoStartInfo');
+            autoStartInfo.style.display = 'flex';
+            
+            updateButtonStates();
+            startTimer();
+            createAutoWorkRecord();
+            
+            showNotification('🤖 Tự động bắt đầu làm việc từ 7:45', 'info');
+        }
+        
+        function checkAutoEnd() {
+            if (!isWorking || !isWeekday) return;
+            
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            if (currentHour === 17 && currentMinute >= 0) {
+                autoEndWork();
+            }
+        }
+        
+        function autoEndWork() {
+            const endTimeToday = new Date(today);
+            endTimeToday.setHours(17, 0, 0, 0);
+            
+            workEndTime = endTimeToday;
+            isWorking = false;
+            
+            stopTimer();
+            
+            const workDuration = calculateWorkDuration(workStartTime, workEndTime);
+            let overtime = calculateOvertime(workStartTime, workEndTime);
+            
+            document.getElementById('endTime').textContent = '17:00';
+            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = '🟡 Đã kết thúc làm việc (tự động 17:00)';
+            document.getElementById('workStatus').style.color = '#FF9500';
+            
+            updateButtonStates();
+            saveWorkRecord(workStartTime, workEndTime, workDuration, overtime, true);
+            
+            showNotification(`⏰ Tự động tan ca 17:00. Tăng ca: ${overtime.toFixed(2)} giờ`, 'info');
+        }
+        
+        function updateButtonStates() {
+            const startBtn = document.getElementById('startWorkBtn');
+            const endBtn = document.getElementById('endWorkBtn');
+            
+            if (isWorking) {
+                startBtn.disabled = true;
+                endBtn.disabled = false;
+            } else {
+                startBtn.disabled = false;
+                endBtn.disabled = true;
+            }
+        }
+        
+        // ==================== CALCULATION FUNCTIONS ====================
+        function calculateWorkDuration(startTime, endTime) {
+            const diffMs = endTime - startTime;
+            return diffMs / (1000 * 60 * 60); // hours
+        }
+        
+        function calculateOvertime(startTime, endTime) {
+            if (isSunday) {
+                return calculateWorkDuration(startTime, endTime);
+            }
+            
+            let overtime = 0;
+            
+            // Tính giờ làm trước 7:45
+            const standardStart = new Date(startTime);
+            standardStart.setHours(7, 45, 0, 0);
+            
+            if (startTime < standardStart) {
+                overtime += calculateWorkDuration(startTime, standardStart);
+            }
+            
+            // Tính giờ làm sau 17:00
+            const standardEnd = new Date(startTime);
+            standardEnd.setHours(17, 0, 0, 0);
+            
+            if (endTime > standardEnd) {
+                overtime += calculateWorkDuration(standardEnd, endTime);
+            }
+            
+            return overtime;
+        }
+        
+        function formatTime(date) {
+            return date.toLocaleTimeString('vi-VN', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+        
+        function formatDate(date) {
+            return date.toLocaleDateString('vi-VN');
+        }
+        
+        // ==================== TIMER ====================
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                if (workStartTime && isWorking) {
+                    const now = new Date();
+                    const duration = calculateWorkDuration(workStartTime, now);
+                    const overtime = calculateOvertime(workStartTime, now);
+                    
+                    document.getElementById('totalTime').innerHTML = 
+                        `${duration.toFixed(2)}<span class="info-unit">giờ</span>`;
+                    document.getElementById('overtime').innerHTML = 
+                        `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+                }
+            }, 1000);
+        }
+        
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        
+        // ==================== DATA MANAGEMENT ====================
+        function saveWorkRecord(startTime, endTime, totalHours, overtime, isAutoEnded = false) {
+            const todayStr = formatDate(today);
+            
+            const record = {
+                id: Date.now(),
+                date: todayStr,
+                startTime: formatTime(startTime),
+                endTime: formatTime(endTime),
+                totalHours: totalHours.toFixed(2),
+                overtime: overtime.toFixed(2),
+                timestamp: startTime.getTime(),
+                isWeekday: isWeekday,
+                isAutoEnded: isAutoEnded || false,
+                isAutoStarted: autoStartTriggered
+            };
+            
+            // Tìm và cập nhật hoặc thêm mới
+            const existingIndex = workData.findIndex(r => r.date === todayStr);
+            if (existingIndex >= 0) {
+                workData[existingIndex] = record;
+            } else {
+                workData.unshift(record);
+            }
+            
+            // Giới hạn số lượng bản ghi
+            if (workData.length > 1000) {
+                workData = workData.slice(0, 1000);
+            }
+            
+            saveData();
+            updateHistory();
+        }
+        
+        function createAutoWorkRecord() {
+            const todayStr = formatDate(today);
+            const startTimeToday = new Date(today);
+            startTimeToday.setHours(7, 45, 0, 0);
+            
+            const record = {
+                id: Date.now(),
+                date: todayStr,
+                startTime: '07:45',
+                endTime: null,
+                totalHours: '0.00',
+                overtime: '0.00',
+                timestamp: startTimeToday.getTime(),
+                isWeekday: true,
+                isAutoEnded: false,
+                isAutoStarted: true
+            };
+            
+            workData.unshift(record);
+            saveData();
+            updateHistory();
+        }
+        
+        function saveData() {
             try {
-                // Tìm file đã tồn tại
-                const response = await gapi.client.drive.files.list({
-                    q: "name = 'chamcong_auto_backup.json' and trashed = false",
-                    fields: 'files(id, name, modifiedTime)'
-                });
+                localStorage.setItem('chamcong_work_data', JSON.stringify(workData));
+                localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
                 
-                const files = response.result.files;
+                if (isWorking && workStartTime) {
+                    localStorage.setItem('chamcong_current_state', JSON.stringify({
+                        isWorking: true,
+                        workStartTime: workStartTime.getTime(),
+                        lastUpdate: Date.now()
+                    }));
+                }
                 
-                if (files && files.length > 0) {
-                    // Dùng file đã tồn tại
-                    googleDriveFileId = files[0].id;
-                    updateSyncStatus('success', `Đang đồng bộ với Google Drive`);
+                updateSaveTime();
+                return true;
+            } catch (error) {
+                console.error('Lỗi lưu dữ liệu:', error);
+                return false;
+            }
+        }
+        
+        function loadAllData() {
+            try {
+                // Load work data
+                const savedData = localStorage.getItem('chamcong_work_data');
+                if (savedData) {
+                    workData = JSON.parse(savedData);
+                }
+                
+                // Load basic salary
+                const savedSalary = localStorage.getItem('chamcong_basic_salary');
+                if (savedSalary) {
+                    basicSalary = parseInt(savedSalary) || 0;
+                }
+                
+                // Restore work state
+                const savedState = localStorage.getItem('chamcong_current_state');
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    const lastUpdate = new Date(state.lastUpdate);
+                    const now = new Date();
+                    const diffMinutes = (now - lastUpdate) / (1000 * 60);
+                    
+                    if (diffMinutes < 30 && state.isWorking) {
+                        workStartTime = new Date(state.workStartTime);
+                        isWorking = true;
+                        startTimer();
+                    }
+                }
+                
+                // Load last backup time
+                lastBackupTime = localStorage.getItem('chamcong_last_backup');
+                
+                updateHistory();
+                checkTodayStatus();
+                updateSaveTime();
+                
+                console.log('📊 Dữ liệu đã tải:', workData.length, 'bản ghi');
+            } catch (error) {
+                console.error('Lỗi tải dữ liệu:', error);
+                workData = [];
+            }
+        }
+        
+        function checkTodayStatus() {
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            
+            if (todayRecord) {
+                if (todayRecord.isAutoStarted) {
+                    autoStartTriggered = true;
+                    document.getElementById('autoStartInfo').style.display = 'flex';
+                }
+                
+                if (todayRecord.endTime) {
+                    document.getElementById('startTime').textContent = todayRecord.startTime;
+                    document.getElementById('endTime').textContent = todayRecord.endTime;
+                    document.getElementById('totalTime').innerHTML = 
+                        `${todayRecord.totalHours}<span class="info-unit">giờ</span>`;
+                    document.getElementById('overtime').innerHTML = 
+                        `${todayRecord.overtime}<span class="info-unit">giờ</span>`;
+                    document.getElementById('workStatus').textContent = 
+                        todayRecord.isAutoEnded ? '🟡 Đã tan ca (tự động)' : '🟡 Đã tan ca';
                 } else {
-                    // Tạo file mới
-                    await createGoogleDriveFile();
+                    workStartTime = new Date(todayRecord.timestamp);
+                    isWorking = true;
+                    document.getElementById('startTime').textContent = todayRecord.startTime;
+                    document.getElementById('workStatus').textContent = '🟢 Đang làm việc';
+                    startTimer();
                 }
-                
-                saveGoogleDriveConfig();
-                
-            } catch (error) {
-                console.error('Lỗi thiết lập file:', error);
             }
+            
+            updateButtonStates();
         }
         
-        // Tạo file mới trên Google Drive
-        async function createGoogleDriveFile() {
-            try {
-                const fileMetadata = {
-                    name: 'chamcong_auto_backup.json',
-                    mimeType: 'application/json'
-                };
+        function updateHistory() {
+            const historyContainer = document.getElementById('workHistory');
+            
+            if (workData.length === 0) {
+                historyContainer.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #8E8E93;">
+                        <i class="fas fa-history" style="font-size: 40px; margin-bottom: 10px;"></i>
+                        <p>Chưa có dữ liệu chấm công</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            workData.forEach(record => {
+                const isToday = record.date === formatDate(today);
+                const todayStyle = isToday ? 'style="color: #007AFF; font-weight: 700;"' : '';
                 
-                const response = await gapi.client.drive.files.create({
-                    resource: fileMetadata,
-                    fields: 'id'
+                html += `
+                    <div class="history-item" data-id="${record.id}">
+                        <div>
+                            <div class="history-date" ${todayStyle}>
+                                ${record.isWeekday ? '📅' : '🎯'} ${record.date} 
+                                ${record.isAutoStarted ? '🤖' : ''}
+                                ${record.isAutoEnded ? '⏰' : ''}
+                            </div>
+                            <div class="history-time">
+                                ${record.startTime} - ${record.endTime || '--:--'}
+                            </div>
+                        </div>
+                        <div class="history-overtime">
+                            ${record.endTime ? `💰 +${record.overtime}h` : '🟢 Đang làm'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            historyContainer.innerHTML = html;
+        }
+        
+        function updateSaveTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.getElementById('lastSaveTime').textContent = `Lưu: ${timeStr}`;
+        }
+        
+        // ==================== BACKUP SYSTEM ====================
+        function setupAutoBackup() {
+            // Backup mỗi 6 giờ
+            backupInterval = setInterval(() => {
+                performAutoBackup();
+            }, 6 * 60 * 60 * 1000);
+            
+            // Backup khi có thay đổi dữ liệu
+            setupDataChangeDetection();
+            
+            // Backup khi app chuyển background (iOS)
+            if (isIOS) {
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        performQuickBackup();
+                    }
                 });
-                
-                googleDriveFileId = response.result.id;
-                
-                // Upload dữ liệu hiện tại lên
-                await autoSaveToGoogleDrive();
-                
-            } catch (error) {
-                console.error('Lỗi tạo file:', error);
             }
+            
+            console.log('🔧 Hệ thống backup đã sẵn sàng');
         }
         
-        // Tự động lưu lên Google Drive
-        async function autoSaveToGoogleDrive() {
-            if (!isGoogleDriveEnabled || !googleDriveFileId || isSyncing) return;
+        function performAutoBackup() {
+            if (isBackupRunning) return;
+            
+            isBackupRunning = true;
+            showBackupStatus('Đang backup...');
             
             try {
-                isSyncing = true;
-                updateSyncStatus('syncing', 'Đang đồng bộ...');
-                
-                // Chuẩn bị dữ liệu
-                const exportData = {
+                const backupData = {
                     workData: workData,
                     basicSalary: basicSalary,
-                    exportDate: new Date().toISOString(),
-                    appVersion: '3.0',
-                    totalRecords: workData.length,
-                    syncTime: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    version: '2.0'
                 };
                 
-                const dataStr = JSON.stringify(exportData, null, 2);
+                // Lưu vào localStorage
+                localStorage.setItem('chamcong_backup', JSON.stringify(backupData));
+                localStorage.setItem('chamcong_last_backup', new Date().toISOString());
+                lastBackupTime = new Date().toISOString();
+                
+                // Tạo file download (chỉ khi user active)
+                if (!document.hidden) {
+                    createBackupFile(backupData);
+                }
+                
+                showBackupStatus('Backup thành công');
+                setTimeout(() => hideBackupStatus(), 2000);
+                
+                console.log('💾 Backup tự động hoàn tất');
+            } catch (error) {
+                console.error('Lỗi backup:', error);
+                showBackupStatus('Lỗi backup');
+            } finally {
+                isBackupRunning = false;
+            }
+        }
+        
+        function performQuickBackup() {
+            try {
+                const backupData = {
+                    workData: workData,
+                    basicSalary: basicSalary,
+                    timestamp: new Date().toISOString(),
+                    version: '2.0'
+                };
+                
+                localStorage.setItem('chamcong_backup', JSON.stringify(backupData));
+                console.log('💾 Quick backup completed');
+            } catch (error) {
+                console.error('Quick backup error:', error);
+            }
+        }
+        
+        function createBackupFile(data) {
+            try {
+                const dataStr = JSON.stringify(data, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
                 
-                // Update file trên Google Drive
-                const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify({
-                    name: 'chamcong_auto_backup.json',
-                    mimeType: 'application/json'
-                })], { type: 'application/json' }));
-                form.append('file', blob);
+                // Tạo URL cho file
+                const url = URL.createObjectURL(blob);
                 
-                await fetch(`https://www.googleapis.com/upload/drive/v3/files/${googleDriveFileId}?uploadType=multipart`, {
-                    method: 'PATCH',
-                    headers: new Headers({
-                        'Authorization': 'Bearer ' + gapi.client.getToken().access_token
-                    }),
-                    body: form
-                });
+                // Lưu tạm URL để có thể download sau
+                sessionStorage.setItem('last_backup_url', url);
                 
-                // Cập nhật thời gian sync
-                lastSyncTime = new Date().toISOString();
-                saveGoogleDriveConfig();
+                // Tạo link download ẩn
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chamcong_backup_${new Date().getTime()}.json`;
+                document.body.appendChild(a);
                 
-                updateSyncStatus('success', `Đã đồng bộ ${new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}`);
-                
-                // Cập nhật last backup time
-                saveBackupInfo();
+                // Trigger download (iOS có thể cần user interaction)
+                setTimeout(() => {
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                }, 100);
                 
             } catch (error) {
-                console.error('Lỗi auto save:', error);
-                updateSyncStatus('error', 'Lỗi đồng bộ');
-            } finally {
-                isSyncing = false;
+                console.error('Lỗi tạo file backup:', error);
             }
         }
         
-        // Tự động tải từ Google Drive khi mở app
-        async function autoLoadFromGoogleDrive() {
-            if (!isGoogleDriveEnabled || !googleDriveFileId) return;
+        function setupDataChangeDetection() {
+            let lastDataHash = '';
             
-            try {
-                updateSyncStatus('syncing', 'Đang tải dữ liệu...');
+            setInterval(() => {
+                const currentHash = JSON.stringify(workData).length + '-' + workData.length;
                 
-                // Lấy thông tin file
-                const fileInfo = await gapi.client.drive.files.get({
-                    fileId: googleDriveFileId,
-                    fields: 'modifiedTime'
+                if (currentHash !== lastDataHash) {
+                    lastDataHash = currentHash;
+                    
+                    // Backup sau 5 phút nếu có thay đổi
+                    clearTimeout(window.dataChangeTimeout);
+                    window.dataChangeTimeout = setTimeout(() => {
+                        if (!document.hidden) {
+                            performQuickBackup();
+                        }
+                    }, 5 * 60 * 1000);
+                }
+            }, 10000);
+        }
+        
+        function showBackupStatus(text) {
+            const statusEl = document.getElementById('backupStatus');
+            const textEl = document.getElementById('backupStatusText');
+            
+            textEl.textContent = text;
+            statusEl.style.display = 'flex';
+        }
+        
+        function hideBackupStatus() {
+            document.getElementById('backupStatus').style.display = 'none';
+        }
+        
+        // ==================== MODAL FUNCTIONS ====================
+        function showSalaryModal() {
+            const content = `
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+                        <i class="fas fa-money-bill-wave"></i> Lương căn bản (VNĐ)
+                    </label>
+                    <input type="number" id="salaryInput" 
+                           value="${basicSalary || ''}"
+                           placeholder="Nhập lương căn bản"
+                           style="width: 100%; padding: 12px; border: 1px solid #C7C7CC; border-radius: 10px; font-size: 16px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+                        <i class="fas fa-calendar"></i> Chọn tháng
+                    </label>
+                    <select id="monthSelect" style="width: 100%; padding: 12px; border: 1px solid #C7C7CC; border-radius: 10px; font-size: 16px;">
+                        <option value="">Chọn tháng...</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-salary btn-full" id="calculateBtn">
+                    <i class="fas fa-calculator"></i> Tính Lương
+                </button>
+                
+                <div id="salaryResult" style="display: none; margin-top: 20px; padding: 15px; background-color: rgba(88,86,214,0.1); border-radius: 12px;">
+                    <!-- Result will be here -->
+                </div>
+            `;
+            
+            document.getElementById('salaryContent').innerHTML = content;
+            document.getElementById('salaryModal').style.display = 'flex';
+            
+            // Populate month select
+            populateMonthSelect();
+            
+            // Add event listeners
+            setTimeout(() => {
+                document.getElementById('calculateBtn').addEventListener('click', calculateSalary);
+                document.getElementById('salaryInput').addEventListener('change', function() {
+                    basicSalary = parseInt(this.value) || 0;
+                    localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
                 });
-                
-                // Kiểm tra nếu file trên cloud mới hơn local
-                const cloudModified = new Date(fileInfo.result.modifiedTime);
-                const lastLocalSave = localStorage.getItem('chamcong_last_save_time');
-                
-                if (!lastLocalSave || cloudModified > new Date(lastLocalSave)) {
-                    // Tải file từ Google Drive
-                    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${googleDriveFileId}?alt=media`, {
-                        headers: new Headers({
-                            'Authorization': 'Bearer ' + gapi.client.getToken().access_token
-                        })
+            }, 100);
+        }
+        
+        function populateMonthSelect() {
+            const select = document.getElementById('monthSelect');
+            const months = new Set();
+            
+            workData.forEach(record => {
+                const date = new Date(record.timestamp);
+                const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+                months.add(monthYear);
+            });
+            
+            // Thêm tháng hiện tại
+            const currentMonthYear = `${today.getMonth() + 1}/${today.getFullYear()}`;
+            months.add(currentMonthYear);
+            
+            // Sắp xếp và thêm options
+            const monthsArray = Array.from(months).sort((a, b) => {
+                const [aMonth, aYear] = a.split('/').map(Number);
+                const [bMonth, bYear] = b.split('/').map(Number);
+                if (bYear !== aYear) return bYear - aYear;
+                return bMonth - aMonth;
+            });
+            
+            select.innerHTML = '<option value="">Chọn tháng...</option>';
+            monthsArray.forEach(monthYear => {
+                const [month, year] = monthYear.split('/');
+                const option = document.createElement('option');
+                option.value = monthYear;
+                option.textContent = `Tháng ${month}/${year}`;
+                if (monthYear === currentMonthYear) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+        
+        function calculateSalary() {
+            const salary = parseInt(document.getElementById('salaryInput').value) || 0;
+            const monthYear = document.getElementById('monthSelect').value;
+            
+            if (!salary) {
+                showNotification('⚠️ Vui lòng nhập lương căn bản', 'warning');
+                return;
+            }
+            
+            if (!monthYear) {
+                showNotification('⚠️ Vui lòng chọn tháng', 'warning');
+                return;
+            }
+            
+            const [month, year] = monthYear.split('/').map(Number);
+            
+            // Lọc dữ liệu theo tháng
+            const monthData = workData.filter(record => {
+                const recordDate = new Date(record.timestamp);
+                return recordDate.getMonth() + 1 === month && 
+                       recordDate.getFullYear() === year &&
+                       record.endTime;
+            });
+            
+            // Tính tổng giờ tăng ca
+            let totalOvertime = 0;
+            let details = [];
+            
+            monthData.forEach(record => {
+                const overtime = parseFloat(record.overtime) || 0;
+                if (overtime > 0) {
+                    totalOvertime += overtime;
+                    details.push({
+                        date: record.date,
+                        overtime: overtime,
+                        start: record.startTime,
+                        end: record.endTime
                     });
+                }
+            });
+            
+            // Tính lương
+            const dailySalary = salary / 26;
+            const hourlySalary = dailySalary / 8;
+            const overtimeRate = 2;
+            const totalSalary = totalOvertime * (hourlySalary * overtimeRate);
+            
+            // Hiển thị kết quả
+            const resultDiv = document.getElementById('salaryResult');
+            resultDiv.style.display = 'block';
+            
+            let detailsHtml = '';
+            details.forEach(detail => {
+                detailsHtml += `
+                    <div style="font-size: 13px; margin: 5px 0; padding: 5px; background: white; border-radius: 6px;">
+                        <strong>${detail.date}</strong>: ${detail.overtime.toFixed(2)} giờ
+                        <br><small>${detail.start} - ${detail.end}</small>
+                    </div>
+                `;
+            });
+            
+            resultDiv.innerHTML = `
+                <h4 style="color: #5856D6; margin-bottom: 10px;">
+                    <i class="fas fa-coins"></i> Kết quả tính lương
+                </h4>
+                <div style="font-size: 24px; font-weight: 700; color: #5856D6; margin: 10px 0;">
+                    ${formatCurrency(totalSalary)}
+                </div>
+                <div style="font-size: 14px; color: #8E8E93;">
+                    <div>Tổng giờ tăng ca: <strong>${totalOvertime.toFixed(2)} giờ</strong></div>
+                    <div>Số ngày có tăng ca: <strong>${details.length} ngày</strong></div>
+                    <div>Lương/giờ: <strong>${formatCurrency(hourlySalary)}</strong></div>
+                </div>
+                ${details.length > 0 ? `
+                    <div style="margin-top: 15px; max-height: 200px; overflow-y: auto;">
+                        <h5 style="font-size: 14px; margin-bottom: 5px;">Chi tiết từng ngày:</h5>
+                        ${detailsHtml}
+                    </div>
+                ` : ''}
+            `;
+            
+            showNotification('💰 Đã tính lương thành công', 'success');
+        }
+        
+        function formatCurrency(amount) {
+            return amount.toLocaleString('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            });
+        }
+        
+        function showBackupModal() {
+            const lastBackup = lastBackupTime ? new Date(lastBackupTime) : null;
+            const lastBackupStr = lastBackup ? 
+                lastBackup.toLocaleDateString('vi-VN') + ' ' + 
+                lastBackup.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 
+                'Chưa có';
+            
+            const content = `
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 48px; color: #FF9500; margin-bottom: 15px;">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3 style="margin-bottom: 10px;">Sao lưu & Khôi phục</h3>
+                    <p style="color: #8E8E93; margin-bottom: 20px;">
+                        Tổng: <strong>${workData.length}</strong> bản ghi<br>
+                        Lần backup cuối: <strong>${lastBackupStr}</strong>
+                    </p>
+                </div>
+                
+                <div style="display: grid; gap: 10px; margin: 20px 0;">
+                    <button class="btn btn-full" style="background-color: #34C759;" id="exportBtn">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
+                    </button>
                     
-                    const cloudData = await response.json();
+                    <button class="btn btn-full" style="background-color: #007AFF;" id="importBtn">
+                        <i class="fas fa-file-import"></i> Nhập dữ liệu
+                    </button>
                     
-                    // Merge dữ liệu (ưu tiên cloud nếu mới hơn)
-                    if (cloudData.workData && Array.isArray(cloudData.workData)) {
-                        workData = mergeWorkData(workData, cloudData.workData);
+                    <button class="btn btn-full" style="background-color: #5856D6;" id="autoBackupBtn">
+                        <i class="fas fa-sync"></i> Backup ngay
+                    </button>
+                    
+                    <button class="btn btn-full" style="background-color: #8E8E93;" id="restoreBtn">
+                        <i class="fas fa-history"></i> Khôi phục gần nhất
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background-color: rgba(0,122,255,0.1); border-radius: 12px;">
+                    <h4 style="color: #007AFF; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> Thông tin
+                    </h4>
+                    <p style="font-size: 13px; color: #8E8E93;">
+                        • Dữ liệu tự động backup mỗi 6 giờ<br>
+                        • File backup được lưu trong Downloads<br>
+                        • Khôi phục từ file JSON bất kỳ lúc nào
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('backupContent').innerHTML = content;
+            document.getElementById('backupModal').style.display = 'flex';
+            
+            // Add event listeners
+            setTimeout(() => {
+                document.getElementById('exportBtn').addEventListener('click', exportData);
+                document.getElementById('importBtn').addEventListener('click', importData);
+                document.getElementById('autoBackupBtn').addEventListener('click', performAutoBackup);
+                document.getElementById('restoreBtn').addEventListener('click', restoreLatestBackup);
+            }, 100);
+        }
+        
+        function exportData() {
+            const backupData = {
+                workData: workData,
+                basicSalary: basicSalary,
+                timestamp: new Date().toISOString(),
+                version: '2.0',
+                totalRecords: workData.length
+            };
+            
+            const dataStr = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chamcong_export_${new Date().getTime()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            localStorage.setItem('chamcong_last_backup', new Date().toISOString());
+            showNotification('✅ Đã xuất dữ liệu thành công', 'success');
+            hideModal('backupModal');
+        }
+        
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const backupData = JSON.parse(e.target.result);
                         
-                        if (cloudData.basicSalary) {
-                            basicSalary = cloudData.basicSalary;
-                            document.getElementById('basicSalary').value = basicSalary;
-                            localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                        if (!backupData.workData || !Array.isArray(backupData.workData)) {
+                            throw new Error('File không hợp lệ');
                         }
                         
-                        saveDataToStorage();
-                        updateWorkHistory();
-                        initSalaryMonthSelect();
-                        
-                        showNotification('✅ Đã đồng bộ dữ liệu từ Google Drive', 'success');
+                        // Xác nhận import
+                        if (confirm(`Nhập ${backupData.workData.length} bản ghi?\n\nDữ liệu hiện tại sẽ được thêm vào.`)) {
+                            // Merge dữ liệu
+                            const existingDates = new Set(workData.map(r => r.date));
+                            backupData.workData.forEach(record => {
+                                if (!existingDates.has(record.date)) {
+                                    workData.push(record);
+                                }
+                            });
+                            
+                            if (backupData.basicSalary) {
+                                basicSalary = backupData.basicSalary;
+                                localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                            }
+                            
+                            // Sắp xếp lại
+                            workData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                            
+                            saveData();
+                            updateHistory();
+                            
+                            showNotification(`✅ Đã nhập ${backupData.workData.length} bản ghi`, 'success');
+                            hideModal('backupModal');
+                        }
+                    } catch (error) {
+                        console.error('Lỗi import:', error);
+                        showNotification('❌ File không hợp lệ', 'danger');
                     }
-                }
+                };
                 
-                updateSyncStatus('success', 'Dữ liệu đã đồng bộ');
-                
-            } catch (error) {
-                console.error('Lỗi auto load:', error);
-                updateSyncStatus('error', 'Lỗi tải dữ liệu');
-            }
-        }
-        
-        // Merge dữ liệu từ cloud và local
-        function mergeWorkData(localData, cloudData) {
-            const mergedMap = new Map();
-            
-            // Thêm tất cả từ cloud
-            cloudData.forEach(item => {
-                if (item.date && item.timestamp) {
-                    mergedMap.set(item.date, item);
-                }
-            });
-            
-            // Thêm từ local nếu không trùng
-            localData.forEach(item => {
-                if (item.date && !mergedMap.has(item.date)) {
-                    mergedMap.set(item.date, item);
-                } else if (item.date) {
-                    // Nếu trùng, chọn bản ghi mới hơn
-                    const existing = mergedMap.get(item.date);
-                    const existingTime = existing.timestamp || 0;
-                    const localTime = item.timestamp || 0;
-                    
-                    if (localTime > existingTime) {
-                        mergedMap.set(item.date, item);
-                    }
-                }
-            });
-            
-            return Array.from(mergedMap.values())
-                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        }
-        
-        // Bắt đầu auto sync
-        function startAutoSync() {
-            if (autoSyncInterval) clearInterval(autoSyncInterval);
-            
-            // Sync mỗi 2 phút
-            autoSyncInterval = setInterval(async () => {
-                if (isGoogleDriveEnabled && googleDriveFileId) {
-                    await autoSaveToGoogleDrive();
-                }
-            }, 2 * 60 * 1000); // 2 phút
-            
-            // Cũng sync khi có thay đổi dữ liệu
-            setupDataChangeListeners();
-        }
-        
-        // Lắng nghe thay đổi dữ liệu để sync ngay lập tức
-        function setupDataChangeListeners() {
-            // Monkey patch các hàm thay đổi dữ liệu
-            const originalSaveWorkData = saveWorkData;
-            saveWorkData = function(...args) {
-                const result = originalSaveWorkData.apply(this, args);
-                setTimeout(() => autoSaveToGoogleDrive(), 1000); // Sync sau 1 giây
-                return result;
+                reader.readAsText(file);
             };
             
-            const originalSaveBasicSalary = saveBasicSalary;
-            saveBasicSalary = function(...args) {
-                const result = originalSaveBasicSalary.apply(this, args);
-                setTimeout(() => autoSaveToGoogleDrive(), 1000);
-                return result;
-            };
-            
-            // Lắng nghe các sự kiện thay đổi
-            document.addEventListener('workDataChanged', () => {
-                setTimeout(() => autoSaveToGoogleDrive(), 1000);
-            });
+            input.click();
         }
         
-        // Lưu config Google Drive
-        function saveGoogleDriveConfig() {
-            const config = {
-                enabled: isGoogleDriveEnabled,
-                fileId: googleDriveFileId,
-                lastSyncTime: lastSyncTime,
-                clientId: GOOGLE_CONFIG.clientId
-            };
-            localStorage.setItem('chamcong_google_drive_config', JSON.stringify(config));
-        }
-        
-        // Tắt Google Drive Auto Sync
-        function disableGoogleDriveAutoSync() {
-            isGoogleDriveEnabled = false;
-            googleDriveFileId = null;
-            
-            if (autoSyncInterval) {
-                clearInterval(autoSyncInterval);
-                autoSyncInterval = null;
-            }
-            
-            saveGoogleDriveConfig();
-            updateSyncStatus('error', 'Đã tắt Google Drive Sync');
-            updateGoogleDriveUI();
-            
-            showNotification('✅ Đã tắt Google Drive Auto Sync', 'success');
-        }
-        
-        // Cập nhật trạng thái sync
-        function updateSyncStatus(status, message) {
-            const syncStatusEl = document.getElementById('syncStatus');
-            if (!syncStatusEl) return;
-            
-            syncStatusEl.className = 'sync-status';
-            syncStatusEl.classList.add(status);
-            
-            const icon = syncStatusEl.querySelector('i');
-            const text = syncStatusEl.querySelector('span');
-            
-            if (icon) {
-                if (status === 'syncing') {
-                    icon.className = 'fas fa-sync fa-spin';
-                } else if (status === 'success') {
-                    icon.className = 'fas fa-check-circle';
-                } else if (status === 'error') {
-                    icon.className = 'fas fa-exclamation-circle';
-                } else {
-                    icon.className = 'fas fa-cloud';
-                }
-            }
-            
-            if (text) {
-                text.textContent = message;
-            }
-        }
-        
-        // Cập nhật UI Google Drive
-        function updateGoogleDriveUI() {
-            const backupBtn = document.getElementById('backupBtn');
-            if (backupBtn) {
-                if (isGoogleDriveEnabled) {
-                    backupBtn.innerHTML = `
-                        <i class="fab fa-google-drive"></i> 💾 Google Drive (Đang bật)
-                    `;
-                    backupBtn.style.backgroundColor = '#34C759';
-                } else {
-                    backupBtn.innerHTML = `
-                        <i class="fas fa-database"></i> 💾 Sao Lưu & Khôi Phục
-                    `;
-                    backupBtn.style.backgroundColor = '';
-                }
-            }
-        }
-        
-        // Hiển thị modal Google Drive
-        function showGoogleDriveModal() {
-            const modal = document.getElementById('googleDriveModal');
-            const content = document.getElementById('driveSetupContent');
-            
-            if (isGoogleDriveEnabled) {
-                content.innerHTML = `
-                    <div class="drive-file-info">
-                        <h4 style="color:#34C759;margin-bottom:10px;">
-                            <i class="fas fa-check-circle"></i> Google Drive Auto Sync ĐANG BẬT
-                        </h4>
-                        <p>Dữ liệu tự động đồng bộ mỗi 2 phút</p>
-                        <div style="margin-top:10px;font-size:14px;">
-                            <div><strong>File:</strong> chamcong_auto_backup.json</div>
-                            <div><strong>Lần đồng bộ cuối:</strong> ${lastSyncTime ? new Date(lastSyncTime).toLocaleString('vi-VN') : 'Chưa có'}</div>
-                            <div><strong>Số bản ghi:</strong> ${workData.length}</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin:20px 0;">
-                        <button class="btn btn-primary btn-full" onclick="manualSyncNow()">
-                            <i class="fas fa-sync"></i> Đồng bộ ngay
-                        </button>
-                    </div>
-                    
-                    <div style="margin:20px 0;">
-                        <button class="btn btn-secondary btn-full" onclick="showDriveFileInfo()">
-                            <i class="fas fa-info-circle"></i> Xem thông tin file
-                        </button>
-                    </div>
-                    
-                    <div style="margin:20px 0;">
-                        <button class="btn btn-danger btn-full" onclick="disableGoogleDriveAutoSync()">
-                            <i class="fas fa-power-off"></i> Tắt Auto Sync
-                        </button>
-                    </div>
-                    
-                    <div style="padding:15px;background-color:rgba(52,199,89,0.1);border-radius:12px;margin-top:20px;">
-                        <h4 style="color:var(--success);font-size:14px;">
-                            <i class="fas fa-lightbulb"></i> Hoạt động tự động:
-                        </h4>
-                        <ul style="font-size:13px;padding-left:20px;margin:10px 0;">
-                            <li>Tự lưu khi có thay đổi dữ liệu</li>
-                            <li>Tự tải khi mở ứng dụng</li>
-                            <li>Đồng bộ giữa các thiết bị</li>
-                            <li>Lưu lịch sử 30 ngày trên cloud</li>
-                        </ul>
-                    </div>
-                `;
-            } else {
-                content.innerHTML = `
-                    <div style="text-align:center;padding:20px;">
-                        <div style="font-size:60px;color:#4285F4;margin-bottom:20px;">
-                            <i class="fab fa-google-drive"></i>
-                        </div>
-                        <h3 style="color:var(--dark);margin-bottom:10px;">
-                            Google Drive Auto Sync
-                        </h3>
-                        <p style="color:var(--gray);margin-bottom:20px;">
-                            Bật tính năng này để dữ liệu tự động đồng bộ lên Google Drive.
-                            Không cần thao tác thủ công!
-                        </p>
-                        
-                        <div style="background-color:rgba(66,133,244,0.1);border-radius:12px;padding:15px;margin:20px 0;">
-                            <h4 style="color:#4285F4;margin-bottom:10px;">
-                                <i class="fas fa-bolt"></i> Lợi ích:
-                            </h4>
-                            <ul style="text-align:left;font-size:14px;padding-left:20px;">
-                                <li>💾 <strong>Tự động sao lưu</strong> mỗi 2 phút</li>
-                                <li>☁️ <strong>Đồng bộ đa thiết bị</strong> (iPhone, iPad, Android)</li>
-                                <li>🔄 <strong>Khôi phục tự động</strong> khi cài lại app</li>
-                                <li>🔒 <strong>An toàn</strong> với tài khoản Google của bạn</li>
-                                <li>📈 <strong>Lịch sử 30 ngày</strong> trên cloud</li>
-                            </ul>
-                        </div>
-                        
-                        <button class="btn btn-primary btn-full" style="background-color:#4285F4;" onclick="authenticateGoogle()">
-                            <i class="fab fa-google"></i> Bật Google Drive Auto Sync
-                        </button>
-                        
-                        <div style="margin-top:20px;font-size:13px;color:var(--gray);">
-                            <p><i class="fas fa-info-circle"></i> Chỉ cần đăng nhập Google một lần</p>
-                            <p><i class="fas fa-shield-alt"></i> Ứng dụng chỉ truy cập file của chính nó</p>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            modal.style.display = 'flex';
-        }
-        
-        // Đồng bộ ngay lập tức
-        async function manualSyncNow() {
-            if (isGoogleDriveEnabled) {
-                await autoSaveToGoogleDrive();
-                showNotification('✅ Đã đồng bộ ngay lập tức', 'success');
-            }
-        }
-        
-        // Hiển thị thông tin file
-        async function showDriveFileInfo() {
+        function restoreLatestBackup() {
             try {
-                const fileInfo = await gapi.client.drive.files.get({
-                    fileId: googleDriveFileId,
-                    fields: 'id,name,size,createdTime,modifiedTime,version'
+                const backupStr = localStorage.getItem('chamcong_backup');
+                if (!backupStr) {
+                    showNotification('⚠️ Không có bản backup nào', 'warning');
+                    return;
+                }
+            
+                const backupData = JSON.parse(backupStr);
+                
+                if (confirm(`Khôi phục bản backup từ ${new Date(backupData.timestamp).toLocaleString('vi-VN')}?\n\nDữ liệu hiện tại sẽ bị thay thế.`)) {
+                    workData = backupData.workData || [];
+                    basicSalary = backupData.basicSalary || 0;
+                    
+                    saveData();
+                    updateHistory();
+                    
+                    showNotification('✅ Đã khôi phục thành công', 'success');
+                    hideModal('backupModal');
+                }
+            } catch (error) {
+                console.error('Lỗi restore:', error);
+                showNotification('❌ Lỗi khôi phục', 'danger');
+            }
+        }
+        
+        function showMonthCalendar() {
+            renderCalendar();
+            document.getElementById('monthCalendarModal').style.display = 'flex';
+        }
+        
+        function renderCalendar() {
+            const calendarEl = document.getElementById('monthCalendar');
+            const monthNames = [
+                'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+            ];
+            
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const firstDayIndex = firstDay.getDay();
+            
+            let html = `
+                <div class="calendar-header">
+                    <div class="calendar-month-year">${monthNames[currentMonth]} ${currentYear}</div>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" id="prevMonthBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="calendar-nav-btn" id="todayMonthBtn">
+                            Hôm nay
+                        </button>
+                        <button class="calendar-nav-btn" id="nextMonthBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-weekdays">
+                    <div>CN</div><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div>
+                </div>
+                <div class="calendar-days">
+            `;
+            
+            // Empty days for first week
+            for (let i = 0; i < firstDayIndex; i++) {
+                html += `<div class="calendar-day empty"></div>`;
+            }
+            
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateStr = formatDate(date);
+                const isToday = date.toDateString() === today.toDateString();
+                const isSunday = date.getDay() === 0;
+                
+                const dayData = workData.find(record => record.date === dateStr);
+                const hasData = !!dayData;
+                const overtime = hasData ? parseFloat(dayData.overtime) : 0;
+                
+                let className = 'calendar-day';
+                if (isToday) className += ' today';
+                if (hasData) className += ' has-data';
+                if (isSunday) className += ' sunday';
+                
+                html += `
+                    <div class="${className}" data-date="${dateStr}" data-has-data="${hasData}">
+                        ${day}
+                        ${hasData && overtime > 0 ? 
+                            `<div style="font-size: 10px; color: #34C759; font-weight: 700;">+${overtime.toFixed(1)}h</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+            calendarEl.innerHTML = html;
+            
+            // Add event listeners
+            setTimeout(() => {
+                document.getElementById('prevMonthBtn').addEventListener('click', () => {
+                    currentMonth--;
+                    if (currentMonth < 0) {
+                        currentMonth = 11;
+                        currentYear--;
+                    }
+                    renderCalendar();
                 });
                 
-                const info = fileInfo.result;
-                alert(`📁 Thông tin file trên Google Drive:\n\n` +
-                      `Tên: ${info.name}\n` +
-                      `Kích thước: ${(parseInt(info.size) / 1024).toFixed(2)} KB\n` +
-                      `Tạo lúc: ${new Date(info.createdTime).toLocaleString('vi-VN')}\n` +
-                      `Sửa lần cuối: ${new Date(info.modifiedTime).toLocaleString('vi-VN')}\n` +
-                      `Version: ${info.version || '1'}`);
-                      
-            } catch (error) {
-                console.error('Lỗi lấy thông tin file:', error);
-            }
+                document.getElementById('nextMonthBtn').addEventListener('click', () => {
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                    renderCalendar();
+                });
+                
+                document.getElementById('todayMonthBtn').addEventListener('click', () => {
+                    const now = new Date();
+                    currentMonth = now.getMonth();
+                    currentYear = now.getFullYear();
+                    renderCalendar();
+                });
+                
+                // Day click events
+                document.querySelectorAll('.calendar-day:not(.empty)').forEach(day => {
+                    day.addEventListener('click', function() {
+                        const dateStr = this.getAttribute('data-date');
+                        showDayDetail(dateStr);
+                    });
+                });
+            }, 100);
         }
         
-        // ==================== INTEGRATION WITH EXISTING CODE ====================
-        
-        // Cập nhật initApp để khởi tạo Google Drive Auto Sync
-        const originalInitApp = initApp;
-        initApp = async function() {
-            await originalInitApp();
-            await initGoogleDriveAutoSync();
+        function showDayDetail(dateStr) {
+            const date = parseDate(dateStr);
+            const dayData = workData.find(record => record.date === dateStr);
             
-            // Thay đổi sự kiện cho nút backup
-            const backupBtn = document.getElementById('backupBtn');
-            if (backupBtn) {
-                backupBtn.onclick = showGoogleDriveModal;
+            let content = '';
+            
+            if (dayData) {
+                content = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: #007AFF;">${dateStr}</h3>
+                        <p style="color: #8E8E93;">${dayData.isWeekday ? 'Thứ 2-6' : 'Chủ nhật'}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #8E8E93;">Giờ vào</div>
+                            <div style="font-size: 18px; font-weight: 700;">${dayData.startTime}</div>
+                        </div>
+                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #8E8E93;">Giờ tan</div>
+                            <div style="font-size: 18px; font-weight: 700;">${dayData.endTime || '--:--'}</div>
+                        </div>
+                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #8E8E93;">Tổng giờ</div>
+                            <div style="font-size: 18px; font-weight: 700;">${dayData.totalHours}h</div>
+                        </div>
+                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 14px; color: #8E8E93;">Tăng ca</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #34C759;">${dayData.overtime}h</div>
+                        </div>
+                    </div>
+                    
+                    ${dayData.isAutoStarted || dayData.isAutoEnded ? `
+                        <div style="background: rgba(52,199,89,0.1); padding: 12px; border-radius: 10px; margin-bottom: 20px;">
+                            <div style="font-size: 14px; color: #34C759;">
+                                ${dayData.isAutoStarted ? '🤖 Tự động bắt đầu 7:45<br>' : ''}
+                                ${dayData.isAutoEnded ? '⏰ Tự động tan ca 17:00' : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <button class="btn btn-full" style="background-color: #FF3B30;" 
+                            onclick="deleteDayRecord('${dateStr}')">
+                        <i class="fas fa-trash-alt"></i> Xóa bản ghi này
+                    </button>
+                `;
+            } else {
+                content = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; color: #8E8E93; margin-bottom: 15px;">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        <h3 style="margin-bottom: 10px;">Không có dữ liệu</h3>
+                        <p style="color: #8E8E93; margin-bottom: 20px;">
+                            Ngày ${dateStr} chưa có dữ liệu chấm công
+                        </p>
+                        <button class="btn btn-full" onclick="createDayRecord('${dateStr}')">
+                            <i class="fas fa-plus"></i> Tạo bản ghi mới
+                        </button>
+                    </div>
+                `;
             }
             
-            // Thêm nút đóng modal Google Drive
-            document.getElementById('closeGoogleDriveModal').onclick = function() {
-                document.getElementById('googleDriveModal').style.display = 'none';
-            };
-        };
-        
-        // Ghi đè hàm saveDataToStorage để trigger sync
-        const originalSaveDataToStorage = saveDataToStorage;
-        saveDataToStorage = function() {
-            const result = originalSaveDataToStorage.apply(this, arguments);
-            
-            // Kích hoạt sync nếu Google Drive đang bật
-            if (isGoogleDriveEnabled && !isSyncing) {
-                setTimeout(() => autoSaveToGoogleDrive(), 2000);
-            }
-            
-            return result;
-        };
-        
-        // Thêm event khi có thay đổi dữ liệu
-        function triggerWorkDataChanged() {
-            const event = new Event('workDataChanged');
-            document.dispatchEvent(event);
+            document.getElementById('dayDetailContent').innerHTML = content;
+            document.getElementById('dayDetailModal').style.display = 'flex';
+            hideModal('monthCalendarModal');
         }
         
-        // Cập nhật các hàm thay đổi dữ liệu để trigger sync
-        const functionsToPatch = [
-            'saveWorkData',
-            'updateDayTime',
-            'createNewDayRecord',
-            'confirmDeleteDay',
-            'endWork',
-            'startWork',
-            'saveBasicSalary'
-        ];
+        function parseDate(dateStr) {
+            const [day, month, year] = dateStr.split('/').map(Number);
+            return new Date(year, month - 1, day);
+        }
         
-        functionsToPatch.forEach(funcName => {
-            if (window[funcName]) {
-                const originalFunc = window[funcName];
-                window[funcName] = function(...args) {
-                    const result = originalFunc.apply(this, args);
-                    setTimeout(() => triggerWorkDataChanged(), 100);
-                    return result;
-                };
-            }
-        });
-        
-        // ==================== TEST CONFIG (CHO DEVELOPMENT) ====================
-        
-        // Config test cho localhost
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            GOOGLE_CONFIG.apiKey = 'AIzaSyB3D2kL6n7Kj9JpP8qM5zXyVwT8uR1sT2v3'; // Test key
-            GOOGLE_CONFIG.clientId = '1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com'; // Test client ID
-            
-            // Auto enable for testing
-            window.addEventListener('load', () => {
-                if (!localStorage.getItem('chamcong_google_drive_config')) {
-                    console.log('Development mode: Google Drive test config loaded');
-                    updateSyncStatus('error', 'Development Mode - Set up Google Drive');
+        function deleteDayRecord(dateStr) {
+            if (confirm(`Xóa bản ghi ngày ${dateStr}?`)) {
+                const index = workData.findIndex(record => record.date === dateStr);
+                if (index > -1) {
+                    workData.splice(index, 1);
+                    saveData();
+                    updateHistory();
+                    
+                    // Cập nhật lại calendar nếu đang mở
+                    if (document.getElementById('monthCalendarModal').style.display === 'flex') {
+                        renderCalendar();
+                    }
+                    
+                    showNotification('🗑️ Đã xóa bản ghi', 'success');
+                    hideModal('dayDetailModal');
                 }
+            }
+        }
+        
+        function createDayRecord(dateStr) {
+            const date = parseDate(dateStr);
+            const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
+            
+            const record = {
+                id: Date.now(),
+                date: dateStr,
+                startTime: '07:45',
+                endTime: null,
+                totalHours: '0.00',
+                overtime: '0.00',
+                timestamp: date.getTime(),
+                isWeekday: isWeekdayNew,
+                isAutoEnded: false,
+                isAutoStarted: false
+            };
+            
+            workData.unshift(record);
+            saveData();
+            updateHistory();
+            
+            showNotification('➕ Đã tạo bản ghi mới', 'success');
+            hideModal('dayDetailModal');
+        }
+        
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // ==================== EVENT LISTENERS ====================
+        function setupEventListeners() {
+            // Control buttons
+            document.getElementById('startWorkBtn').addEventListener('click', startWork);
+            document.getElementById('endWorkBtn').addEventListener('click', endWork);
+            
+            // Modal buttons
+            document.getElementById('salaryBtn').addEventListener('click', showSalaryModal);
+            document.getElementById('backupBtn').addEventListener('click', showBackupModal);
+            document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
+            
+            // Close buttons
+            document.getElementById('closeSalaryModal').addEventListener('click', () => hideModal('salaryModal'));
+            document.getElementById('closeBackupModal').addEventListener('click', () => hideModal('backupModal'));
+            document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
+            document.getElementById('closeDayModal').addEventListener('click', () => hideModal('dayDetailModal'));
+            
+            // Auto-save interval
+            autoSaveInterval = setInterval(() => {
+                if (isWorking || workData.length > 0) {
+                    saveData();
+                }
+            }, 60000); // Mỗi phút
+            
+            // Before unload save
+            window.addEventListener('beforeunload', () => {
+                saveData();
             });
         }
         
-        // ==================== UTILITY FUNCTIONS ====================
-        
-        // Format date for filename
-        function formatDateISO(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+        // ==================== iOS OPTIMIZATIONS ====================
+        function setupIOSOptimizations() {
+            console.log('🍎 Áp dụng tối ưu cho iOS');
+            
+            // Fix for iOS 100vh issue
+            function setViewportHeight() {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            }
+            
+            setViewportHeight();
+            window.addEventListener('resize', setViewportHeight);
+            window.addEventListener('orientationchange', setViewportHeight);
+            
+            // Prevent zoom on input focus
+            document.addEventListener('touchstart', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Handle iOS keyboard
+            let focusedElement;
+            const originalHeight = window.innerHeight;
+            
+            window.addEventListener('focusin', function(e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    focusedElement = e.target;
+                    setTimeout(() => {
+                        if (focusedElement) {
+                            focusedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 300);
+                }
+            });
+            
+            window.addEventListener('focusout', function() {
+                focusedElement = null;
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                }, 100);
+            });
+            
+            // Fix for iOS momentum scrolling
+            document.querySelectorAll('.work-history, .modal-content').forEach(el => {
+                el.style.webkitOverflowScrolling = 'touch';
+            });
+            
+            // iOS haptic feedback
+            function hapticFeedback(type = 'light') {
+                if (window.navigator.vibrate) {
+                    switch(type) {
+                        case 'light': window.navigator.vibrate(10); break;
+                        case 'medium': window.navigator.vibrate(20); break;
+                        case 'heavy': window.navigator.vibrate(30); break;
+                    }
+                }
+            }
+            
+            // Add haptic to buttons
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('touchstart', () => hapticFeedback('light'));
+            });
         }
         
-        // Các hàm khác giữ nguyên...
+        // ==================== NOTIFICATION ====================
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageEl = document.getElementById('notificationMessage');
+            
+            let bgColor = '#007AFF';
+            if (type === 'success') bgColor = '#34C759';
+            if (type === 'warning') bgColor = '#FF9500';
+            if (type === 'danger') bgColor = '#FF3B30';
+            
+            notification.style.backgroundColor = bgColor;
+            messageEl.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
         
-        // Khởi động ứng dụng
-        document.addEventListener('DOMContentLoaded', function() {
-            initApp();
+        // ==================== PWA INSTALL PROMPT ====================
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button after 10 seconds
+            setTimeout(() => {
+                if (deferredPrompt && confirm('Cài đặt ứng dụng lên màn hình chính để sử dụng offline?')) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('✅ User installed the app');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            }, 10000);
         });
+        
+        // ==================== SERVICE WORKER (PWA) ====================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+        
+        // Service Worker content (inline for demo)
+        const serviceWorkerCode = `
+            self.addEventListener('install', (event) => {
+                event.waitUntil(
+                    caches.open('chamcong-v1').then((cache) => {
+                        return cache.addAll([
+                            '/',
+                            '/index.html',
+                            '/manifest.json'
+                        ]);
+                    })
+                );
+            });
+            
+            self.addEventListener('fetch', (event) => {
+                event.respondWith(
+                    caches.match(event.request).then((response) => {
+                        return response || fetch(event.request);
+                    })
+                );
+            });
+        `;
+        
+        // Create service worker if needed
+        if (location.protocol === 'https:' || location.hostname === 'localhost') {
+            const blob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(blob);
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register(workerUrl)
+                    .then(() => console.log('🔧 Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            }
+        }
     </script>
 </body>
 </html>
