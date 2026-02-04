@@ -1049,7 +1049,7 @@
         let editingDate = null;
         let currentSalaryInput = null;
         
-        // NEW: Store lunch overtime settings for each date
+        // Store lunch overtime settings for each date
         let lunchOvertimeSettings = {};
         
         // iOS Detection
@@ -1157,6 +1157,36 @@
         }
         
         function endWork() {
+            // Kiểm tra xem hôm nay đã có bản ghi chưa
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            
+            // Nếu hôm nay đã có bản ghi và đã có giờ kết thúc (đã tan ca trước đó)
+            if (todayRecord && todayRecord.endTime) {
+                // Cho phép cập nhật giờ tan ca mới
+                const newEndTime = new Date();
+                
+                // Lấy giờ bắt đầu từ bản ghi cũ
+                const startTimeDate = new Date(todayRecord.timestamp);
+                
+                const workDuration = calculateWorkDuration(startTimeDate, newEndTime);
+                let overtime = calculateOvertime(startTimeDate, newEndTime);
+                
+                document.getElementById('endTime').textContent = formatTime(newEndTime);
+                document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+                document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+                document.getElementById('workStatus').textContent = '🟡 Đã cập nhật giờ tan ca mới';
+                document.getElementById('workStatus').style.color = '#FF9500';
+                
+                updateButtonStates();
+                
+                // Cập nhật bản ghi hiện tại với giờ tan ca mới
+                updateWorkRecordWithNewEndTime(todayStr, newEndTime, workDuration, overtime);
+                
+                showNotification(`🏁 Đã cập nhật giờ tan ca mới: ${formatTime(newEndTime)}`, 'success');
+                return;
+            }
+            
             if (!isWorking) {
                 showNotification('⚠️ Bạn chưa bắt đầu làm việc!', 'warning');
                 return;
@@ -1180,6 +1210,22 @@
             saveWorkRecord(workStartTime, workEndTime, workDuration, overtime);
             
             showNotification(`🏁 Đã tan ca. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
+        }
+        
+        function updateWorkRecordWithNewEndTime(dateStr, newEndTime, totalHours, overtime) {
+            // Tìm bản ghi của ngày hôm nay
+            const index = workData.findIndex(record => record.date === dateStr);
+            
+            if (index >= 0) {
+                // Cập nhật bản ghi với giờ kết thúc mới
+                workData[index].endTime = formatTime(newEndTime);
+                workData[index].totalHours = totalHours.toFixed(2);
+                workData[index].overtime = overtime.toFixed(2);
+                workData[index].isAutoEnded = false; // Đánh dấu là không phải tự động tan ca
+                
+                saveData();
+                updateHistory();
+            }
         }
         
         function checkAutoStart() {
@@ -1262,12 +1308,27 @@
             const startBtn = document.getElementById('startWorkBtn');
             const endBtn = document.getElementById('endWorkBtn');
             
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            const hasEndedToday = todayRecord && todayRecord.endTime;
+            
             if (isWorking) {
                 startBtn.disabled = true;
                 endBtn.disabled = false;
+            } else if (hasEndedToday) {
+                // Sau khi đã tan ca (tự động hoặc thủ công)
+                // Vẫn cho phép nhấn nút tan ca để cập nhật giờ mới
+                startBtn.disabled = false;
+                endBtn.disabled = false;
+                
+                // Thay đổi nhãn nút tan ca để người dùng biết có thể cập nhật
+                endBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 🔄 Cập nhật giờ tan ca';
+                endBtn.title = "Nhấn để cập nhật giờ tan ca mới";
             } else {
                 startBtn.disabled = false;
                 endBtn.disabled = true;
+                endBtn.innerHTML = '<i class="fas fa-stop"></i> 🏁 Tan ca';
+                endBtn.title = "";
             }
         }
         
@@ -1550,7 +1611,7 @@
                     workData = [];
                 }
                 
-                // Load basic salary - REMEMBER LAST INPUT
+                // Load basic salary
                 const savedSalary = localStorage.getItem('chamcong_basic_salary');
                 if (savedSalary) {
                     basicSalary = parseInt(savedSalary) || 0;
@@ -1619,8 +1680,15 @@
                         `${todayRecord.totalHours}<span class="info-unit">giờ</span>`;
                     document.getElementById('overtime').innerHTML = 
                         `${todayRecord.overtime}<span class="info-unit">giờ</span>`;
-                    document.getElementById('workStatus').textContent = 
-                        todayRecord.isAutoEnded ? '🟡 Đã tan ca (tự động)' : '🟡 Đã tan ca';
+                    
+                    let statusText = '🟡 Đã tan ca';
+                    if (todayRecord.isAutoEnded) {
+                        statusText = '🟡 Đã tan ca (tự động 17:00) - Có thể cập nhật';
+                    }
+                    document.getElementById('workStatus').textContent = statusText;
+                    
+                    // Đánh dấu không đang làm việc
+                    isWorking = false;
                 } else {
                     workStartTime = new Date(todayRecord.timestamp);
                     isWorking = true;
@@ -2333,7 +2401,7 @@
                 return;
             }
             
-            // LƯU LƯƠNG CĂN BẢN - NHỚ SỐ TRƯỚC
+            // LƯU LƯƠNG CĂN BẢN
             basicSalary = salary;
             localStorage.setItem('chamcong_basic_salary', salary.toString());
             
