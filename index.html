@@ -831,7 +831,7 @@
     <!-- HEADER -->
     <header class="header">
         <h1><i class="fas fa-clock"></i> ⏱️ Chấm Công</h1>
-        <p>⏰ 8:00 - 17:00 (T2-T7) | 🍽️ Nghỉ trưa: 12:00-13:00</p>
+        <p>⏰ 7:45 - 17:00 (T2-T7) | 🎯 CN: Toàn bộ tăng ca</p>
         <div class="day-indicator" id="dayIndicator">
             <i class="fas fa-calendar-day"></i> <span id="dayName">Đang tải...</span>
         </div>
@@ -862,7 +862,7 @@
             </div>
             
             <div id="autoStartInfo" class="auto-start-info" style="display: none;">
-                <i class="fas fa-robot"></i> 🤖 Tự động kích hoạt lúc 8:00 (T2-T7)
+                <i class="fas fa-robot"></i> 🤖 Tự động kích hoạt lúc 7:45 (T2-T7)
             </div>
             
             <div class="work-info">
@@ -1001,7 +1001,6 @@
         
         // iOS Detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         
         // Backup System
         let lastBackupTime = null;
@@ -1009,12 +1008,8 @@
         let isBackupRunning = false;
         
         // Constants
-        const WORK_DAY_HOURS = 8; // 8 giờ làm việc
-        const LUNCH_BREAK_HOURS = 1; // 1 giờ nghỉ trưa
-        const STANDARD_START_TIME = '08:00'; // Giờ bắt đầu chuẩn
-        const STANDARD_END_TIME = '17:00'; // Giờ kết thúc chuẩn (8h làm + 1h nghỉ trưa)
-        const LUNCH_START_TIME = '12:00'; // Giờ bắt đầu nghỉ trưa
-        const LUNCH_END_TIME = '13:00'; // Giờ kết thúc nghỉ trưa
+        const STANDARD_START_TIME = '07:45'; // Giờ bắt đầu chuẩn
+        const STANDARD_END_TIME = '17:00'; // Giờ kết thúc chuẩn
         
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
@@ -1138,7 +1133,7 @@
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
             
-            if (currentHour === 8 && currentMinute >= 0) {
+            if (currentHour === 7 && currentMinute >= 45) {
                 autoStartWork();
             }
         }
@@ -1147,7 +1142,7 @@
             autoStartTriggered = true;
             
             const startTimeToday = new Date(today);
-            startTimeToday.setHours(8, 0, 0, 0);
+            startTimeToday.setHours(7, 45, 0, 0);
             
             const todayStr = formatDate(today);
             const todayRecord = workData.find(record => record.date === todayStr);
@@ -1157,8 +1152,8 @@
             workStartTime = startTimeToday;
             isWorking = true;
             
-            document.getElementById('startTime').textContent = '08:00';
-            document.getElementById('workStatus').textContent = '🟢 Đang làm việc (tự động 8:00)';
+            document.getElementById('startTime').textContent = '07:45';
+            document.getElementById('workStatus').textContent = '🟢 Đang làm việc (tự động 7:45)';
             document.getElementById('workStatus').style.color = '#34C759';
             
             const autoStartInfo = document.getElementById('autoStartInfo');
@@ -1168,7 +1163,7 @@
             startTimer();
             createAutoWorkRecord();
             
-            showNotification('🤖 Tự động bắt đầu làm việc từ 8:00', 'info');
+            showNotification('🤖 Tự động bắt đầu làm việc từ 7:45', 'info');
         }
         
         function checkAutoEnd() {
@@ -1222,32 +1217,8 @@
         
         // ==================== CALCULATION FUNCTIONS ====================
         function calculateWorkDuration(startTime, endTime) {
-            // Tính thời gian làm việc thực tế, trừ đi 1 giờ nghỉ trưa
             const diffMs = endTime - startTime;
-            const totalHours = diffMs / (1000 * 60 * 60); // hours
-            
-            // Trừ đi 1 giờ nghỉ trưa nếu làm qua khung giờ nghỉ trưa
-            const lunchOvertime = getLunchOvertimeForDate(formatDate(startTime));
-            
-            if (lunchOvertime) {
-                // Nếu có làm tăng ca trưa, không trừ giờ nghỉ trưa
-                return totalHours;
-            } else {
-                // Nếu không làm tăng ca trưa, trừ 1 giờ nghỉ trưa
-                // Kiểm tra xem có làm qua khung giờ nghỉ trưa không
-                const lunchStart = parseTime(LUNCH_START_TIME);
-                const lunchEnd = parseTime(LUNCH_END_TIME);
-                
-                lunchStart.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
-                lunchEnd.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
-                
-                // Nếu thời gian làm việc bao phủ cả khung giờ nghỉ trưa
-                if (startTime < lunchEnd && endTime > lunchStart) {
-                    return totalHours - 1; // Trừ 1 giờ nghỉ trưa
-                }
-            }
-            
-            return totalHours;
+            return diffMs / (1000 * 60 * 60); // hours
         }
         
         function calculateOvertime(startTime, endTime) {
@@ -1258,28 +1229,38 @@
             
             let overtime = 0;
             
-            // 1. Tính giờ làm trước 8:00 (sáng sớm)
-            const standardStart = new Date(startTime);
-            standardStart.setHours(8, 0, 0, 0);
+            // 1. Tính giờ làm trước 7:45 (sáng sớm)
+            const standardStart = parseTime(STANDARD_START_TIME);
+            standardStart.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
             
             if (startTime < standardStart) {
                 overtime += calculateWorkDuration(startTime, standardStart);
             }
             
             // 2. Tính giờ làm sau 17:00 (chiều muộn)
-            const standardEnd = new Date(startTime);
-            standardEnd.setHours(17, 0, 0, 0);
+            const standardEnd = parseTime(STANDARD_END_TIME);
+            standardEnd.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
             
             if (endTime > standardEnd) {
                 overtime += calculateWorkDuration(standardEnd, endTime);
             }
             
-            // 3. Kiểm tra tăng ca trưa
+            // 3. Kiểm tra tăng ca trưa (12:00-13:00)
             const dateStr = formatDate(startTime);
             const lunchOvertime = getLunchOvertimeForDate(dateStr);
             
             if (lunchOvertime) {
-                overtime += 1; // Thêm 1 giờ tăng ca trưa
+                // Kiểm tra xem có làm qua khung giờ nghỉ trưa không
+                const lunchStart = parseTime('12:00');
+                const lunchEnd = parseTime('13:00');
+                
+                lunchStart.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+                lunchEnd.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+                
+                // Nếu làm việc bao phủ cả khung giờ nghỉ trưa
+                if (startTime <= lunchEnd && endTime >= lunchStart) {
+                    overtime += 1; // Thêm 1 giờ tăng ca trưa
+                }
             }
             
             return overtime;
@@ -1412,12 +1393,12 @@
         function createAutoWorkRecord() {
             const todayStr = formatDate(today);
             const startTimeToday = new Date(today);
-            startTimeToday.setHours(8, 0, 0, 0);
+            startTimeToday.setHours(7, 45, 0, 0);
             
             const record = {
                 id: Date.now(),
                 date: todayStr,
-                startTime: '08:00',
+                startTime: '07:45',
                 endTime: null,
                 totalHours: '0.00',
                 overtime: '0.00',
@@ -1606,7 +1587,28 @@
                 performAutoBackup();
             }, 6 * 60 * 60 * 1000);
             
+            // Backup khi có thay đổi dữ liệu
+            setupDataChangeDetection();
+            
             console.log('🔧 Hệ thống backup đã sẵn sàng');
+        }
+        
+        function setupDataChangeDetection() {
+            let lastDataHash = '';
+            
+            setInterval(() => {
+                const currentHash = JSON.stringify(workData).length + '-' + workData.length + '-' + basicSalary;
+                
+                if (currentHash !== lastDataHash) {
+                    lastDataHash = currentHash;
+                    
+                    // Backup sau 5 phút nếu có thay đổi
+                    clearTimeout(window.dataChangeTimeout);
+                    window.dataChangeTimeout = setTimeout(() => {
+                        performAutoBackup();
+                    }, 5 * 60 * 1000);
+                }
+            }, 10000);
         }
         
         function performAutoBackup() {
@@ -1621,7 +1623,7 @@
                     basicSalary: basicSalary,
                     lunchOvertimeSettings: lunchOvertimeSettings,
                     timestamp: new Date().toISOString(),
-                    version: '3.0'
+                    version: '4.0'
                 };
                 
                 // Lưu vào localStorage
@@ -1648,7 +1650,7 @@
                     basicSalary: basicSalary,
                     lunchOvertimeSettings: lunchOvertimeSettings,
                     timestamp: new Date().toISOString(),
-                    version: '3.0',
+                    version: '4.0',
                     totalRecords: workData.length
                 };
                 
@@ -1704,7 +1706,7 @@
             let content = '';
             
             if (dayData) {
-                const [startHour, startMinute] = dayData.startTime ? dayData.startTime.split(':') : ['08', '00'];
+                const [startHour, startMinute] = dayData.startTime ? dayData.startTime.split(':') : ['07', '45'];
                 const [endHour, endMinute] = dayData.endTime ? dayData.endTime.split(':') : ['17', '00'];
                 
                 content = `
@@ -1736,7 +1738,7 @@
                         </div>
                     </div>
                     
-                    <!-- NEW: Lunch Overtime Switch -->
+                    <!-- Lunch Overtime Switch -->
                     <div class="switch-container">
                         <div class="switch-label">
                             <i class="fas fa-utensils"></i> Tăng ca trưa (12:00-13:00)
@@ -1750,25 +1752,25 @@
                     <div style="margin-top: 10px; padding: 10px; background-color: rgba(255,193,7,0.1); border-radius: 8px;">
                         <div style="font-size: 12px; color: #FF9500; text-align: center;">
                             <i class="fas fa-info-circle"></i> 
-                            Khi bật tăng ca trưa: Thêm 1 giờ tăng ca, không trừ giờ nghỉ trưa
+                            Khi bật: +1 giờ tăng ca nếu làm qua 12:00-13:00
                         </div>
                     </div>
                     
                     <div class="quick-actions">
-                        <button class="quick-action-btn" onclick="setQuickTime('start', '08:00')">
-                            🕗 8:00
+                        <button class="quick-action-btn" onclick="setQuickTime('start', '07:45')">
+                            🕢 7:45
                         </button>
                         <button class="quick-action-btn" onclick="setQuickTime('start', '07:30')">
                             🕢 7:30
+                        </button>
+                        <button class="quick-action-btn" onclick="setQuickTime('start', '08:00')">
+                            🕗 8:00
                         </button>
                         <button class="quick-action-btn" onclick="setQuickTime('end', '17:00')">
                             🕔 17:00
                         </button>
                         <button class="quick-action-btn" onclick="setQuickTime('end', '18:00')">
                             🕕 18:00
-                        </button>
-                        <button class="quick-action-btn" onclick="setQuickTime('end', '19:00')">
-                            🕖 19:00
                         </button>
                     </div>
                     
@@ -1783,11 +1785,10 @@
                     
                     <div style="margin-top: 20px; padding: 15px; background: #F2F2F7; border-radius: 12px;">
                         <div style="font-size: 14px; color: #8E8E93; text-align: center;">
-                            <div><strong>Quy tắc tính giờ:</strong></div>
-                            <div>• 1 ngày làm 8 giờ, nghỉ trưa 1 giờ</div>
-                            <div>• Tăng ca trưa: +1 giờ tăng ca (nếu bật)</div>
-                            <div>• Chủ nhật: Toàn bộ là tăng ca</div>
-                            <div>• T2-T6: Trước 8:00 & sau 17:00 = Tăng ca</div>
+                            <div><strong>Quy tắc tính tăng ca:</strong></div>
+                            <div>• Trước 7:45 & sau 17:00 = Tăng ca</div>
+                            <div>• Tăng ca trưa: +1 giờ (nếu bật & làm qua 12:00-13:00)</div>
+                            <div>• Chủ nhật: Toàn bộ = Tăng ca</div>
                         </div>
                     </div>
                 `;
@@ -1809,7 +1810,7 @@
                                 </label>
                                 <div class="time-input-custom">
                                     <input type="time" id="editStartTime" class="time-input" 
-                                           value="08:00" step="300">
+                                           value="07:45" step="300">
                                 </div>
                             </div>
                             <div class="time-input-container">
@@ -1823,7 +1824,7 @@
                             </div>
                         </div>
                         
-                        <!-- NEW: Lunch Overtime Switch -->
+                        <!-- Lunch Overtime Switch -->
                         <div class="switch-container">
                             <div class="switch-label">
                                 <i class="fas fa-utensils"></i> Tăng ca trưa (12:00-13:00)
@@ -1837,22 +1838,22 @@
                         <div style="margin-top: 10px; padding: 10px; background-color: rgba(255,193,7,0.1); border-radius: 8px;">
                             <div style="font-size: 12px; color: #FF9500; text-align: center;">
                                 <i class="fas fa-info-circle"></i> 
-                                Khi bật tăng ca trưa: Thêm 1 giờ tăng ca, không trừ giờ nghỉ trưa
+                                Khi bật: +1 giờ tăng ca nếu làm qua 12:00-13:00
                             </div>
                         </div>
                         
                         <div class="quick-actions">
-                            <button class="quick-action-btn" onclick="setQuickTime('start', '08:00')">
-                                🕗 8:00
+                            <button class="quick-action-btn" onclick="setQuickTime('start', '07:45')">
+                                🕢 7:45
                             </button>
                             <button class="quick-action-btn" onclick="setQuickTime('start', '07:30')">
                                 🕢 7:30
                             </button>
+                            <button class="quick-action-btn" onclick="setQuickTime('start', '08:00')">
+                                🕗 8:00
+                            </button>
                             <button class="quick-action-btn" onclick="setQuickTime('end', '17:00')">
                                 🕔 17:00
-                            </button>
-                            <button class="quick-action-btn" onclick="setQuickTime('end', '18:00')">
-                                🕕 18:00
                             </button>
                         </div>
                         
@@ -1866,7 +1867,6 @@
             document.getElementById('editTimeContent').innerHTML = content;
             document.getElementById('editTimeModal').style.display = 'flex';
             
-            // Focus vào input đầu tiên sau delay
             setTimeout(() => {
                 const startInput = document.getElementById('editStartTime');
                 if (startInput) {
@@ -1893,7 +1893,6 @@
                 }
             }
             
-            // Haptic feedback on iOS
             if (isIOS && window.navigator.vibrate) {
                 window.navigator.vibrate(10);
             }
@@ -1932,7 +1931,6 @@
                 return;
             }
             
-            // Đặt đúng ngày
             startTimeDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
             if (endTimeDate) {
                 endTimeDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
@@ -1945,7 +1943,6 @@
                 totalHours = calculateWorkDuration(startTimeDate, endTimeDate);
                 overtime = calculateOvertime(startTimeDate, endTimeDate);
                 
-                // Nếu là chủ nhật, toàn bộ là tăng ca
                 if (isSundayNew) {
                     overtime = totalHours;
                 }
@@ -1979,7 +1976,6 @@
                 workData.unshift(record);
             }
             
-            // Sắp xếp lại theo ngày mới nhất
             workData.sort((a, b) => {
                 const dateA = parseDate(a.date);
                 const dateB = parseDate(b.date);
@@ -1990,7 +1986,6 @@
             saveLunchOvertimeSettings();
             updateHistory();
             
-            // Cập nhật lại calendar nếu đang mở
             if (document.getElementById('monthCalendarModal').style.display === 'flex') {
                 renderCalendar();
             }
@@ -2011,13 +2006,11 @@
                     saveData();
                     updateHistory();
                     
-                    // Xóa cài đặt tăng ca trưa nếu có
                     if (lunchOvertimeSettings[editingDate]) {
                         delete lunchOvertimeSettings[editingDate];
                         saveLunchOvertimeSettings();
                     }
                     
-                    // Cập nhật lại calendar nếu đang mở
                     if (document.getElementById('monthCalendarModal').style.display === 'flex') {
                         renderCalendar();
                     }
@@ -2031,6 +2024,512 @@
         function parseDate(dateStr) {
             const [day, month, year] = dateStr.split('/').map(Number);
             return new Date(year, month - 1, day);
+        }
+        
+        // ==================== SALARY CALCULATION ====================
+        function showSalaryModal() {
+            const content = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; color: #5856D6; margin-bottom: 10px;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 style="margin-bottom: 5px;">Tính Lương Tăng Ca</h3>
+                    <p style="color: #8E8E93; font-size: 14px;">
+                        Nhập lương căn bản và chọn tháng để tính
+                    </p>
+                </div>
+                
+                <div class="salary-input-container">
+                    <label class="salary-label">
+                        <i class="fas fa-money-bill-alt"></i> Lương căn bản (VNĐ/tháng)
+                    </label>
+                    <input type="number" 
+                           id="salaryInput" 
+                           class="salary-input"
+                           value="${basicSalary || ''}"
+                           placeholder="Nhập lương tháng"
+                           min="0"
+                           step="100000"
+                           inputmode="numeric">
+                    
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="setSalaryQuick(5000000)">
+                            5 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setSalaryQuick(10000000)">
+                            10 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setSalaryQuick(15000000)">
+                            15 Triệu
+                        </button>
+                        <button class="quick-action-btn" onclick="setSalaryQuick(20000000)">
+                            20 Triệu
+                        </button>
+                    </div>
+                    
+                    <div class="number-pad" style="margin-top: 15px;">
+                        <button class="number-btn" onclick="addSalaryNumber('1')">1</button>
+                        <button class="number-btn" onclick="addSalaryNumber('2')">2</button>
+                        <button class="number-btn" onclick="addSalaryNumber('3')">3</button>
+                        <button class="number-btn" onclick="addSalaryNumber('4')">4</button>
+                        <button class="number-btn" onclick="addSalaryNumber('5')">5</button>
+                        <button class="number-btn" onclick="addSalaryNumber('6')">6</button>
+                        <button class="number-btn" onclick="addSalaryNumber('7')">7</button>
+                        <button class="number-btn" onclick="addSalaryNumber('8')">8</button>
+                        <button class="number-btn" onclick="addSalaryNumber('9')">9</button>
+                        <button class="number-btn" onclick="addSalaryNumber('0')">0</button>
+                        <button class="number-btn" onclick="addSalaryNumber('000')">000</button>
+                        <button class="number-btn" style="background: #FF3B30; color: white;" onclick="clearSalaryInput()">
+                            Xóa
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label class="salary-label">
+                        <i class="fas fa-calendar"></i> Chọn tháng
+                    </label>
+                    <select id="monthSelect" style="width: 100%; padding: 15px; border: 2px solid #F2F2F7; border-radius: 12px; font-size: 16px; background: white;">
+                        <option value="">Chọn tháng...</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-salary btn-full" id="calculateBtn">
+                    <i class="fas fa-calculator"></i> Tính Lương Ngay
+                </button>
+                
+                <div style="margin-top: 20px; padding: 15px; background-color: rgba(0,122,255,0.1); border-radius: 12px;">
+                    <h4 style="color: #007AFF; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> Công thức tính
+                    </h4>
+                    <p style="font-size: 13px; color: #8E8E93;">
+                        • Lương ngày = Lương tháng ÷ 26<br>
+                        • Lương giờ = Lương ngày ÷ 8<br>
+                        • Lương tăng ca/giờ = Lương giờ × 2<br>
+                        • Chủ nhật: Toàn bộ = Tăng ca<br>
+                        • T2-T6: Trước 7:45 & sau 17:00 = Tăng ca<br>
+                        • Tăng ca trưa: +1 giờ (nếu bật)
+                    </p>
+                </div>
+                
+                <div id="salaryResult" style="display: none; margin-top: 20px; padding: 15px; background-color: rgba(88,86,214,0.1); border-radius: 12px;">
+                    <!-- Result will be here -->
+                </div>
+            `;
+            
+            document.getElementById('salaryContent').innerHTML = content;
+            document.getElementById('salaryModal').style.display = 'flex';
+            
+            populateMonthSelect();
+            
+            currentSalaryInput = document.getElementById('salaryInput');
+            
+            setTimeout(() => {
+                document.getElementById('calculateBtn').addEventListener('click', calculateSalary);
+                
+                if (currentSalaryInput) {
+                    setTimeout(() => {
+                        currentSalaryInput.focus();
+                        currentSalaryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500);
+                }
+            }, 100);
+        }
+        
+        function addSalaryNumber(num) {
+            if (!currentSalaryInput) return;
+            
+            const currentValue = currentSalaryInput.value.replace(/,/g, '') || '0';
+            const newValue = currentValue === '0' ? num : currentValue + num;
+            currentSalaryInput.value = parseInt(newValue).toLocaleString('vi-VN');
+            
+            if (isIOS && window.navigator.vibrate) {
+                window.navigator.vibrate(5);
+            }
+        }
+        
+        function clearSalaryInput() {
+            if (currentSalaryInput) {
+                currentSalaryInput.value = '';
+                currentSalaryInput.focus();
+                
+                if (isIOS && window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+            }
+        }
+        
+        function setSalaryQuick(amount) {
+            if (currentSalaryInput) {
+                currentSalaryInput.value = amount.toLocaleString('vi-VN');
+                currentSalaryInput.focus();
+                
+                if (isIOS && window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+                
+                showNotification(`✅ Đã đặt lương: ${formatCurrency(amount)}`, 'success');
+            }
+        }
+        
+        function populateMonthSelect() {
+            const select = document.getElementById('monthSelect');
+            const months = new Set();
+            
+            workData.forEach(record => {
+                const date = new Date(record.timestamp);
+                const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
+                months.add(monthYear);
+            });
+            
+            const currentMonthYear = `${today.getMonth() + 1}/${today.getFullYear()}`;
+            months.add(currentMonthYear);
+            
+            const monthsArray = Array.from(months).sort((a, b) => {
+                const [aMonth, aYear] = a.split('/').map(Number);
+                const [bMonth, bYear] = b.split('/').map(Number);
+                if (bYear !== aYear) return bYear - aYear;
+                return bMonth - aMonth;
+            });
+            
+            select.innerHTML = '<option value="">Chọn tháng...</option>';
+            monthsArray.forEach(monthYear => {
+                const [month, year] = monthYear.split('/');
+                const option = document.createElement('option');
+                option.value = monthYear;
+                option.textContent = `Tháng ${month}/${year}`;
+                if (monthYear === currentMonthYear) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+        
+        function calculateSalary() {
+            const salaryInput = document.getElementById('salaryInput');
+            if (!salaryInput) return;
+            
+            const salaryStr = salaryInput.value.replace(/\./g, '').replace(/,/g, '').replace(/[^\d]/g, '');
+            const salary = parseInt(salaryStr) || 0;
+            
+            const monthYear = document.getElementById('monthSelect').value;
+            
+            if (!salary || salary <= 0) {
+                showNotification('⚠️ Vui lòng nhập lương căn bản hợp lệ', 'warning');
+                salaryInput.focus();
+                return;
+            }
+            
+            if (!monthYear) {
+                showNotification('⚠️ Vui lòng chọn tháng', 'warning');
+                return;
+            }
+            
+            const [month, year] = monthYear.split('/').map(Number);
+            
+            // Lọc dữ liệu theo tháng
+            const monthData = workData.filter(record => {
+                const recordDate = new Date(record.timestamp);
+                return recordDate.getMonth() + 1 === month && 
+                       recordDate.getFullYear() === year &&
+                       record.endTime;
+            });
+            
+            // Tính tổng giờ tăng ca
+            let totalOvertime = 0;
+            let details = [];
+            
+            monthData.forEach(record => {
+                const overtime = parseFloat(record.overtime) || 0;
+                if (overtime > 0) {
+                    totalOvertime += overtime;
+                    details.push({
+                        date: record.date,
+                        overtime: overtime,
+                        start: record.startTime,
+                        end: record.endTime,
+                        lunchOvertime: record.lunchOvertime ? '🍽️' : ''
+                    });
+                }
+            });
+            
+            // Tính lương
+            const dailySalary = salary / 26;
+            const hourlySalary = dailySalary / 8;
+            const overtimeRate = 2;
+            const totalSalary = totalOvertime * (hourlySalary * overtimeRate);
+            
+            // Hiển thị kết quả
+            const resultDiv = document.getElementById('salaryResult');
+            resultDiv.style.display = 'block';
+            
+            let detailsHtml = '';
+            if (details.length > 0) {
+                details.forEach(detail => {
+                    detailsHtml += `
+                        <div style="font-size: 13px; margin: 5px 0; padding: 8px; background: white; border-radius: 8px;">
+                            <strong>${detail.date}</strong> ${detail.lunchOvertime}
+                            <br>${detail.overtime.toFixed(2)} giờ
+                            <br><small>${detail.start} - ${detail.end}</small>
+                        </div>
+                    `;
+                });
+            }
+            
+            resultDiv.innerHTML = `
+                <h4 style="color: #5856D6; margin-bottom: 10px;">
+                    <i class="fas fa-coins"></i> Kết quả tính lương
+                </h4>
+                <div style="font-size: 24px; font-weight: 700; color: #5856D6; margin: 10px 0;">
+                    ${formatCurrency(totalSalary)}
+                </div>
+                <div style="font-size: 14px; color: #8E8E93;">
+                    <div>Tổng giờ tăng ca: <strong>${totalOvertime.toFixed(2)} giờ</strong></div>
+                    <div>Số ngày có tăng ca: <strong>${details.length} ngày</strong></div>
+                    <div>Lương/giờ: <strong>${formatCurrency(hourlySalary)}</strong></div>
+                    <div>Lương tăng ca/giờ: <strong>${formatCurrency(hourlySalary * 2)}</strong></div>
+                </div>
+                ${details.length > 0 ? `
+                    <div style="margin-top: 15px;">
+                        <h5 style="font-size: 14px; margin-bottom: 5px; color: #5856D6;">Chi tiết từng ngày:</h5>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            ${detailsHtml}
+                        </div>
+                    </div>
+                ` : `
+                    <div style="text-align: center; padding: 20px; color: #8E8E93;">
+                        <i class="fas fa-calendar-times" style="font-size: 40px;"></i>
+                        <p>Không có giờ tăng ca trong tháng này</p>
+                    </div>
+                `}
+                
+                <div style="margin-top: 20px; padding: 12px; background: rgba(52,199,89,0.1); border-radius: 10px;">
+                    <div style="font-size: 13px; color: #34C759; text-align: center;">
+                        <i class="fas fa-info-circle"></i> 
+                        Lương tháng: ${formatCurrency(salary)} | Ngày làm: ${monthData.length} ngày
+                    </div>
+                </div>
+                
+                <button class="btn btn-salary btn-full" style="margin-top: 15px;" onclick="hideModal('salaryModal')">
+                    <i class="fas fa-check"></i> Hoàn tất
+                </button>
+            `;
+            
+            setTimeout(() => {
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+            
+            showNotification('💰 Đã tính lương thành công', 'success');
+        }
+        
+        // ==================== BACKUP MODAL ====================
+        function showBackupModal() {
+            const lastBackup = lastBackupTime ? new Date(lastBackupTime) : null;
+            const lastBackupStr = lastBackup ? 
+                lastBackup.toLocaleDateString('vi-VN') + ' ' + 
+                lastBackup.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 
+                'Chưa có';
+            
+            const content = `
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 48px; color: #FF9500; margin-bottom: 15px;">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3 style="margin-bottom: 10px;">Sao Lưu & Khôi Phục</h3>
+                    <p style="color: #8E8E93; margin-bottom: 20px;">
+                        Tổng: <strong>${workData.length}</strong> bản ghi<br>
+                        Lần backup cuối: <strong>${lastBackupStr}</strong>
+                    </p>
+                </div>
+                
+                <div style="display: grid; gap: 10px; margin: 20px 0;">
+                    <button class="btn btn-full" style="background-color: #34C759;" id="exportBtn">
+                        <i class="fas fa-file-export"></i> Xuất dữ liệu
+                    </button>
+                    
+                    <button class="btn btn-full" style="background-color: #007AFF;" id="importBtn">
+                        <i class="fas fa-file-import"></i> Nhập dữ liệu
+                    </button>
+                    
+                    <button class="btn btn-full" style="background-color: #5856D6;" id="autoBackupBtn">
+                        <i class="fas fa-sync"></i> Backup ngay
+                    </button>
+                    
+                    <button class="btn btn-full" style="background-color: #8E8E93;" id="restoreBtn">
+                        <i class="fas fa-history"></i> Khôi phục gần nhất
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background-color: rgba(0,122,255,0.1); border-radius: 12px;">
+                    <h4 style="color: #007AFF; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> Thông tin cho iOS
+                    </h4>
+                    <p style="font-size: 13px; color: #8E8E93;">
+                        • File JSON được tạo đúng chuẩn<br>
+                        • Có thể mở bằng Files app<br>
+                        • Dữ liệu tự động backup 6 giờ/lần<br>
+                        • Nhập file từ iCloud Drive hoặc Files
+                    </p>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 12px; background: rgba(255,149,0,0.1); border-radius: 10px;">
+                    <div style="font-size: 12px; color: #FF9500; text-align: center;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Trên iOS: Chọn "Save to Files" khi export
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('backupContent').innerHTML = content;
+            document.getElementById('backupModal').style.display = 'flex';
+            
+            setTimeout(() => {
+                document.getElementById('exportBtn').addEventListener('click', exportData);
+                document.getElementById('importBtn').addEventListener('click', importData);
+                document.getElementById('autoBackupBtn').addEventListener('click', performAutoBackup);
+                document.getElementById('restoreBtn').addEventListener('click', restoreLatestBackup);
+            }, 100);
+        }
+        
+        function exportData() {
+            try {
+                const success = createBackupFile();
+                if (success) {
+                    localStorage.setItem('chamcong_last_backup', new Date().toISOString());
+                    showNotification('✅ Đã xuất dữ liệu thành công', 'success');
+                    hideModal('backupModal');
+                } else {
+                    showNotification('❌ Lỗi xuất dữ liệu', 'danger');
+                }
+            } catch (error) {
+                console.error('Lỗi export:', error);
+                showNotification('❌ Lỗi xuất dữ liệu', 'danger');
+            }
+        }
+        
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,application/json';
+            input.style.display = 'none';
+            
+            input.onchange = async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await readFileAsText(file);
+                    const backupData = JSON.parse(text);
+                    
+                    if (!backupData.workData || !Array.isArray(backupData.workData)) {
+                        throw new Error('File không hợp lệ: Thiếu dữ liệu workData');
+                    }
+                    
+                    if (!backupData.version) {
+                        throw new Error('File không hợp lệ: Thiếu version');
+                    }
+                    
+                    const importConfirmed = await showImportConfirmation(backupData);
+                    if (!importConfirmed) return;
+                    
+                    workData = backupData.workData;
+                    if (backupData.basicSalary) {
+                        basicSalary = backupData.basicSalary;
+                        localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                    }
+                    
+                    if (backupData.lunchOvertimeSettings) {
+                        lunchOvertimeSettings = backupData.lunchOvertimeSettings;
+                        localStorage.setItem('chamcong_lunch_overtime', JSON.stringify(lunchOvertimeSettings));
+                    }
+                    
+                    workData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    
+                    saveData();
+                    updateHistory();
+                    
+                    showNotification(`✅ Đã nhập ${backupData.workData.length} bản ghi`, 'success');
+                    hideModal('backupModal');
+                    
+                } catch (error) {
+                    console.error('Lỗi import:', error);
+                    showNotification('❌ File không hợp lệ hoặc bị lỗi', 'danger');
+                } finally {
+                    document.body.removeChild(input);
+                }
+            };
+            
+            document.body.appendChild(input);
+            
+            if (isIOS) {
+                setTimeout(() => {
+                    input.click();
+                }, 100);
+            } else {
+                input.click();
+            }
+        }
+        
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+        
+        function showImportConfirmation(backupData) {
+            return new Promise((resolve) => {
+                const recordCount = backupData.workData.length;
+                const salary = backupData.basicSalary ? formatCurrency(backupData.basicSalary) : 'Không có';
+                const timestamp = backupData.timestamp ? new Date(backupData.timestamp).toLocaleString('vi-VN') : 'Không rõ';
+                
+                const message = `
+                    Nhập dữ liệu từ backup?
+                    
+                    📊 Số bản ghi: ${recordCount}
+                    💰 Lương căn bản: ${salary}
+                    ⏰ Thời gian backup: ${timestamp}
+                    
+                    Dữ liệu hiện tại sẽ được thay thế.
+                `;
+                
+                resolve(confirm(message.trim()));
+            });
+        }
+        
+        function restoreLatestBackup() {
+            try {
+                const backupStr = localStorage.getItem('chamcong_backup');
+                if (!backupStr) {
+                    showNotification('⚠️ Không có bản backup nào', 'warning');
+                    return;
+                }
+            
+                const backupData = JSON.parse(backupStr);
+                
+                if (confirm(`Khôi phục bản backup từ ${new Date(backupData.timestamp).toLocaleString('vi-VN')}?\n\nDữ liệu hiện tại sẽ bị thay thế.`)) {
+                    workData = backupData.workData || [];
+                    basicSalary = backupData.basicSalary || 0;
+                    
+                    if (backupData.lunchOvertimeSettings) {
+                        lunchOvertimeSettings = backupData.lunchOvertimeSettings;
+                        localStorage.setItem('chamcong_lunch_overtime', JSON.stringify(lunchOvertimeSettings));
+                    }
+                    
+                    localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                    
+                    saveData();
+                    updateHistory();
+                    
+                    showNotification('✅ Đã khôi phục thành công', 'success');
+                    hideModal('backupModal');
+                }
+            } catch (error) {
+                console.error('Lỗi restore:', error);
+                showNotification('❌ Lỗi khôi phục', 'danger');
+            }
         }
         
         // ==================== CALENDAR ====================
@@ -2072,12 +2571,10 @@
                 <div class="calendar-days">
             `;
             
-            // Empty days for first week
             for (let i = 0; i < firstDayIndex; i++) {
                 html += `<div class="calendar-day empty"></div>`;
             }
             
-            // Days of the month
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(currentYear, currentMonth, day);
                 const dateStr = formatDate(date);
@@ -2116,7 +2613,6 @@
             html += `</div>`;
             calendarEl.innerHTML = html;
             
-            // Add event listeners
             setTimeout(() => {
                 document.getElementById('prevMonthBtn').addEventListener('click', () => {
                     currentMonth--;
@@ -2180,7 +2676,7 @@
                 if (isWorking || workData.length > 0) {
                     saveData();
                 }
-            }, 30000); // 30 giây
+            }, 30000);
             
             // Save before unload
             window.addEventListener('beforeunload', () => {
@@ -2234,9 +2730,15 @@
             }
             
             // Add haptic to buttons
-            document.querySelectorAll('.btn, .quick-action-btn, .calendar-nav-btn').forEach(btn => {
+            document.querySelectorAll('.btn, .quick-action-btn, .number-btn, .calendar-nav-btn').forEach(btn => {
                 btn.addEventListener('touchstart', () => hapticFeedback('light'));
             });
+            
+            // Optimize for iOS PWA
+            if (window.navigator.standalone) {
+                console.log('📱 Đang chạy ở chế độ PWA iOS');
+                document.body.style.paddingTop = '20px';
+            }
         }
         
         // ==================== NOTIFICATION ====================
@@ -2253,7 +2755,6 @@
             messageEl.textContent = message;
             notification.classList.add('show');
             
-            // iOS haptic feedback
             if (isIOS && window.navigator.vibrate) {
                 if (type === 'success') window.navigator.vibrate(10);
                 if (type === 'warning') window.navigator.vibrate(20);
@@ -2263,29 +2764,6 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
-        }
-        
-        // ==================== SALARY CALCULATION ====================
-        // (Giữ nguyên các hàm về salary modal vì bạn yêu cầu không đụng đến)
-        function showSalaryModal() {
-            // ... giữ nguyên code salary modal ...
-        }
-        
-        // ==================== BACKUP MODAL ====================
-        function showBackupModal() {
-            // ... giữ nguyên code backup modal ...
-        }
-        
-        function exportData() {
-            // ... giữ nguyên code export ...
-        }
-        
-        function importData() {
-            // ... giữ nguyên code import ...
-        }
-        
-        function restoreLatestBackup() {
-            // ... giữ nguyên code restore ...
         }
     </script>
 </body>
