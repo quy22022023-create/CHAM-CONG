@@ -218,6 +218,16 @@
             margin-top: 10px;
         }
         
+        .btn-confirm {
+            background-color: #34C759;
+            margin-top: 10px;
+        }
+        
+        .btn-cancel {
+            background-color: #8E8E93;
+            margin-top: 10px;
+        }
+        
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -794,6 +804,30 @@
             color: white;
         }
         
+        /* CONFIRMATION DIALOG */
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1002;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .confirmation-content {
+            background-color: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
         /* RESPONSIVE */
         @media (max-width: 350px) {
             .controls { grid-template-columns: 1fr; }
@@ -864,6 +898,10 @@
             .refresh-floating-btn {
                 background: linear-gradient(135deg, #007AFF, #5856D6);
                 box-shadow: 0 4px 15px rgba(0,122,255,0.5);
+            }
+            
+            .confirmation-content {
+                background-color: #1C1C1E;
             }
         }
     </style>
@@ -1025,6 +1063,35 @@
         </div>
     </div>
     
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmUpdateDialog">
+        <div class="confirmation-content">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #FF9500;">
+                <i class="fas fa-exclamation-triangle"></i> Xác nhận cập nhật
+            </h3>
+            <div style="text-align: center; margin-bottom: 25px;">
+                <p style="margin-bottom: 10px; font-size: 16px;">Bạn có chắc muốn cập nhật giờ tan ca mới?</p>
+                <p style="color: #8E8E93; font-size: 14px; margin-bottom: 5px;">
+                    Giờ tan ca cũ: <span id="oldEndTime" style="font-weight: 600;">--:--</span>
+                </p>
+                <p style="color: #007AFF; font-size: 14px; font-weight: 600;">
+                    Giờ tan ca mới: <span id="newEndTime">--:--</span>
+                </p>
+                <p style="margin-top: 15px; padding: 10px; background: rgba(255,149,0,0.1); border-radius: 8px; font-size: 13px; color: #FF9500;">
+                    <i class="fas fa-info-circle"></i> Giờ tan ca cũ sẽ bị ghi đè
+                </p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-cancel" id="cancelUpdateBtn">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+                <button class="btn btn-confirm" id="confirmUpdateBtn">
+                    <i class="fas fa-check"></i> Xác nhận
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Notification -->
     <div class="notification" id="notification">
         <div id="notificationMessage">✅ Thao tác thành công!</div>
@@ -1063,6 +1130,9 @@
         // Refresh state
         let isRefreshing = false;
         
+        // Update confirmation
+        let pendingUpdateData = null;
+        
         // Constants
         const STANDARD_START_TIME = '07:45'; // Giờ bắt đầu chuẩn
         const STANDARD_END_TIME = '17:00'; // Giờ kết thúc chuẩn
@@ -1099,6 +1169,7 @@
             today = now;
             dayOfWeek = today.getDay();
             isSunday = (dayOfWeek === 0);
+            // SỬA: Tự động chấm công từ T2 đến T7 (1-6 là T2-T7, 0 là CN)
             isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6);
             
             const dateStr = now.toLocaleDateString('vi-VN', { 
@@ -1163,27 +1234,8 @@
             
             // Nếu hôm nay đã có bản ghi và đã có giờ kết thúc (đã tan ca trước đó)
             if (todayRecord && todayRecord.endTime) {
-                // Cho phép cập nhật giờ tan ca mới
-                const newEndTime = new Date();
-                
-                // Lấy giờ bắt đầu từ bản ghi cũ
-                const startTimeDate = new Date(todayRecord.timestamp);
-                
-                const workDuration = calculateWorkDuration(startTimeDate, newEndTime);
-                let overtime = calculateOvertime(startTimeDate, newEndTime);
-                
-                document.getElementById('endTime').textContent = formatTime(newEndTime);
-                document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
-                document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
-                document.getElementById('workStatus').textContent = '🟡 Đã cập nhật giờ tan ca mới';
-                document.getElementById('workStatus').style.color = '#FF9500';
-                
-                updateButtonStates();
-                
-                // Cập nhật bản ghi hiện tại với giờ tan ca mới
-                updateWorkRecordWithNewEndTime(todayStr, newEndTime, workDuration, overtime);
-                
-                showNotification(`🏁 Đã cập nhật giờ tan ca mới: ${formatTime(newEndTime)}`, 'success');
+                // Hiển thị hộp thoại xác nhận
+                showUpdateConfirmation(todayRecord);
                 return;
             }
             
@@ -1210,6 +1262,62 @@
             saveWorkRecord(workStartTime, workEndTime, workDuration, overtime);
             
             showNotification(`🏁 Đã tan ca. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
+        }
+        
+        function showUpdateConfirmation(todayRecord) {
+            const newEndTime = new Date();
+            const oldEndTime = todayRecord.endTime;
+            
+            // Lưu dữ liệu cập nhật đang chờ
+            pendingUpdateData = {
+                dateStr: formatDate(today),
+                newEndTime: newEndTime,
+                todayRecord: todayRecord
+            };
+            
+            // Hiển thị hộp thoại xác nhận
+            document.getElementById('oldEndTime').textContent = oldEndTime;
+            document.getElementById('newEndTime').textContent = formatTime(newEndTime);
+            document.getElementById('confirmUpdateDialog').style.display = 'flex';
+        }
+        
+        function confirmUpdate() {
+            if (!pendingUpdateData) return;
+            
+            const { dateStr, newEndTime, todayRecord } = pendingUpdateData;
+            
+            // Lấy giờ bắt đầu từ bản ghi cũ
+            const startTimeDate = new Date(todayRecord.timestamp);
+            
+            const workDuration = calculateWorkDuration(startTimeDate, newEndTime);
+            let overtime = calculateOvertime(startTimeDate, newEndTime);
+            
+            document.getElementById('endTime').textContent = formatTime(newEndTime);
+            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = '🟡 Đã cập nhật giờ tan ca mới';
+            document.getElementById('workStatus').style.color = '#FF9500';
+            
+            updateButtonStates();
+            
+            // Cập nhật bản ghi hiện tại với giờ tan ca mới
+            updateWorkRecordWithNewEndTime(dateStr, newEndTime, workDuration, overtime);
+            
+            showNotification(`🏁 Đã cập nhật giờ tan ca mới: ${formatTime(newEndTime)}`, 'success');
+            
+            // Đóng hộp thoại và xóa dữ liệu đang chờ
+            hideUpdateConfirmation();
+            pendingUpdateData = null;
+        }
+        
+        function cancelUpdate() {
+            hideUpdateConfirmation();
+            pendingUpdateData = null;
+            showNotification('❌ Đã hủy cập nhật giờ tan ca', 'info');
+        }
+        
+        function hideUpdateConfirmation() {
+            document.getElementById('confirmUpdateDialog').style.display = 'none';
         }
         
         function updateWorkRecordWithNewEndTime(dateStr, newEndTime, totalHours, overtime) {
@@ -1315,6 +1423,8 @@
             if (isWorking) {
                 startBtn.disabled = true;
                 endBtn.disabled = false;
+                endBtn.innerHTML = '<i class="fas fa-stop"></i> 🏁 Tan ca';
+                endBtn.title = "";
             } else if (hasEndedToday) {
                 // Sau khi đã tan ca (tự động hoặc thủ công)
                 // Vẫn cho phép nhấn nút tan ca để cập nhật giờ mới
@@ -2279,7 +2389,7 @@
                         • Lương giờ = Lương ngày ÷ 8<br>
                         • Lương tăng ca/giờ = Lương giờ × 2<br>
                         • Chủ nhật: Toàn bộ = Tăng ca<br>
-                        • T2-T6: Trước 7:45 & sau 17:00 = Tăng ca<br>
+                        • T2-T7: Trước 7:45 & sau 17:00 = Tăng ca<br>
                         • Tăng ca trưa: +1 giờ (nếu bật)
                     </p>
                 </div>
@@ -2847,6 +2957,10 @@
             document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
             document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editTimeModal'));
             
+            // Confirmation dialog buttons
+            document.getElementById('confirmUpdateBtn').addEventListener('click', confirmUpdate);
+            document.getElementById('cancelUpdateBtn').addEventListener('click', cancelUpdate);
+            
             // Close modals when clicking outside
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('click', function(e) {
@@ -2854,6 +2968,13 @@
                         hideModal(this.id);
                     }
                 });
+            });
+            
+            // Close confirmation dialog when clicking outside
+            document.getElementById('confirmUpdateDialog').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    cancelUpdate();
+                }
             });
             
             // Auto-save interval
@@ -2874,6 +2995,11 @@
                     const openModals = document.querySelectorAll('.modal[style*="display: flex"]');
                     if (openModals.length > 0) {
                         hideModal(openModals[0].id);
+                    }
+                    
+                    // Also close confirmation dialog
+                    if (document.getElementById('confirmUpdateDialog').style.display === 'flex') {
+                        cancelUpdate();
                     }
                 }
             });
