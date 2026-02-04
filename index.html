@@ -203,6 +203,16 @@
             margin-top: 10px;
         }
         
+        .btn-edit {
+            background-color: #007AFF;
+            margin-top: 10px;
+        }
+        
+        .btn-danger {
+            background-color: #FF3B30;
+            margin-top: 10px;
+        }
+        
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -279,6 +289,11 @@
             align-items: center;
             padding: 15px 0;
             border-bottom: 1px solid #F2F2F7;
+            cursor: pointer;
+        }
+        
+        .history-item:hover {
+            background-color: rgba(0,0,0,0.02);
         }
         
         .history-item:last-child {
@@ -300,6 +315,41 @@
             font-weight: 700;
             font-size: 16px;
             color: #34C759;
+        }
+        
+        /* TIME INPUTS */
+        .time-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .time-input {
+            background: #F2F2F7;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            color: #1D1D1F;
+            font-variant-numeric: tabular-nums;
+            transition: all 0.3s;
+        }
+        
+        .time-input:focus {
+            outline: none;
+            border-color: #007AFF;
+            background: white;
+        }
+        
+        .time-label {
+            display: block;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #8E8E93;
         }
         
         /* MODALS */
@@ -442,6 +492,18 @@
             color: #FF2D55;
         }
         
+        .calendar-day.editable {
+            position: relative;
+        }
+        
+        .calendar-day.editable::after {
+            content: "✏️";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+        }
+        
         /* NOTIFICATION */
         .notification {
             position: fixed;
@@ -511,11 +573,35 @@
             to { transform: rotate(360deg); }
         }
         
+        /* QUICK ACTIONS */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .quick-action-btn {
+            flex: 1;
+            padding: 12px;
+            background: #F2F2F7;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .quick-action-btn:hover {
+            background: #E5E5EA;
+        }
+        
         /* RESPONSIVE */
         @media (max-width: 350px) {
             .controls { grid-template-columns: 1fr; }
             .work-info { grid-template-columns: 1fr; }
             .modal-content { padding: 15px; }
+            .time-input-group { grid-template-columns: 1fr; }
         }
         
         /* iOS SPECIFIC FIXES */
@@ -547,6 +633,16 @@
             
             .info-box {
                 background-color: #2C2C2E;
+            }
+            
+            .time-input {
+                background-color: #2C2C2E;
+                color: white;
+            }
+            
+            .quick-action-btn {
+                background-color: #2C2C2E;
+                color: white;
             }
         }
     </style>
@@ -697,6 +793,19 @@
         </div>
     </div>
     
+    <!-- Edit Time Modal - MỚI THÊM -->
+    <div class="modal" id="editTimeModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-edit"></i> ⏰ Chỉnh sửa giờ làm
+                <button class="close-btn" id="closeEditModal">&times;</button>
+            </h3>
+            <div id="editTimeContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+    
     <!-- Notification -->
     <div class="notification" id="notification">
         <div id="notificationMessage">✅ Thao tác thành công!</div>
@@ -718,6 +827,7 @@
         let currentYear = today.getFullYear();
         let basicSalary = 0;
         let autoStartTriggered = false;
+        let editingDate = null;
         
         // iOS Detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -975,6 +1085,14 @@
             return date.toLocaleDateString('vi-VN');
         }
         
+        function parseTime(timeStr) {
+            if (!timeStr) return null;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours, minutes, 0, 0);
+            return date;
+        }
+        
         // ==================== TIMER ====================
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
@@ -1171,7 +1289,7 @@
                 const todayStyle = isToday ? 'style="color: #007AFF; font-weight: 700;"' : '';
                 
                 html += `
-                    <div class="history-item" data-id="${record.id}">
+                    <div class="history-item" data-id="${record.id}" onclick="showEditModal('${record.date}')">
                         <div>
                             <div class="history-date" ${todayStyle}>
                                 ${record.isWeekday ? '📅' : '🎯'} ${record.date} 
@@ -1336,6 +1454,247 @@
         
         function hideBackupStatus() {
             document.getElementById('backupStatus').style.display = 'none';
+        }
+        
+        // ==================== EDIT TIME FEATURE ====================
+        function showEditModal(dateStr) {
+            editingDate = dateStr;
+            const dayData = workData.find(record => record.date === dateStr);
+            
+            const date = parseDate(dateStr);
+            const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
+            
+            let content = '';
+            
+            if (dayData) {
+                const [startHour, startMinute] = dayData.startTime ? dayData.startTime.split(':') : ['07', '45'];
+                const [endHour, endMinute] = dayData.endTime ? dayData.endTime.split(':') : ['17', '00'];
+                
+                content = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: #007AFF;">${dateStr}</h3>
+                        <p style="color: #8E8E93;">${isWeekdayNew ? 'Thứ 2-6' : 'Chủ nhật'}</p>
+                    </div>
+                    
+                    <div class="time-input-group">
+                        <div>
+                            <label class="time-label">
+                                <i class="fas fa-sign-in-alt"></i> Giờ bắt đầu
+                            </label>
+                            <input type="time" id="editStartTime" class="time-input" 
+                                   value="${startHour}:${startMinute}" 
+                                   step="300">
+                        </div>
+                        <div>
+                            <label class="time-label">
+                                <i class="fas fa-sign-out-alt"></i> Giờ kết thúc
+                            </label>
+                            <input type="time" id="editEndTime" class="time-input" 
+                                   value="${endHour}:${endMinute}"
+                                   step="300">
+                        </div>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="setQuickTime('start', '07:45')">
+                            🕢 7:45
+                        </button>
+                        <button class="quick-action-btn" onclick="setQuickTime('end', '17:00')">
+                            🕔 17:00
+                        </button>
+                        <button class="quick-action-btn" onclick="setQuickTime('end', '18:00')">
+                            🕕 18:00
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button class="btn btn-edit" style="flex: 2;" onclick="saveEditedTime()">
+                            <i class="fas fa-save"></i> 💾 Lưu thay đổi
+                        </button>
+                        <button class="btn btn-danger" style="flex: 1;" onclick="deleteEditedRecord()">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #F2F2F7; border-radius: 12px;">
+                        <div style="font-size: 14px; color: #8E8E93; text-align: center;">
+                            <div>Giờ tăng ca sẽ tự động tính toán</div>
+                            <div>Chủ nhật: Toàn bộ là tăng ca</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 48px; color: #8E8E93; margin-bottom: 15px;">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h3 style="margin-bottom: 10px;">Tạo bản ghi mới</h3>
+                        <p style="color: #8E8E93; margin-bottom: 20px;">
+                            Ngày ${dateStr} chưa có dữ liệu
+                        </p>
+                        
+                        <div class="time-input-group">
+                            <div>
+                                <label class="time-label">
+                                    <i class="fas fa-sign-in-alt"></i> Giờ bắt đầu
+                                </label>
+                                <input type="time" id="editStartTime" class="time-input" 
+                                       value="07:45" step="300">
+                            </div>
+                            <div>
+                                <label class="time-label">
+                                    <i class="fas fa-sign-out-alt"></i> Giờ kết thúc
+                                </label>
+                                <input type="time" id="editEndTime" class="time-input" 
+                                       value="17:00" step="300">
+                            </div>
+                        </div>
+                        
+                        <div class="quick-actions">
+                            <button class="quick-action-btn" onclick="setQuickTime('start', '07:45')">
+                                🕢 7:45
+                            </button>
+                            <button class="quick-action-btn" onclick="setQuickTime('end', '17:00')">
+                                🕔 17:00
+                            </button>
+                            <button class="quick-action-btn" onclick="setQuickTime('end', '18:00')">
+                                🕕 18:00
+                            </button>
+                        </div>
+                        
+                        <button class="btn btn-edit btn-full" style="margin-top: 20px;" onclick="saveNewRecord()">
+                            <i class="fas fa-plus"></i> ➕ Tạo bản ghi
+                        </button>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('editTimeContent').innerHTML = content;
+            document.getElementById('editTimeModal').style.display = 'flex';
+            
+            // Focus vào input đầu tiên
+            setTimeout(() => {
+                document.getElementById('editStartTime').focus();
+            }, 100);
+        }
+        
+        function setQuickTime(type, time) {
+            if (type === 'start') {
+                document.getElementById('editStartTime').value = time;
+                document.getElementById('editStartTime').dispatchEvent(new Event('change'));
+            } else {
+                document.getElementById('editEndTime').value = time;
+                document.getElementById('editEndTime').dispatchEvent(new Event('change'));
+            }
+        }
+        
+        function saveEditedTime() {
+            const startTime = document.getElementById('editStartTime').value;
+            const endTime = document.getElementById('editEndTime').value;
+            
+            if (!startTime) {
+                showNotification('⚠️ Vui lòng nhập giờ bắt đầu', 'warning');
+                return;
+            }
+            
+            if (!endTime) {
+                if (!confirm('Chưa có giờ kết thúc. Bạn muốn lưu bản ghi chưa hoàn thành?')) {
+                    return;
+                }
+            }
+            
+            const date = parseDate(editingDate);
+            const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
+            const isSundayNew = date.getDay() === 0;
+            
+            let startTimeDate = parseTime(startTime);
+            let endTimeDate = endTime ? parseTime(endTime) : null;
+            
+            if (!startTimeDate) {
+                showNotification('❌ Giờ bắt đầu không hợp lệ', 'danger');
+                return;
+            }
+            
+            // Đặt đúng ngày
+            startTimeDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+            if (endTimeDate) {
+                endTimeDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+            }
+            
+            let totalHours = 0;
+            let overtime = 0;
+            
+            if (endTimeDate) {
+                totalHours = calculateWorkDuration(startTimeDate, endTimeDate);
+                overtime = calculateOvertime(startTimeDate, endTimeDate);
+                
+                // Nếu là chủ nhật, toàn bộ là tăng ca
+                if (isSundayNew) {
+                    overtime = totalHours;
+                }
+            }
+            
+            const index = workData.findIndex(record => record.date === editingDate);
+            const record = {
+                id: index >= 0 ? workData[index].id : Date.now(),
+                date: editingDate,
+                startTime: startTime,
+                endTime: endTime,
+                totalHours: totalHours.toFixed(2),
+                overtime: overtime.toFixed(2),
+                timestamp: startTimeDate.getTime(),
+                isWeekday: isWeekdayNew,
+                isAutoEnded: false,
+                isAutoStarted: false
+            };
+            
+            if (index >= 0) {
+                workData[index] = record;
+            } else {
+                workData.unshift(record);
+            }
+            
+            // Sắp xếp lại
+            workData.sort((a, b) => {
+                const dateA = parseDate(a.date);
+                const dateB = parseDate(b.date);
+                return dateB - dateA;
+            });
+            
+            saveData();
+            updateHistory();
+            
+            // Cập nhật lại calendar nếu đang mở
+            if (document.getElementById('monthCalendarModal').style.display === 'flex') {
+                renderCalendar();
+            }
+            
+            showNotification('✅ Đã cập nhật giờ làm', 'success');
+            hideModal('editTimeModal');
+        }
+        
+        function saveNewRecord() {
+            saveEditedTime();
+        }
+        
+        function deleteEditedRecord() {
+            if (confirm(`Xóa bản ghi ngày ${editingDate}?`)) {
+                const index = workData.findIndex(record => record.date === editingDate);
+                if (index > -1) {
+                    workData.splice(index, 1);
+                    saveData();
+                    updateHistory();
+                    
+                    // Cập nhật lại calendar nếu đang mở
+                    if (document.getElementById('monthCalendarModal').style.display === 'flex') {
+                        renderCalendar();
+                    }
+                    
+                    showNotification('🗑️ Đã xóa bản ghi', 'success');
+                    hideModal('editTimeModal');
+                }
+            }
         }
         
         // ==================== MODAL FUNCTIONS ====================
@@ -1737,11 +2096,11 @@
                 
                 let className = 'calendar-day';
                 if (isToday) className += ' today';
-                if (hasData) className += ' has-data';
+                if (hasData) className += ' has-data editable';
                 if (isSunday) className += ' sunday';
                 
                 html += `
-                    <div class="${className}" data-date="${dateStr}" data-has-data="${hasData}">
+                    <div class="${className}" data-date="${dateStr}" onclick="showEditModal('${dateStr}')">
                         ${day}
                         ${hasData && overtime > 0 ? 
                             `<div style="font-size: 10px; color: #34C759; font-weight: 700;">+${overtime.toFixed(1)}h</div>` : ''}
@@ -1778,132 +2137,12 @@
                     currentYear = now.getFullYear();
                     renderCalendar();
                 });
-                
-                // Day click events
-                document.querySelectorAll('.calendar-day:not(.empty)').forEach(day => {
-                    day.addEventListener('click', function() {
-                        const dateStr = this.getAttribute('data-date');
-                        showDayDetail(dateStr);
-                    });
-                });
             }, 100);
-        }
-        
-        function showDayDetail(dateStr) {
-            const date = parseDate(dateStr);
-            const dayData = workData.find(record => record.date === dateStr);
-            
-            let content = '';
-            
-            if (dayData) {
-                content = `
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h3 style="color: #007AFF;">${dateStr}</h3>
-                        <p style="color: #8E8E93;">${dayData.isWeekday ? 'Thứ 2-6' : 'Chủ nhật'}</p>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 14px; color: #8E8E93;">Giờ vào</div>
-                            <div style="font-size: 18px; font-weight: 700;">${dayData.startTime}</div>
-                        </div>
-                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 14px; color: #8E8E93;">Giờ tan</div>
-                            <div style="font-size: 18px; font-weight: 700;">${dayData.endTime || '--:--'}</div>
-                        </div>
-                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 14px; color: #8E8E93;">Tổng giờ</div>
-                            <div style="font-size: 18px; font-weight: 700;">${dayData.totalHours}h</div>
-                        </div>
-                        <div style="background: #F2F2F7; padding: 15px; border-radius: 12px; text-align: center;">
-                            <div style="font-size: 14px; color: #8E8E93;">Tăng ca</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #34C759;">${dayData.overtime}h</div>
-                        </div>
-                    </div>
-                    
-                    ${dayData.isAutoStarted || dayData.isAutoEnded ? `
-                        <div style="background: rgba(52,199,89,0.1); padding: 12px; border-radius: 10px; margin-bottom: 20px;">
-                            <div style="font-size: 14px; color: #34C759;">
-                                ${dayData.isAutoStarted ? '🤖 Tự động bắt đầu 7:45<br>' : ''}
-                                ${dayData.isAutoEnded ? '⏰ Tự động tan ca 17:00' : ''}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <button class="btn btn-full" style="background-color: #FF3B30;" 
-                            onclick="deleteDayRecord('${dateStr}')">
-                        <i class="fas fa-trash-alt"></i> Xóa bản ghi này
-                    </button>
-                `;
-            } else {
-                content = `
-                    <div style="text-align: center; padding: 40px 20px;">
-                        <div style="font-size: 48px; color: #8E8E93; margin-bottom: 15px;">
-                            <i class="fas fa-calendar-times"></i>
-                        </div>
-                        <h3 style="margin-bottom: 10px;">Không có dữ liệu</h3>
-                        <p style="color: #8E8E93; margin-bottom: 20px;">
-                            Ngày ${dateStr} chưa có dữ liệu chấm công
-                        </p>
-                        <button class="btn btn-full" onclick="createDayRecord('${dateStr}')">
-                            <i class="fas fa-plus"></i> Tạo bản ghi mới
-                        </button>
-                    </div>
-                `;
-            }
-            
-            document.getElementById('dayDetailContent').innerHTML = content;
-            document.getElementById('dayDetailModal').style.display = 'flex';
-            hideModal('monthCalendarModal');
         }
         
         function parseDate(dateStr) {
             const [day, month, year] = dateStr.split('/').map(Number);
             return new Date(year, month - 1, day);
-        }
-        
-        function deleteDayRecord(dateStr) {
-            if (confirm(`Xóa bản ghi ngày ${dateStr}?`)) {
-                const index = workData.findIndex(record => record.date === dateStr);
-                if (index > -1) {
-                    workData.splice(index, 1);
-                    saveData();
-                    updateHistory();
-                    
-                    // Cập nhật lại calendar nếu đang mở
-                    if (document.getElementById('monthCalendarModal').style.display === 'flex') {
-                        renderCalendar();
-                    }
-                    
-                    showNotification('🗑️ Đã xóa bản ghi', 'success');
-                    hideModal('dayDetailModal');
-                }
-            }
-        }
-        
-        function createDayRecord(dateStr) {
-            const date = parseDate(dateStr);
-            const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
-            
-            const record = {
-                id: Date.now(),
-                date: dateStr,
-                startTime: '07:45',
-                endTime: null,
-                totalHours: '0.00',
-                overtime: '0.00',
-                timestamp: date.getTime(),
-                isWeekday: isWeekdayNew,
-                isAutoEnded: false,
-                isAutoStarted: false
-            };
-            
-            workData.unshift(record);
-            saveData();
-            updateHistory();
-            
-            showNotification('➕ Đã tạo bản ghi mới', 'success');
-            hideModal('dayDetailModal');
         }
         
         function hideModal(modalId) {
@@ -1926,6 +2165,16 @@
             document.getElementById('closeBackupModal').addEventListener('click', () => hideModal('backupModal'));
             document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
             document.getElementById('closeDayModal').addEventListener('click', () => hideModal('dayDetailModal'));
+            document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editTimeModal'));
+            
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        hideModal(this.id);
+                    }
+                });
+            });
             
             // Auto-save interval
             autoSaveInterval = setInterval(() => {
@@ -1937,6 +2186,24 @@
             // Before unload save
             window.addEventListener('beforeunload', () => {
                 saveData();
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+S to save (or Cmd+S on Mac)
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveData();
+                    showNotification('💾 Đã lưu dữ liệu', 'success');
+                }
+                
+                // Escape to close modals
+                if (e.key === 'Escape') {
+                    const openModals = document.querySelectorAll('.modal[style*="display: flex"]');
+                    if (openModals.length > 0) {
+                        hideModal(openModals[0].id);
+                    }
+                }
             });
         }
         
@@ -1963,7 +2230,6 @@
             
             // Handle iOS keyboard
             let focusedElement;
-            const originalHeight = window.innerHeight;
             
             window.addEventListener('focusin', function(e) {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -2018,6 +2284,12 @@
             notification.style.backgroundColor = bgColor;
             messageEl.textContent = message;
             notification.classList.add('show');
+            
+            // iOS haptic feedback
+            if (isIOS) {
+                if (type === 'success') window.navigator.vibrate(10);
+                if (type === 'warning') window.navigator.vibrate(20);
+            }
             
             setTimeout(() => {
                 notification.classList.remove('show');
