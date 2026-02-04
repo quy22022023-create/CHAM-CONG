@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>⏱️ Chấm Công iOS - Auto Backup</title>
+    <title>⏱️ Chấm Công iOS</title>
     
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -317,7 +317,7 @@
             color: #34C759;
         }
         
-        /* TIME INPUTS */
+        /* TIME INPUTS - iOS OPTIMIZED */
         .time-input-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -325,17 +325,46 @@
             margin: 20px 0;
         }
         
+        .time-input-container {
+            position: relative;
+        }
+        
         .time-input {
+            width: 100%;
             background: #F2F2F7;
             border: 2px solid transparent;
             border-radius: 12px;
-            padding: 15px;
+            padding: 15px 40px 15px 15px;
             font-size: 18px;
             font-weight: 600;
             text-align: center;
             color: #1D1D1F;
             font-variant-numeric: tabular-nums;
             transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        /* Fix iOS time input styling */
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            background: none;
+            display: none;
+        }
+        
+        .time-input-custom {
+            position: relative;
+            width: 100%;
+        }
+        
+        .time-input-custom::after {
+            content: "⌚";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #007AFF;
+            pointer-events: none;
         }
         
         .time-input:focus {
@@ -350,6 +379,41 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #8E8E93;
+        }
+        
+        /* SALARY INPUT - iOS OPTIMIZED */
+        .salary-input-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .salary-input {
+            width: 100%;
+            background: #F2F2F7;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            color: #1D1D1F;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .salary-input:focus {
+            outline: none;
+            border-color: #5856D6;
+            background: white;
+        }
+        
+        .salary-label {
+            display: block;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #5856D6;
         }
         
         /* MODALS */
@@ -576,12 +640,15 @@
         /* QUICK ACTIONS */
         .quick-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-top: 15px;
+            justify-content: center;
         }
         
         .quick-action-btn {
             flex: 1;
+            min-width: 80px;
             padding: 12px;
             background: #F2F2F7;
             border: none;
@@ -590,36 +657,37 @@
             font-weight: 500;
             text-align: center;
             cursor: pointer;
+            transition: all 0.2s;
         }
         
-        .quick-action-btn:hover {
-            background: #E5E5EA;
+        .quick-action-btn:active {
+            background: #007AFF;
+            color: white;
         }
         
-        /* SETTINGS INPUT */
-        .salary-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #F2F2F7;
-            border-radius: 12px;
+        /* NUMBER PAD FOR iOS */
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .number-btn {
+            background: #F2F2F7;
+            border: none;
+            border-radius: 10px;
+            padding: 20px 10px;
             font-size: 18px;
             font-weight: 600;
-            margin: 15px 0;
             text-align: center;
-            transition: all 0.3s;
+            cursor: pointer;
+            transition: all 0.2s;
         }
         
-        .salary-input:focus {
-            outline: none;
-            border-color: #5856D6;
-            background: white;
-        }
-        
-        .salary-label {
-            display: block;
-            margin: 10px 0 5px;
-            font-weight: 600;
-            color: #5856D6;
+        .number-btn:active {
+            background: #007AFF;
+            color: white;
         }
         
         /* RESPONSIVE */
@@ -634,15 +702,28 @@
         /* iOS SPECIFIC FIXES */
         input, select, textarea {
             font-size: 16px; /* Prevent zoom on focus */
+            -webkit-user-select: text;
+            user-select: text;
         }
         
-        .btn, .calendar-day, .calendar-nav-btn {
+        .btn, .calendar-day, .calendar-nav-btn, .quick-action-btn, .number-btn {
             min-height: 44px; /* Apple HIG minimum touch target */
+        }
+        
+        /* Prevent iOS zoom on input focus */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="number"],
+            input[type="time"] {
+                font-size: 16px !important;
+            }
         }
         
         /* HAPTIC FEEDBACK */
         @media (hover: none) and (pointer: coarse) {
-            .btn:active {
+            .btn:active,
+            .quick-action-btn:active,
+            .number-btn:active {
                 background-color: rgba(0,122,255,0.8);
             }
         }
@@ -662,20 +743,14 @@
                 background-color: #2C2C2E;
             }
             
-            .time-input {
+            .time-input, .salary-input {
                 background-color: #2C2C2E;
                 color: white;
             }
             
-            .quick-action-btn {
+            .quick-action-btn, .number-btn {
                 background-color: #2C2C2E;
                 color: white;
-            }
-            
-            .salary-input {
-                background-color: #2C2C2E;
-                color: white;
-                border-color: #3A3A3C;
             }
         }
     </style>
@@ -815,17 +890,6 @@
         </div>
     </div>
     
-    <!-- Day Detail Modal -->
-    <div class="modal" id="dayDetailModal">
-        <div class="modal-content">
-            <h3>
-                <i class="fas fa-calendar-day"></i> 📋 Chi Tiết Ngày
-                <button class="close-btn" id="closeDayModal">&times;</button>
-            </h3>
-            <div id="dayDetailContent"></div>
-        </div>
-    </div>
-    
     <!-- Edit Time Modal -->
     <div class="modal" id="editTimeModal">
         <div class="modal-content">
@@ -861,6 +925,7 @@
         let basicSalary = 0;
         let autoStartTriggered = false;
         let editingDate = null;
+        let currentSalaryInput = null;
         
         // iOS Detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -1375,7 +1440,7 @@
             document.getElementById('lastSaveTime').textContent = `Lưu: ${timeStr}`;
         }
         
-        // ==================== BACKUP SYSTEM ====================
+        // ==================== BACKUP SYSTEM - FIXED FOR iOS ====================
         function setupAutoBackup() {
             // Backup mỗi 6 giờ
             backupInterval = setInterval(() => {
@@ -1384,15 +1449,6 @@
             
             // Backup khi có thay đổi dữ liệu
             setupDataChangeDetection();
-            
-            // Backup khi app chuyển background (iOS)
-            if (isIOS) {
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) {
-                        performQuickBackup();
-                    }
-                });
-            }
             
             console.log('🔧 Hệ thống backup đã sẵn sàng');
         }
@@ -1416,11 +1472,6 @@
                 localStorage.setItem('chamcong_last_backup', new Date().toISOString());
                 lastBackupTime = new Date().toISOString();
                 
-                // Tạo file download (chỉ khi user active)
-                if (!document.hidden) {
-                    createBackupFile(backupData);
-                }
-                
                 showBackupStatus('Backup thành công');
                 setTimeout(() => hideBackupStatus(), 2000);
                 
@@ -1433,50 +1484,46 @@
             }
         }
         
-        function performQuickBackup() {
+        function createBackupFile() {
             try {
                 const backupData = {
                     workData: workData,
                     basicSalary: basicSalary,
                     timestamp: new Date().toISOString(),
-                    version: '2.0'
+                    version: '2.0',
+                    totalRecords: workData.length
                 };
                 
-                localStorage.setItem('chamcong_backup', JSON.stringify(backupData));
-                console.log('💾 Quick backup completed');
-            } catch (error) {
-                console.error('Quick backup error:', error);
-            }
-        }
-        
-        function createBackupFile(data) {
-            try {
-                const dataStr = JSON.stringify(data, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
+                // Tạo JSON string đúng chuẩn
+                const dataStr = JSON.stringify(backupData, null, 2);
+                
+                // Tạo Blob với UTF-8 encoding
+                const blob = new Blob([dataStr], { 
+                    type: 'application/json;charset=utf-8' 
+                });
                 
                 // Tạo URL cho file
                 const url = URL.createObjectURL(blob);
                 
-                // Lưu tạm URL để có thể download sau
-                sessionStorage.setItem('last_backup_url', url);
-                
-                // Tạo link download ẩn
+                // Tạo link download
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `chamcong_backup_${new Date().getTime()}.json`;
-                document.body.appendChild(a);
+                a.download = `chamcong_${new Date().toISOString().slice(0,10)}.json`;
                 
-                // Trigger download (iOS có thể cần user interaction)
+                // Trigger download
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
                 setTimeout(() => {
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    }, 100);
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
                 }, 100);
                 
+                return true;
             } catch (error) {
                 console.error('Lỗi tạo file backup:', error);
+                return false;
             }
         }
         
@@ -1492,9 +1539,7 @@
                     // Backup sau 5 phút nếu có thay đổi
                     clearTimeout(window.dataChangeTimeout);
                     window.dataChangeTimeout = setTimeout(() => {
-                        if (!document.hidden) {
-                            performQuickBackup();
-                        }
+                        performAutoBackup();
                     }, 5 * 60 * 1000);
                 }
             }, 10000);
@@ -1512,7 +1557,7 @@
             document.getElementById('backupStatus').style.display = 'none';
         }
         
-        // ==================== EDIT TIME FEATURE ====================
+        // ==================== EDIT TIME FEATURE - iOS OPTIMIZED ====================
         function showEditModal(dateStr) {
             editingDate = dateStr;
             const dayData = workData.find(record => record.date === dateStr);
@@ -1534,27 +1579,34 @@
                     </div>
                     
                     <div class="time-input-group">
-                        <div>
+                        <div class="time-input-container">
                             <label class="time-label">
                                 <i class="fas fa-sign-in-alt"></i> Giờ bắt đầu
                             </label>
-                            <input type="time" id="editStartTime" class="time-input" 
-                                   value="${startHour}:${startMinute}" 
-                                   step="300">
+                            <div class="time-input-custom">
+                                <input type="time" id="editStartTime" class="time-input" 
+                                       value="${startHour}:${startMinute}" 
+                                       step="300">
+                            </div>
                         </div>
-                        <div>
+                        <div class="time-input-container">
                             <label class="time-label">
                                 <i class="fas fa-sign-out-alt"></i> Giờ kết thúc
                             </label>
-                            <input type="time" id="editEndTime" class="time-input" 
-                                   value="${endHour}:${endMinute}"
-                                   step="300">
+                            <div class="time-input-custom">
+                                <input type="time" id="editEndTime" class="time-input" 
+                                       value="${endHour}:${endMinute}"
+                                       step="300">
+                            </div>
                         </div>
                     </div>
                     
                     <div class="quick-actions">
                         <button class="quick-action-btn" onclick="setQuickTime('start', '07:45')">
                             🕢 7:45
+                        </button>
+                        <button class="quick-action-btn" onclick="setQuickTime('start', '08:00')">
+                            🕗 8:00
                         </button>
                         <button class="quick-action-btn" onclick="setQuickTime('end', '17:00')">
                             🕔 17:00
@@ -1580,6 +1632,7 @@
                         <div style="font-size: 14px; color: #8E8E93; text-align: center;">
                             <div>Giờ tăng ca sẽ tự động tính toán</div>
                             <div>Chủ nhật: Toàn bộ là tăng ca</div>
+                            <div>T2-T6: Trước 7:45 & sau 17:00 = Tăng ca</div>
                         </div>
                     </div>
                 `;
@@ -1595,19 +1648,23 @@
                         </p>
                         
                         <div class="time-input-group">
-                            <div>
+                            <div class="time-input-container">
                                 <label class="time-label">
                                     <i class="fas fa-sign-in-alt"></i> Giờ bắt đầu
                                 </label>
-                                <input type="time" id="editStartTime" class="time-input" 
-                                       value="07:45" step="300">
+                                <div class="time-input-custom">
+                                    <input type="time" id="editStartTime" class="time-input" 
+                                           value="07:45" step="300">
+                                </div>
                             </div>
-                            <div>
+                            <div class="time-input-container">
                                 <label class="time-label">
                                     <i class="fas fa-sign-out-alt"></i> Giờ kết thúc
                                 </label>
-                                <input type="time" id="editEndTime" class="time-input" 
-                                       value="17:00" step="300">
+                                <div class="time-input-custom">
+                                    <input type="time" id="editEndTime" class="time-input" 
+                                           value="17:00" step="300">
+                                </div>
                             </div>
                         </div>
                         
@@ -1615,14 +1672,14 @@
                             <button class="quick-action-btn" onclick="setQuickTime('start', '07:45')">
                                 🕢 7:45
                             </button>
+                            <button class="quick-action-btn" onclick="setQuickTime('start', '08:00')">
+                                🕗 8:00
+                            </button>
                             <button class="quick-action-btn" onclick="setQuickTime('end', '17:00')">
                                 🕔 17:00
                             </button>
                             <button class="quick-action-btn" onclick="setQuickTime('end', '18:00')">
                                 🕕 18:00
-                            </button>
-                            <button class="quick-action-btn" onclick="setQuickTime('end', '19:00')">
-                                🕖 19:00
                             </button>
                         </div>
                         
@@ -1636,30 +1693,54 @@
             document.getElementById('editTimeContent').innerHTML = content;
             document.getElementById('editTimeModal').style.display = 'flex';
             
-            // Focus vào input đầu tiên
+            // Focus vào input đầu tiên sau delay
             setTimeout(() => {
-                document.getElementById('editStartTime').focus();
-            }, 100);
+                const startInput = document.getElementById('editStartTime');
+                if (startInput) {
+                    startInput.focus();
+                    // iOS fix: scroll into view
+                    startInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
         }
         
         function setQuickTime(type, time) {
             if (type === 'start') {
-                document.getElementById('editStartTime').value = time;
-                document.getElementById('editStartTime').dispatchEvent(new Event('change'));
+                const input = document.getElementById('editStartTime');
+                if (input) {
+                    input.value = time;
+                    // Trigger change event
+                    const event = new Event('change', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
             } else {
-                document.getElementById('editEndTime').value = time;
-                document.getElementById('editEndTime').dispatchEvent(new Event('change'));
+                const input = document.getElementById('editEndTime');
+                if (input) {
+                    input.value = time;
+                    // Trigger change event
+                    const event = new Event('change', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            }
+            
+            // Haptic feedback on iOS
+            if (isIOS && window.navigator.vibrate) {
+                window.navigator.vibrate(10);
             }
         }
         
         function saveEditedTime() {
-            const startTime = document.getElementById('editStartTime').value;
-            const endTime = document.getElementById('editEndTime').value;
+            const startInput = document.getElementById('editStartTime');
+            const endInput = document.getElementById('editEndTime');
             
-            if (!startTime) {
+            if (!startInput || !startInput.value) {
                 showNotification('⚠️ Vui lòng nhập giờ bắt đầu', 'warning');
+                startInput.focus();
                 return;
             }
+            
+            const startTime = startInput.value;
+            const endTime = endInput ? endInput.value : null;
             
             if (!endTime) {
                 if (!confirm('Chưa có giờ kết thúc. Bạn muốn lưu bản ghi chưa hoàn thành?')) {
@@ -1718,7 +1799,7 @@
                 workData.unshift(record);
             }
             
-            // Sắp xếp lại
+            // Sắp xếp lại theo ngày mới nhất
             workData.sort((a, b) => {
                 const dateA = parseDate(a.date);
                 const dateB = parseDate(b.date);
@@ -1765,17 +1846,31 @@
             return new Date(year, month - 1, day);
         }
         
-        // ==================== MODAL FUNCTIONS ====================
+        // ==================== SALARY CALCULATION - iOS OPTIMIZED ====================
         function showSalaryModal() {
             const content = `
-                <div style="margin-bottom: 20px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; color: #5856D6; margin-bottom: 10px;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 style="margin-bottom: 5px;">Tính Lương Tăng Ca</h3>
+                    <p style="color: #8E8E93; font-size: 14px;">
+                        Nhập lương căn bản và chọn tháng để tính
+                    </p>
+                </div>
+                
+                <div class="salary-input-container">
                     <label class="salary-label">
-                        <i class="fas fa-money-bill-wave"></i> Lương căn bản (VNĐ/tháng)
+                        <i class="fas fa-money-bill-alt"></i> Lương căn bản (VNĐ/tháng)
                     </label>
-                    <input type="number" id="salaryInput" 
+                    <input type="number" 
+                           id="salaryInput" 
+                           class="salary-input"
                            value="${basicSalary || ''}"
-                           placeholder="Nhập lương căn bản"
-                           class="salary-input">
+                           placeholder="Nhập lương tháng"
+                           min="0"
+                           step="100000"
+                           inputmode="numeric">
                     
                     <div class="quick-actions">
                         <button class="quick-action-btn" onclick="setSalaryQuick(5000000)">
@@ -1792,8 +1887,22 @@
                         </button>
                     </div>
                     
-                    <div style="text-align: center; margin: 15px 0; font-size: 14px; color: #8E8E93;">
-                        Lương hiện tại: <strong>${formatCurrency(basicSalary)}</strong>
+                    <!-- Number pad for easier input on iOS -->
+                    <div class="number-pad" style="margin-top: 15px;">
+                        <button class="number-btn" onclick="addSalaryNumber('1')">1</button>
+                        <button class="number-btn" onclick="addSalaryNumber('2')">2</button>
+                        <button class="number-btn" onclick="addSalaryNumber('3')">3</button>
+                        <button class="number-btn" onclick="addSalaryNumber('4')">4</button>
+                        <button class="number-btn" onclick="addSalaryNumber('5')">5</button>
+                        <button class="number-btn" onclick="addSalaryNumber('6')">6</button>
+                        <button class="number-btn" onclick="addSalaryNumber('7')">7</button>
+                        <button class="number-btn" onclick="addSalaryNumber('8')">8</button>
+                        <button class="number-btn" onclick="addSalaryNumber('9')">9</button>
+                        <button class="number-btn" onclick="addSalaryNumber('0')">0</button>
+                        <button class="number-btn" onclick="addSalaryNumber('000')">000</button>
+                        <button class="number-btn" style="background: #FF3B30; color: white;" onclick="clearSalaryInput()">
+                            Xóa
+                        </button>
                     </div>
                 </div>
                 
@@ -1801,7 +1910,7 @@
                     <label class="salary-label">
                         <i class="fas fa-calendar"></i> Chọn tháng
                     </label>
-                    <select id="monthSelect" style="width: 100%; padding: 15px; border: 2px solid #F2F2F7; border-radius: 12px; font-size: 16px;">
+                    <select id="monthSelect" style="width: 100%; padding: 15px; border: 2px solid #F2F2F7; border-radius: 12px; font-size: 16px; background: white;">
                         <option value="">Chọn tháng...</option>
                     </select>
                 </div>
@@ -1815,8 +1924,8 @@
                         <i class="fas fa-info-circle"></i> Công thức tính
                     </h4>
                     <p style="font-size: 13px; color: #8E8E93;">
-                        • Lương ngày = Lương tháng / 26<br>
-                        • Lương giờ = Lương ngày / 8<br>
+                        • Lương ngày = Lương tháng ÷ 26<br>
+                        • Lương giờ = Lương ngày ÷ 8<br>
                         • Lương tăng ca/giờ = Lương giờ × 2<br>
                         • Chủ nhật: Toàn bộ = Tăng ca<br>
                         • T2-T6: Trước 7:45 & sau 17:00 = Tăng ca
@@ -1834,28 +1943,60 @@
             // Populate month select
             populateMonthSelect();
             
+            // Store reference to salary input
+            currentSalaryInput = document.getElementById('salaryInput');
+            
             // Add event listeners
             setTimeout(() => {
                 document.getElementById('calculateBtn').addEventListener('click', calculateSalary);
-                document.getElementById('salaryInput').addEventListener('change', function() {
-                    basicSalary = parseInt(this.value) || 0;
-                    localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
-                    showNotification(`✅ Đã lưu lương: ${formatCurrency(basicSalary)}`, 'success');
-                });
                 
-                // Focus on salary input
-                document.getElementById('salaryInput').focus();
+                // Focus on salary input with delay for iOS
+                if (currentSalaryInput) {
+                    setTimeout(() => {
+                        currentSalaryInput.focus();
+                        currentSalaryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500);
+                }
             }, 100);
         }
         
-        function setSalaryQuick(amount) {
-            document.getElementById('salaryInput').value = amount;
-            basicSalary = amount;
-            localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
-            showNotification(`✅ Đã đặt lương: ${formatCurrency(amount)}`, 'success');
+        function addSalaryNumber(num) {
+            if (!currentSalaryInput) return;
             
-            // Update display
-            document.getElementById('salaryInput').dispatchEvent(new Event('change'));
+            const currentValue = currentSalaryInput.value.replace(/,/g, '') || '0';
+            const newValue = currentValue === '0' ? num : currentValue + num;
+            currentSalaryInput.value = parseInt(newValue).toLocaleString('vi-VN');
+            
+            // Haptic feedback on iOS
+            if (isIOS && window.navigator.vibrate) {
+                window.navigator.vibrate(5);
+            }
+        }
+        
+        function clearSalaryInput() {
+            if (currentSalaryInput) {
+                currentSalaryInput.value = '';
+                currentSalaryInput.focus();
+                
+                // Haptic feedback on iOS
+                if (isIOS && window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+            }
+        }
+        
+        function setSalaryQuick(amount) {
+            if (currentSalaryInput) {
+                currentSalaryInput.value = amount.toLocaleString('vi-VN');
+                currentSalaryInput.focus();
+                
+                // Haptic feedback on iOS
+                if (isIOS && window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+                
+                showNotification(`✅ Đã đặt lương: ${formatCurrency(amount)}`, 'success');
+            }
         }
         
         function populateMonthSelect() {
@@ -1895,11 +2036,16 @@
         
         function calculateSalary() {
             const salaryInput = document.getElementById('salaryInput');
-            const salary = parseInt(salaryInput.value) || basicSalary;
+            if (!salaryInput) return;
+            
+            // Convert formatted string back to number
+            const salaryStr = salaryInput.value.replace(/\./g, '').replace(/,/g, '').replace(/[^\d]/g, '');
+            const salary = parseInt(salaryStr) || 0;
+            
             const monthYear = document.getElementById('monthSelect').value;
             
-            if (!salary) {
-                showNotification('⚠️ Vui lòng nhập lương căn bản', 'warning');
+            if (!salary || salary <= 0) {
+                showNotification('⚠️ Vui lòng nhập lương căn bản hợp lệ', 'warning');
                 salaryInput.focus();
                 return;
             }
@@ -1907,12 +2053,6 @@
             if (!monthYear) {
                 showNotification('⚠️ Vui lòng chọn tháng', 'warning');
                 return;
-            }
-            
-            // Lưu lương nếu đã thay đổi
-            if (basicSalary !== salary) {
-                basicSalary = salary;
-                localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
             }
             
             const [month, year] = monthYear.split('/').map(Number);
@@ -1951,17 +2091,18 @@
             // Hiển thị kết quả
             const resultDiv = document.getElementById('salaryResult');
             resultDiv.style.display = 'block';
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
             
             let detailsHtml = '';
-            details.forEach(detail => {
-                detailsHtml += `
-                    <div style="font-size: 13px; margin: 5px 0; padding: 8px; background: white; border-radius: 8px;">
-                        <strong>${detail.date}</strong>: ${detail.overtime.toFixed(2)} giờ
-                        <br><small>${detail.start} - ${detail.end}</small>
-                    </div>
-                `;
-            });
+            if (details.length > 0) {
+                details.forEach(detail => {
+                    detailsHtml += `
+                        <div style="font-size: 13px; margin: 5px 0; padding: 8px; background: white; border-radius: 8px;">
+                            <strong>${detail.date}</strong>: ${detail.overtime.toFixed(2)} giờ
+                            <br><small>${detail.start} - ${detail.end}</small>
+                        </div>
+                    `;
+                });
+            }
             
             resultDiv.innerHTML = `
                 <h4 style="color: #5856D6; margin-bottom: 10px;">
@@ -1977,9 +2118,11 @@
                     <div>Lương tăng ca/giờ: <strong>${formatCurrency(hourlySalary * 2)}</strong></div>
                 </div>
                 ${details.length > 0 ? `
-                    <div style="margin-top: 15px; max-height: 200px; overflow-y: auto;">
-                        <h5 style="font-size: 14px; margin-bottom: 5px;">Chi tiết từng ngày:</h5>
-                        ${detailsHtml}
+                    <div style="margin-top: 15px;">
+                        <h5 style="font-size: 14px; margin-bottom: 5px; color: #5856D6;">Chi tiết từng ngày:</h5>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            ${detailsHtml}
+                        </div>
                     </div>
                 ` : `
                     <div style="text-align: center; padding: 20px; color: #8E8E93;">
@@ -2000,9 +2143,15 @@
                 </button>
             `;
             
+            // Scroll to result
+            setTimeout(() => {
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+            
             showNotification('💰 Đã tính lương thành công', 'success');
         }
         
+        // ==================== BACKUP MODAL - FIXED FOR iOS ====================
         function showBackupModal() {
             const lastBackup = lastBackupTime ? new Date(lastBackupTime) : null;
             const lastBackupStr = lastBackup ? 
@@ -2015,7 +2164,7 @@
                     <div style="font-size: 48px; color: #FF9500; margin-bottom: 15px;">
                         <i class="fas fa-database"></i>
                     </div>
-                    <h3 style="margin-bottom: 10px;">Sao lưu & Khôi phục</h3>
+                    <h3 style="margin-bottom: 10px;">Sao Lưu & Khôi Phục</h3>
                     <p style="color: #8E8E93; margin-bottom: 20px;">
                         Tổng: <strong>${workData.length}</strong> bản ghi<br>
                         Lần backup cuối: <strong>${lastBackupStr}</strong>
@@ -2042,13 +2191,21 @@
                 
                 <div style="margin-top: 20px; padding: 15px; background-color: rgba(0,122,255,0.1); border-radius: 12px;">
                     <h4 style="color: #007AFF; font-size: 14px; margin-bottom: 10px;">
-                        <i class="fas fa-info-circle"></i> Thông tin
+                        <i class="fas fa-info-circle"></i> Thông tin cho iOS
                     </h4>
                     <p style="font-size: 13px; color: #8E8E93;">
-                        • Dữ liệu tự động backup mỗi 6 giờ<br>
-                        • File backup được lưu trong Downloads<br>
-                        • Khôi phục từ file JSON bất kỳ lúc nào
+                        • File JSON được tạo đúng chuẩn<br>
+                        • Có thể mở bằng Files app<br>
+                        • Dữ liệu tự động backup 6 giờ/lần<br>
+                        • Nhập file từ iCloud Drive hoặc Files
                     </p>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 12px; background: rgba(255,149,0,0.1); border-radius: 10px;">
+                    <div style="font-size: 12px; color: #FF9500; text-align: center;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Trên iOS: Chọn "Save to Files" khi export
+                    </div>
                 </div>
             `;
             
@@ -2065,86 +2222,114 @@
         }
         
         function exportData() {
-            const backupData = {
-                workData: workData,
-                basicSalary: basicSalary,
-                timestamp: new Date().toISOString(),
-                version: '2.0',
-                totalRecords: workData.length
-            };
-            
-            const dataStr = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `chamcong_export_${new Date().getTime()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
-            
-            localStorage.setItem('chamcong_last_backup', new Date().toISOString());
-            showNotification('✅ Đã xuất dữ liệu thành công', 'success');
-            hideModal('backupModal');
+            try {
+                const success = createBackupFile();
+                if (success) {
+                    localStorage.setItem('chamcong_last_backup', new Date().toISOString());
+                    showNotification('✅ Đã xuất dữ liệu thành công', 'success');
+                    hideModal('backupModal');
+                } else {
+                    showNotification('❌ Lỗi xuất dữ liệu', 'danger');
+                }
+            } catch (error) {
+                console.error('Lỗi export:', error);
+                showNotification('❌ Lỗi xuất dữ liệu', 'danger');
+            }
         }
         
         function importData() {
+            // Create file input
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = '.json';
+            input.accept = '.json,application/json';
+            input.style.display = 'none';
             
-            input.onchange = function(e) {
+            input.onchange = async function(e) {
                 const file = e.target.files[0];
                 if (!file) return;
                 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const backupData = JSON.parse(e.target.result);
-                        
-                        if (!backupData.workData || !Array.isArray(backupData.workData)) {
-                            throw new Error('File không hợp lệ');
-                        }
-                        
-                        // Xác nhận import
-                        if (confirm(`Nhập ${backupData.workData.length} bản ghi?\n\nDữ liệu hiện tại sẽ được thêm vào.`)) {
-                            // Merge dữ liệu
-                            const existingDates = new Set(workData.map(r => r.date));
-                            backupData.workData.forEach(record => {
-                                if (!existingDates.has(record.date)) {
-                                    workData.push(record);
-                                }
-                            });
-                            
-                            if (backupData.basicSalary) {
-                                basicSalary = backupData.basicSalary;
-                                localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
-                            }
-                            
-                            // Sắp xếp lại
-                            workData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-                            
-                            saveData();
-                            updateHistory();
-                            
-                            showNotification(`✅ Đã nhập ${backupData.workData.length} bản ghi`, 'success');
-                            hideModal('backupModal');
-                        }
-                    } catch (error) {
-                        console.error('Lỗi import:', error);
-                        showNotification('❌ File không hợp lệ', 'danger');
+                try {
+                    const text = await readFileAsText(file);
+                    const backupData = JSON.parse(text);
+                    
+                    // Validate backup data
+                    if (!backupData.workData || !Array.isArray(backupData.workData)) {
+                        throw new Error('File không hợp lệ: Thiếu dữ liệu workData');
                     }
-                };
-                
-                reader.readAsText(file);
+                    
+                    if (!backupData.version) {
+                        throw new Error('File không hợp lệ: Thiếu version');
+                    }
+                    
+                    // Show confirmation
+                    const importConfirmed = await showImportConfirmation(backupData);
+                    if (!importConfirmed) return;
+                    
+                    // Import data
+                    workData = backupData.workData;
+                    if (backupData.basicSalary) {
+                        basicSalary = backupData.basicSalary;
+                        localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
+                    }
+                    
+                    // Sort data
+                    workData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    
+                    saveData();
+                    updateHistory();
+                    
+                    showNotification(`✅ Đã nhập ${backupData.workData.length} bản ghi`, 'success');
+                    hideModal('backupModal');
+                    
+                } catch (error) {
+                    console.error('Lỗi import:', error);
+                    showNotification('❌ File không hợp lệ hoặc bị lỗi', 'danger');
+                } finally {
+                    // Cleanup
+                    document.body.removeChild(input);
+                }
             };
             
-            input.click();
+            // Trigger file selection
+            document.body.appendChild(input);
+            
+            // iOS Safari workaround
+            if (isIOS) {
+                setTimeout(() => {
+                    input.click();
+                }, 100);
+            } else {
+                input.click();
+            }
+        }
+        
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+        
+        function showImportConfirmation(backupData) {
+            return new Promise((resolve) => {
+                const recordCount = backupData.workData.length;
+                const salary = backupData.basicSalary ? formatCurrency(backupData.basicSalary) : 'Không có';
+                const timestamp = backupData.timestamp ? new Date(backupData.timestamp).toLocaleString('vi-VN') : 'Không rõ';
+                
+                const message = `
+                    Nhập dữ liệu từ backup?
+                    
+                    📊 Số bản ghi: ${recordCount}
+                    💰 Lương căn bản: ${salary}
+                    ⏰ Thời gian backup: ${timestamp}
+                    
+                    Dữ liệu hiện tại sẽ được thay thế.
+                `;
+                
+                resolve(confirm(message.trim()));
+            });
         }
         
         function restoreLatestBackup() {
@@ -2294,7 +2479,6 @@
             document.getElementById('closeSalaryModal').addEventListener('click', () => hideModal('salaryModal'));
             document.getElementById('closeBackupModal').addEventListener('click', () => hideModal('backupModal'));
             document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
-            document.getElementById('closeDayModal').addEventListener('click', () => hideModal('dayDetailModal'));
             document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editTimeModal'));
             
             // Close modals when clicking outside
@@ -2311,23 +2495,15 @@
                 if (isWorking || workData.length > 0) {
                     saveData();
                 }
-            }, 60000); // Mỗi phút
+            }, 30000); // 30 giây
             
-            // Before unload save
+            // Save before unload
             window.addEventListener('beforeunload', () => {
                 saveData();
             });
             
             // Keyboard shortcuts
             document.addEventListener('keydown', function(e) {
-                // Ctrl+S to save (or Cmd+S on Mac)
-                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                    e.preventDefault();
-                    saveData();
-                    showNotification('💾 Đã lưu dữ liệu', 'success');
-                }
-                
-                // Escape to close modals
                 if (e.key === 'Escape') {
                     const openModals = document.querySelectorAll('.modal[style*="display: flex"]');
                     if (openModals.length > 0) {
@@ -2352,28 +2528,17 @@
             window.addEventListener('orientationchange', setViewportHeight);
             
             // Prevent zoom on input focus
-            document.addEventListener('touchstart', function(e) {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-            
-            // Handle iOS keyboard
-            let focusedElement;
-            
-            window.addEventListener('focusin', function(e) {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                    focusedElement = e.target;
+            const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="time"]');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
                     setTimeout(() => {
-                        if (focusedElement) {
-                            focusedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
+                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }, 300);
-                }
+                });
             });
             
+            // Handle iOS keyboard
             window.addEventListener('focusout', function() {
-                focusedElement = null;
                 setTimeout(() => {
                     window.scrollTo(0, 0);
                 }, 100);
@@ -2396,7 +2561,7 @@
             }
             
             // Add haptic to buttons
-            document.querySelectorAll('.btn').forEach(btn => {
+            document.querySelectorAll('.btn, .quick-action-btn, .number-btn').forEach(btn => {
                 btn.addEventListener('touchstart', () => hapticFeedback('light'));
             });
             
@@ -2422,7 +2587,7 @@
             notification.classList.add('show');
             
             // iOS haptic feedback
-            if (isIOS) {
+            if (isIOS && window.navigator.vibrate) {
                 if (type === 'success') window.navigator.vibrate(10);
                 if (type === 'warning') window.navigator.vibrate(20);
                 if (type === 'danger') window.navigator.vibrate(30);
@@ -2431,71 +2596,6 @@
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
-        }
-        
-        // ==================== PWA INSTALL PROMPT ====================
-        let deferredPrompt;
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // Show install button after 10 seconds
-            setTimeout(() => {
-                if (deferredPrompt && confirm('Cài đặt ứng dụng lên màn hình chính để sử dụng offline?')) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('✅ User installed the app');
-                        }
-                        deferredPrompt = null;
-                    });
-                }
-            }, 10000);
-        });
-        
-        // ==================== SERVICE WORKER (PWA) ====================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js').catch(err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
-            });
-        }
-        
-        // Service Worker content (inline for demo)
-        const serviceWorkerCode = `
-            self.addEventListener('install', (event) => {
-                event.waitUntil(
-                    caches.open('chamcong-v1').then((cache) => {
-                        return cache.addAll([
-                            '/',
-                            '/index.html',
-                            '/manifest.json'
-                        ]);
-                    })
-                );
-            });
-            
-            self.addEventListener('fetch', (event) => {
-                event.respondWith(
-                    caches.match(event.request).then((response) => {
-                        return response || fetch(event.request);
-                    })
-                );
-            });
-        `;
-        
-        // Create service worker if needed
-        if (location.protocol === 'https:' || location.hostname === 'localhost') {
-            const blob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
-            const workerUrl = URL.createObjectURL(blob);
-            
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register(workerUrl)
-                    .then(() => console.log('🔧 Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed:', err));
-            }
         }
     </script>
 </body>
