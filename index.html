@@ -231,7 +231,7 @@
     </div>
 
     <div class="footer">
-        <p>Ứng dụng Chấm Công Tăng Ca V1.0.8 &copy; QUYSC-2026</p>
+        <p>Ứng dụng Chấm Công Tăng Ca V1.0.9&copy; QUYSC-2026</p>
         <p>Dữ liệu được lưu trữ vĩnh viễn trên thiết bị - Tự động lưu mỗi phút</p>
     </div>
 
@@ -329,7 +329,7 @@
         let currentYear = today.getFullYear();
         let selectedDate = null;
         let selectedDayData = null;
-        let basicSalary = localStorage.getItem('basicSalary') || 0;
+        let basicSalary = 0;
         let autoStartTriggered = false;
         let earlyOvertime = 0;
         let lateOvertime = 0;
@@ -543,20 +543,28 @@
         }
 
         function loadBasicSalary() {
-            const savedSalary = localStorage.getItem('basicSalary');
-            if (savedSalary) {
-                basicSalary = parseInt(savedSalary);
-                document.getElementById('basicSalary').value = basicSalary;
+            try {
+                const savedSalary = localStorage.getItem('chamcong_basic_salary');
+                if (savedSalary) {
+                    basicSalary = parseInt(savedSalary);
+                    document.getElementById('basicSalary').value = basicSalary;
+                }
+            } catch (e) {
+                console.log('Không có lương cơ bản đã lưu');
             }
         }
 
         function saveBasicSalary() {
-            const salaryInput = document.getElementById('basicSalary');
-            const salary = parseInt(salaryInput.value) || 0;
-            basicSalary = salary;
-            localStorage.setItem('basicSalary', salary.toString());
-            showNotification('Đã lưu lương căn bản', 'success');
-            updateExpectedSalary();
+            try {
+                const salaryInput = document.getElementById('basicSalary');
+                const salary = parseInt(salaryInput.value) || 0;
+                basicSalary = salary;
+                localStorage.setItem('chamcong_basic_salary', salary.toString());
+                showNotification('Đã lưu lương căn bản', 'success');
+                updateExpectedSalary();
+            } catch (e) {
+                showNotification('Lỗi khi lưu lương căn bản', 'danger');
+            }
         }
 
         function updateExpectedSalary() {
@@ -930,7 +938,7 @@
 
         function saveDataToStorage() {
             try {
-                localStorage.setItem('workAttendanceData', JSON.stringify(workData));
+                localStorage.setItem('chamcong_work_data', JSON.stringify(workData));
                 
                 if (isWorking && workStartTime) {
                     const currentWorkState = {
@@ -938,14 +946,14 @@
                         workStartTime: workStartTime.getTime(),
                         lastUpdate: Date.now()
                     };
-                    localStorage.setItem('currentWorkState', JSON.stringify(currentWorkState));
+                    localStorage.setItem('chamcong_current_state', JSON.stringify(currentWorkState));
                 } else {
-                    localStorage.removeItem('currentWorkState');
+                    localStorage.removeItem('chamcong_current_state');
                 }
                 
                 const now = new Date();
                 const lastSaveTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-                localStorage.setItem('lastSaveTime', lastSaveTime);
+                localStorage.setItem('chamcong_last_save', lastSaveTime);
                 
                 return true;
             } catch (error) {
@@ -955,18 +963,22 @@
         }
 
         function updateDataStatus() {
-            const lastSaveTime = localStorage.getItem('lastSaveTime') || 'Vừa xong';
-            document.getElementById('lastSaveTime').textContent = `Lưu: ${lastSaveTime}`;
+            try {
+                const lastSaveTime = localStorage.getItem('chamcong_last_save') || 'Vừa xong';
+                document.getElementById('lastSaveTime').textContent = `Lưu: ${lastSaveTime}`;
+            } catch (e) {
+                document.getElementById('lastSaveTime').textContent = 'Lỗi';
+            }
         }
 
         function loadWorkData() {
             try {
-                const savedData = localStorage.getItem('workAttendanceData');
+                const savedData = localStorage.getItem('chamcong_work_data');
                 
                 if (savedData) {
                     workData = JSON.parse(savedData);
                     
-                    const currentWorkState = localStorage.getItem('currentWorkState');
+                    const currentWorkState = localStorage.getItem('chamcong_current_state');
                     if (currentWorkState) {
                         const state = JSON.parse(currentWorkState);
                         const lastUpdate = new Date(state.lastUpdate);
@@ -1664,4 +1676,3 @@
     </script>
 </body>
 </html>
-
