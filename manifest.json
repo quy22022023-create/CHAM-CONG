@@ -1,0 +1,25 @@
+{
+    "name": "Chấm Công Pro",
+    "short_name": "Chấm Công",
+    "description": "Ứng dụng chấm công thông minh với đồng bộ đa thiết bị",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#F2F2F7",
+    "theme_color": "#007AFF",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMzYiIGZpbGw9IiMwMDdBRkYiLz4KPHBhdGggZD0iTTk2IDY0QzEwNS4wNDYgNjQgMTEyIDcxLjA1MzcgMTEyIDgwLjI4NTdWMTE1LjcxNEMxMTIgMTI0Ljk0NiAxMDUuMDQ2IDEzMiA5NiAxMzJDODYuOTUzNyAxMzIgODAgMTI0Ljk0NiA4MCAxMTUuNzE0VjgwLjI4NTdDODAgNzEuMDUzNyA4Ni45NTM3IDY0IDk2IDY0WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEyMCAxMTZINzJDNjQuMjY4IDExNiA1OCAxMjIuMjY4IDU4IDEzMFYxNDBDNTggMTQ3LjczMiA2NC4yNjggMTU0IDcyIDE1NEgxMjBDMTI3LjczMiAxNTQgMTM0IDE0Ny43MzIgMTM0IDE0MFYxMzBDMTM0IDEyMi4yNjggMTI3LjczMiAxMTYgMTIwIDExNloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAY1BMVEUAAAD////09PT8/Pz5+fnr6+v29vbv7+/x8fHj4+Pn5+fc3Nzn5+fa2trW1tbR0dHPz8/Nzc3GxsbBwcG9vb26urq3t7e0tLSurq6rq6upqamnp6ekpKSfn5+dnZ2bm5uYmJgRZvSsAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA9UlEQVR4nO3d3W6CMBiG4Rcp4E8LjhHnfs8Nc/3ngslsLG2hPN8LVOguGjvbJAAAAAAAAAAAAAAAAAAAAAAAkDdJxuGoTFOdxjBUp6lQbJ7qNIahOk2FYvNUpzEM1WkqFJunOo1hqE5Todg81WkMQ3WaCsXmqU5jGKrTVCg2T3Uaw1CdpkKxearTGIbqNBWKzVOdxjBUp6lQbJ7qNIahOk2FYvNUpzEM1WkqFJunOo1hqE5Todg81WkMQ3WaCsXmqU5jGKrTVCg2T3Uaw1CdpkKxearTGIbqNBWKzVOdxjBUp6lQbJ7qNIahOk2FYvNUpzEM1WkqFJv30TSG4b/a7x+rTl5gGP6Cg35WcJ8BAAAAAAAAAAAAAAAAAADg7X0CUG0UF2s8G1IAAAAASUVORK5CYII=",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "categories": ["business", "productivity"],
+    "lang": "vi-VN",
+    "dir": "ltr"
+}
