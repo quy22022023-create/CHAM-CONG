@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>⏱️ Chấm Công iOS - Sync Cloud</title>
+    <title>⏱️ Chấm Công PRO</title>
     
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -197,11 +197,6 @@
             margin-top: 10px;
         }
         
-        .btn-backup {
-            background-color: #FF9500;
-            margin-top: 10px;
-        }
-        
         .btn-month {
             background-color: #5AC8FA;
             margin-top: 10px;
@@ -217,21 +212,6 @@
             margin-top: 10px;
         }
         
-        .btn-refresh {
-            background-color: #5AC8FA;
-            margin-top: 10px;
-        }
-        
-        .btn-confirm {
-            background-color: #34C759;
-            margin-top: 10px;
-        }
-        
-        .btn-cancel {
-            background-color: #8E8E93;
-            margin-top: 10px;
-        }
-        
         .btn-sync {
             background: linear-gradient(135deg, #FF9500, #FF2D55);
             margin-top: 10px;
@@ -244,6 +224,11 @@
         
         .btn-logout {
             background: linear-gradient(135deg, #8E8E93, #5AC8FA);
+            margin-top: 10px;
+        }
+        
+        .btn-admin {
+            background: linear-gradient(135deg, #FF2D55, #5856D6);
             margin-top: 10px;
         }
         
@@ -351,105 +336,6 @@
             color: #34C759;
         }
         
-        /* TIME INPUTS - iOS OPTIMIZED */
-        .time-input-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .time-input-container {
-            position: relative;
-        }
-        
-        .time-input {
-            width: 100%;
-            background: #F2F2F7;
-            border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 15px 40px 15px 15px;
-            font-size: 18px;
-            font-weight: 600;
-            text-align: center;
-            color: #1D1D1F;
-            font-variant-numeric: tabular-nums;
-            transition: all 0.3s;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-        
-        /* Fix iOS time input styling */
-        input[type="time"]::-webkit-calendar-picker-indicator {
-            background: none;
-            display: none;
-        }
-        
-        .time-input-custom {
-            position: relative;
-            width: 100%;
-        }
-        
-        .time-input-custom::after {
-            content: "⌚";
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: #007AFF;
-            pointer-events: none;
-        }
-        
-        .time-input:focus {
-            outline: none;
-            border-color: #007AFF;
-            background: white;
-        }
-        
-        .time-label {
-            display: block;
-            text-align: center;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #8E8E93;
-        }
-        
-        /* SALARY INPUT - iOS OPTIMIZED */
-        .salary-input-container {
-            position: relative;
-            margin: 20px 0;
-        }
-        
-        .salary-input {
-            width: 100%;
-            background: #F2F2F7;
-            border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 15px 20px;
-            font-size: 18px;
-            font-weight: 600;
-            text-align: center;
-            color: #1D1D1F;
-            transition: all 0.3s;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-        
-        .salary-input:focus {
-            outline: none;
-            border-color: #5856D6;
-            background: white;
-        }
-        
-        .salary-label {
-            display: block;
-            text-align: center;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #5856D6;
-        }
-        
         /* MODALS */
         .modal {
             display: none;
@@ -501,170 +387,71 @@
             justify-content: center;
         }
         
-        /* CALENDAR */
-        .calendar {
-            width: 100%;
+        /* INPUT STYLES */
+        .input-group {
+            margin-bottom: 15px;
         }
         
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .calendar-month-year {
-            font-size: 18px;
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: 600;
-            color: #1D1D1F;
-        }
-        
-        .calendar-nav {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .calendar-nav-btn {
-            background-color: #F2F2F7;
-            border: none;
-            border-radius: 8px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        .calendar-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 14px;
             color: #8E8E93;
-        }
-        
-        .calendar-weekdays div {
-            padding: 8px 0;
-        }
-        
-        .calendar-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-        }
-        
-        .calendar-day {
-            aspect-ratio: 1;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            border-radius: 10px;
+            gap: 8px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #F2F2F7;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            min-height: 44px;
-        }
-        
-        .calendar-day.empty {
-            background-color: transparent;
-            cursor: default;
-        }
-        
-        .calendar-day.today {
-            background-color: rgba(0,122,255,0.1);
-            color: #007AFF;
-            font-weight: 700;
-        }
-        
-        .calendar-day.has-data {
-            background-color: rgba(52,199,89,0.1);
-        }
-        
-        .calendar-day.sunday {
-            color: #FF2D55;
-        }
-        
-        .calendar-day.editable {
-            position: relative;
-        }
-        
-        .calendar-day.editable::after {
-            content: "✏️";
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            font-size: 10px;
-        }
-        
-        /* SWITCH STYLES - iOS Style */
-        .switch-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
             background-color: #F2F2F7;
-            border-radius: 12px;
-            margin: 10px 0;
+            transition: all 0.3s;
         }
         
-        .switch-label {
-            font-weight: 500;
-            color: #1D1D1F;
+        .input-field:focus {
+            outline: none;
+            border-color: #007AFF;
+            background-color: white;
+        }
+        
+        /* USER STATUS */
+        .user-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(88,86,214,0.1);
+            color: #5856D6;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-        
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 51px;
-            height: 31px;
-        }
-        
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
+            gap: 5px;
+            z-index: 999;
+            backdrop-filter: blur(10px);
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #E5E5EA;
-            transition: .4s;
-            border-radius: 34px;
         }
         
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 27px;
-            width: 27px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        input:checked + .slider {
-            background-color: #34C759;
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(20px);
+        /* SYNC STATUS */
+        .sync-status {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: rgba(52,199,89,0.1);
+            color: #34C759;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 999;
+            backdrop-filter: blur(10px);
         }
         
         /* NOTIFICATION */
@@ -687,92 +474,6 @@
             transform: translateX(0);
         }
         
-        /* DATA STATUS */
-        .data-status {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            background-color: rgba(0,122,255,0.1);
-            color: #007AFF;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            z-index: 999;
-            backdrop-filter: blur(10px);
-        }
-        
-        /* SYNC STATUS */
-        .sync-status {
-            position: fixed;
-            bottom: 120px;
-            right: 20px;
-            background-color: rgba(52,199,89,0.1);
-            color: #34C759;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            z-index: 999;
-            backdrop-filter: blur(10px);
-        }
-        
-        /* USER STATUS */
-        .user-status {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(88,86,214,0.1);
-            color: #5856D6;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            z-index: 999;
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-        }
-        
-        /* REFRESH BUTTON - FLOATING */
-        .refresh-floating-btn {
-            position: fixed;
-            bottom: 170px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            background: linear-gradient(135deg, #5AC8FA, #007AFF);
-            color: white;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,122,255,0.3);
-            z-index: 998;
-            transition: all 0.3s;
-        }
-        
-        .refresh-floating-btn:active {
-            transform: scale(0.9);
-            background: linear-gradient(135deg, #007AFF, #5AC8FA);
-        }
-        
-        .refresh-floating-btn .loading {
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
         /* LOADING */
         .loading {
             display: inline-block;
@@ -788,81 +489,29 @@
             to { transform: rotate(360deg); }
         }
         
-        /* QUICK ACTIONS */
-        .quick-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+        /* ADMIN TABLE */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 15px;
-            justify-content: center;
         }
         
-        .quick-action-btn {
-            flex: 1;
-            min-width: 80px;
+        .admin-table th {
+            background-color: #F2F2F7;
             padding: 12px;
-            background: #F2F2F7;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .quick-action-btn:active {
-            background: #007AFF;
-            color: white;
-        }
-        
-        /* NUMBER PAD FOR iOS */
-        .number-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .number-btn {
-            background: #F2F2F7;
-            border: none;
-            border-radius: 10px;
-            padding: 20px 10px;
-            font-size: 18px;
+            text-align: left;
             font-weight: 600;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            color: #8E8E93;
+            border-bottom: 2px solid #E5E5EA;
         }
         
-        .number-btn:active {
-            background: #007AFF;
-            color: white;
+        .admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid #F2F2F7;
         }
         
-        /* CONFIRMATION DIALOG */
-        .confirmation-dialog {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1002;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .confirmation-content {
-            background-color: white;
-            border-radius: 16px;
-            padding: 25px;
-            width: 100%;
-            max-width: 350px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        .admin-table tr:hover {
+            background-color: rgba(0,122,255,0.05);
         }
         
         /* RESPONSIVE */
@@ -870,37 +519,17 @@
             .controls { grid-template-columns: 1fr; }
             .work-info { grid-template-columns: 1fr; }
             .modal-content { padding: 15px; }
-            .time-input-group { grid-template-columns: 1fr; }
-            .quick-actions { flex-direction: column; }
         }
         
         /* iOS SPECIFIC FIXES */
         input, select, textarea {
-            font-size: 16px; /* Prevent zoom on focus */
+            font-size: 16px;
             -webkit-user-select: text;
             user-select: text;
         }
         
-        .btn, .calendar-day, .calendar-nav-btn, .quick-action-btn, .number-btn {
-            min-height: 44px; /* Apple HIG minimum touch target */
-        }
-        
-        /* Prevent iOS zoom on input focus */
-        @media screen and (max-width: 768px) {
-            input[type="text"],
-            input[type="number"],
-            input[type="time"] {
-                font-size: 16px !important;
-            }
-        }
-        
-        /* HAPTIC FEEDBACK */
-        @media (hover: none) and (pointer: coarse) {
-            .btn:active,
-            .quick-action-btn:active,
-            .number-btn:active {
-                background-color: rgba(0,122,255,0.8);
-            }
+        .btn {
+            min-height: 44px;
         }
         
         /* DARK MODE SUPPORT */
@@ -918,27 +547,15 @@
                 background-color: #2C2C2E;
             }
             
-            .time-input, .salary-input {
+            .input-field {
                 background-color: #2C2C2E;
                 color: white;
+                border-color: #2C2C2E;
             }
             
-            .quick-action-btn, .number-btn {
+            .admin-table th {
                 background-color: #2C2C2E;
-                color: white;
-            }
-            
-            .switch-container {
-                background-color: #2C2C2E;
-            }
-            
-            .refresh-floating-btn {
-                background: linear-gradient(135deg, #007AFF, #5856D6);
-                box-shadow: 0 4px 15px rgba(0,122,255,0.5);
-            }
-            
-            .confirmation-content {
-                background-color: #1C1C1E;
+                border-color: #3A3A3C;
             }
         }
     </style>
@@ -954,7 +571,7 @@
     
     <!-- HEADER -->
     <header class="header">
-        <h1><i class="fas fa-clock"></i> ⏱️ Chấm Công Cloud</h1>
+        <h1><i class="fas fa-clock"></i> ⏱️ Chấm Công PRO</h1>
         <p>⏰ 7:45 - 17:00 (T2-T7) | 🎯 CN: Toàn bộ tăng ca</p>
         <div class="day-indicator" id="dayIndicator">
             <i class="fas fa-calendar-day"></i> <span id="dayName">Đang tải...</span>
@@ -1013,23 +630,19 @@
             </button>
             
             <button class="btn btn-salary btn-full" id="salaryBtn">
-                <i class="fas fa-calculator"></i> 🧮 Tính Lương Tăng Ca
-            </button>
-            
-            <button class="btn btn-backup btn-full" id="backupBtn">
-                <i class="fas fa-database"></i> 💾 Sao Lưu & Khôi Phục
+                <i class="fas fa-calculator"></i> 🧮 Tính Lương
             </button>
             
             <button class="btn btn-month btn-full" id="viewMonthBtn">
                 <i class="fas fa-calendar-alt"></i> 📅 Xem Lịch Tháng
             </button>
             
-            <button class="btn btn-refresh btn-full" id="refreshBtn">
-                <i class="fas fa-sync-alt"></i> 🔄 Load Lại Dữ Liệu
-            </button>
-            
             <button class="btn btn-logout btn-full" id="logoutBtn" style="display: none;">
                 <i class="fas fa-sign-out-alt"></i> 🚪 Đăng xuất
+            </button>
+            
+            <button class="btn btn-admin btn-full" id="adminBtn" style="display: none;">
+                <i class="fas fa-crown"></i> 👑 Quản lý Admin
             </button>
         </div>
         
@@ -1048,16 +661,7 @@
     <!-- SAFE AREA BOTTOM -->
     <div class="safe-bottom"></div>
     
-    <!-- FLOATING REFRESH BUTTON -->
-    <button class="refresh-floating-btn" id="floatingRefreshBtn" title="Load lại dữ liệu">
-        <i class="fas fa-sync-alt"></i>
-    </button>
-    
-    <!-- STATUS INDICATORS -->
-    <div class="data-status" id="dataStatus">
-        <i class="fas fa-database"></i> <span id="lastSaveTime">🟢 Đã lưu</span>
-    </div>
-    
+    <!-- SYNC STATUS -->
     <div class="sync-status" id="syncStatus" style="display: none;">
         <i class="fas fa-cloud"></i> <span id="syncStatusText">Đang đồng bộ...</span>
     </div>
@@ -1067,43 +671,77 @@
     <div class="modal" id="loginModal">
         <div class="modal-content">
             <h3>
-                <i class="fas fa-user"></i> 🔐 Đăng nhập / Đăng ký
+                <i class="fas fa-user"></i> 🔐 Đăng nhập
                 <button class="close-btn" id="closeLoginModal">&times;</button>
             </h3>
             <div style="padding: 20px;">
-                <div id="loginTab" style="display: block;">
-                    <input type="email" id="loginEmail" placeholder="Email" class="time-input" style="margin-bottom: 15px;">
-                    <input type="password" id="loginPassword" placeholder="Mật khẩu" class="time-input" style="margin-bottom: 20px;">
-                    
-                    <button class="btn btn-full" id="loginBtn" style="margin-bottom: 10px;">
-                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
-                    </button>
-                    
-                    <button class="btn btn-full" id="showRegisterBtn" style="background-color: #34C759;">
-                        <i class="fas fa-user-plus"></i> Tạo tài khoản mới
-                    </button>
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-user"></i> Tên đăng nhập
+                    </label>
+                    <input type="text" id="loginUsername" class="input-field" placeholder="Nhập username">
                 </div>
                 
-                <div id="registerTab" style="display: none;">
-                    <input type="email" id="registerEmail" placeholder="Email" class="time-input" style="margin-bottom: 15px;">
-                    <input type="password" id="registerPassword" placeholder="Mật khẩu (ít nhất 6 ký tự)" class="time-input" style="margin-bottom: 15px;">
-                    <input type="text" id="registerFullName" placeholder="Họ tên (tùy chọn)" class="time-input" style="margin-bottom: 20px;">
-                    
-                    <button class="btn btn-full" id="registerBtn" style="margin-bottom: 10px; background-color: #34C759;">
-                        <i class="fas fa-user-plus"></i> Đăng ký
-                    </button>
-                    
-                    <button class="btn btn-full" id="showLoginBtn" style="background-color: #8E8E93;">
-                        <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
-                    </button>
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-lock"></i> Mật khẩu
+                    </label>
+                    <input type="password" id="loginPassword" class="input-field" placeholder="Nhập mật khẩu">
                 </div>
+                
+                <button class="btn btn-full" id="loginBtn" style="margin-bottom: 10px;">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </button>
+                
+                <button class="btn btn-full" id="createAccountBtn" style="background-color: #34C759;">
+                    <i class="fas fa-user-plus"></i> Tạo tài khoản mới
+                </button>
                 
                 <div style="margin-top: 20px; padding: 15px; background-color: rgba(0,122,255,0.1); border-radius: 12px;">
                     <p style="font-size: 13px; color: #007AFF; text-align: center;">
                         <i class="fas fa-info-circle"></i> 
-                        Đăng nhập để đồng bộ dữ liệu trên mọi thiết bị
+                        Username: admin007 | Password: Caijingui@1234
                     </p>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Account Modal -->
+    <div class="modal" id="createAccountModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-user-plus"></i> 👤 Tạo tài khoản
+                <button class="close-btn" id="closeCreateModal">&times;</button>
+            </h3>
+            <div style="padding: 20px;">
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-user"></i> Tên đăng nhập
+                    </label>
+                    <input type="text" id="createUsername" class="input-field" placeholder="Nhập username">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-lock"></i> Mật khẩu
+                    </label>
+                    <input type="password" id="createPassword" class="input-field" placeholder="Nhập mật khẩu">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-user-tag"></i> Loại tài khoản
+                    </label>
+                    <select id="accountType" class="input-field">
+                        <option value="user">Người dùng thường</option>
+                        <option value="admin">Quản trị viên</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-full" id="createAccountSubmitBtn" style="background-color: #34C759;">
+                    <i class="fas fa-check"></i> Tạo tài khoản
+                </button>
             </div>
         </div>
     </div>
@@ -1116,19 +754,6 @@
                 <button class="close-btn" id="closeSalaryModal">&times;</button>
             </h3>
             <div id="salaryContent">
-                <!-- Dynamic content -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Backup Modal -->
-    <div class="modal" id="backupModal">
-        <div class="modal-content">
-            <h3>
-                <i class="fas fa-database"></i> 💾 Sao Lưu
-                <button class="close-btn" id="closeBackupModal">&times;</button>
-            </h3>
-            <div id="backupContent">
                 <!-- Dynamic content -->
             </div>
         </div>
@@ -1158,31 +783,15 @@
         </div>
     </div>
     
-    <!-- Confirmation Dialog -->
-    <div class="confirmation-dialog" id="confirmUpdateDialog">
-        <div class="confirmation-content">
-            <h3 style="text-align: center; margin-bottom: 20px; color: #FF9500;">
-                <i class="fas fa-exclamation-triangle"></i> Xác nhận cập nhật
+    <!-- Admin Modal -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-crown"></i> 👑 Quản lý Admin
+                <button class="close-btn" id="closeAdminModal">&times;</button>
             </h3>
-            <div style="text-align: center; margin-bottom: 25px;">
-                <p style="margin-bottom: 10px; font-size: 16px;">Bạn có chắc muốn cập nhật giờ tan ca mới?</p>
-                <p style="color: #8E8E93; font-size: 14px; margin-bottom: 5px;">
-                    Giờ tan ca cũ: <span id="oldEndTime" style="font-weight: 600;">--:--</span>
-                </p>
-                <p style="color: #007AFF; font-size: 14px; font-weight: 600;">
-                    Giờ tan ca mới: <span id="newEndTime">--:--</span>
-                </p>
-                <p style="margin-top: 15px; padding: 10px; background: rgba(255,149,0,0.1); border-radius: 8px; font-size: 13px; color: #FF9500;">
-                    <i class="fas fa-info-circle"></i> Giờ tan ca cũ sẽ bị ghi đè
-                </p>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn btn-cancel" id="cancelUpdateBtn">
-                    <i class="fas fa-times"></i> Hủy
-                </button>
-                <button class="btn btn-confirm" id="confirmUpdateBtn">
-                    <i class="fas fa-check"></i> Xác nhận
-                </button>
+            <div id="adminContent">
+                <!-- Dynamic content -->
             </div>
         </div>
     </div>
@@ -1198,20 +807,13 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhamRmdnZjamVoYnd0bGpkcmZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNjA4MDMsImV4cCI6MjA4NTgzNjgwM30.7uvuyByOgOwkEqSGyV2ovEGkkFntsYefkpNIX9i6l70";
         
         // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: {
-                autoRefreshToken: true,
-                persistSession: true,
-                detectSessionInUrl: true
-            }
-        });
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // ==================== CORE VARIABLES ====================
         let workStartTime = null;
         let workEndTime = null;
         let isWorking = false;
         let timerInterval = null;
-        let autoSaveInterval = null;
         let workData = [];
         let today = new Date();
         let dayOfWeek = today.getDay();
@@ -1221,393 +823,280 @@
         let currentYear = today.getFullYear();
         let basicSalary = 0;
         let autoStartTriggered = false;
-        let editingDate = null;
-        let currentSalaryInput = null;
         
-        // Store lunch overtime settings for each date
-        let lunchOvertimeSettings = {};
-        
-        // iOS Detection
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        
-        // Sync System
-        let isSyncing = false;
-        let pendingSync = [];
-        let isOnline = navigator.onLine;
-        let syncInterval = null;
-        
-        // Refresh state
-        let isRefreshing = false;
-        
-        // Update confirmation
-        let pendingUpdateData = null;
+        // User management
+        let currentUser = null;
+        let users = {};
         
         // Constants
         const STANDARD_START_TIME = '07:45';
         const STANDARD_END_TIME = '17:00';
         
+        // Default admin account (pre-configured)
+        const DEFAULT_ADMIN = {
+            username: 'admin007',
+            password: 'Caijingui@1234',
+            role: 'admin',
+            created_at: new Date().toISOString()
+        };
+        
         // ==================== INITIALIZATION ====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Ứng dụng đang khởi động...');
+            console.log('🚀 Ứng dụng Chấm Công PRO đang khởi động...');
+            
+            // Load users from localStorage
+            loadUsers();
             
             // Initialize core
             initTime();
             loadAllData();
             setupEventListeners();
-            checkAuthStatus();
             
-            // iOS specific optimizations
-            if (isIOS) {
-                setupIOSOptimizations();
-            }
-            
-            // Network detection
-            setupNetworkDetection();
-            
-            // Auto sync every 5 minutes
-            syncInterval = setInterval(() => {
-                if (isOnline && supabase.auth.getSession()) {
-                    syncData();
+            // Check if user was previously logged in
+            const savedUser = localStorage.getItem('chamcong_current_user');
+            if (savedUser) {
+                try {
+                    const user = JSON.parse(savedUser);
+                    handleLoginSuccess(user);
+                } catch (e) {
+                    console.log('Không thể khôi phục user:', e);
                 }
-            }, 5 * 60 * 1000);
+            }
         });
         
-        // ==================== AUTH FUNCTIONS ====================
-        async function checkAuthStatus() {
+        // ==================== USER MANAGEMENT ====================
+        function loadUsers() {
             try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                
-                if (error) throw error;
-                
-                if (session) {
-                    // User is logged in
-                    updateUserUI(session.user);
-                    setupRealtimeSync(session.user.id);
-                    
-                    // Load data from cloud
-                    setTimeout(() => {
-                        syncData();
-                    }, 1000);
-                    
-                    console.log('✅ Đã đăng nhập:', session.user.email);
+                const savedUsers = localStorage.getItem('chamcong_users');
+                if (savedUsers) {
+                    users = JSON.parse(savedUsers);
                 } else {
-                    // User is not logged in
-                    showLoginModal();
-                    console.log('⚠️ Chưa đăng nhập');
+                    // Initialize with default admin
+                    users = {
+                        'admin007': DEFAULT_ADMIN
+                    };
+                    saveUsers();
                 }
+                console.log('👥 Đã tải', Object.keys(users).length, 'tài khoản');
             } catch (error) {
-                console.error('Lỗi kiểm tra auth:', error);
-                showNotification('❌ Lỗi đăng nhập', 'danger');
+                console.error('Lỗi tải users:', error);
+                users = { 'admin007': DEFAULT_ADMIN };
+                saveUsers();
             }
         }
         
-        async function handleLogin(email, password) {
+        function saveUsers() {
             try {
-                showSyncStatus('Đang đăng nhập...');
-                
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) throw error;
-                
-                updateUserUI(data.user);
+                localStorage.setItem('chamcong_users', JSON.stringify(users));
+                return true;
+            } catch (error) {
+                console.error('Lỗi lưu users:', error);
+                return false;
+            }
+        }
+        
+        function createUser(username, password, role = 'user') {
+            if (users[username]) {
+                return { success: false, message: 'Username đã tồn tại' };
+            }
+            
+            if (username.length < 3) {
+                return { success: false, message: 'Username phải có ít nhất 3 ký tự' };
+            }
+            
+            if (password.length < 6) {
+                return { success: false, message: 'Mật khẩu phải có ít nhất 6 ký tự' };
+            }
+            
+            const newUser = {
+                username: username,
+                password: password, // In real app, should hash password
+                role: role,
+                created_at: new Date().toISOString(),
+                work_data: []
+            };
+            
+            users[username] = newUser;
+            saveUsers();
+            
+            return { success: true, user: newUser };
+        }
+        
+        function authenticateUser(username, password) {
+            const user = users[username];
+            
+            if (!user) {
+                return { success: false, message: 'Username không tồn tại' };
+            }
+            
+            if (user.password !== password) {
+                return { success: false, message: 'Mật khẩu không đúng' };
+            }
+            
+            return { success: true, user: user };
+        }
+        
+        // ==================== AUTH FUNCTIONS ====================
+        function handleLogin(username, password) {
+            if (!username || !password) {
+                showNotification('⚠️ Vui lòng nhập đầy đủ thông tin', 'warning');
+                return;
+            }
+            
+            const result = authenticateUser(username, password);
+            
+            if (result.success) {
+                handleLoginSuccess(result.user);
                 hideModal('loginModal');
                 showNotification('✅ Đăng nhập thành công', 'success');
-                
-                // Sync data after login
-                syncData();
-                
-            } catch (error) {
-                console.error('Lỗi đăng nhập:', error);
-                showNotification('❌ Email hoặc mật khẩu không đúng', 'danger');
-            } finally {
-                hideSyncStatus();
+            } else {
+                showNotification('❌ ' + result.message, 'danger');
             }
         }
         
-        async function handleRegister(email, password, fullName) {
-            try {
-                showSyncStatus('Đang đăng ký...');
-                
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            full_name: fullName || ''
-                        }
-                    }
-                });
-                
-                if (error) throw error;
-                
-                showNotification('✅ Đăng ký thành công! Vui lòng check email để xác nhận', 'success');
-                
-                // Switch to login tab
-                document.getElementById('registerTab').style.display = 'none';
-                document.getElementById('loginTab').style.display = 'block';
-                
-            } catch (error) {
-                console.error('Lỗi đăng ký:', error);
-                showNotification('❌ Lỗi đăng ký: ' + error.message, 'danger');
-            } finally {
-                hideSyncStatus();
+        function handleLoginSuccess(user) {
+            currentUser = user;
+            
+            // Save to localStorage
+            localStorage.setItem('chamcong_current_user', JSON.stringify(user));
+            
+            // Update UI
+            updateUserUI(user);
+            
+            // Load user's work data
+            if (user.work_data && user.work_data.length > 0) {
+                workData = user.work_data;
+                updateHistory();
+                checkTodayStatus();
+            }
+            
+            // Setup Supabase sync if user is admin
+            if (user.role === 'admin') {
+                setupSupabaseSync();
             }
         }
         
-        async function handleLogout() {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
-                
-                updateUserUI(null);
-                showNotification('✅ Đã đăng xuất', 'success');
-                
-            } catch (error) {
-                console.error('Lỗi đăng xuất:', error);
-                showNotification('❌ Lỗi đăng xuất', 'danger');
+        function handleLogout() {
+            // Save current work data to user
+            if (currentUser && workData.length > 0) {
+                currentUser.work_data = workData;
+                users[currentUser.username] = currentUser;
+                saveUsers();
             }
+            
+            currentUser = null;
+            localStorage.removeItem('chamcong_current_user');
+            
+            updateUserUI(null);
+            showNotification('✅ Đã đăng xuất', 'success');
         }
         
         function updateUserUI(user) {
             const userStatus = document.getElementById('userStatus');
             const userEmail = document.getElementById('userEmail');
             const logoutBtn = document.getElementById('logoutBtn');
+            const adminBtn = document.getElementById('adminBtn');
             
             if (user) {
-                userEmail.textContent = user.email || 'Đã đăng nhập';
-                userStatus.innerHTML = `<i class="fas fa-user-check"></i> ${user.email}`;
+                const roleBadge = user.role === 'admin' ? '👑' : '👤';
+                userEmail.textContent = `${roleBadge} ${user.username}`;
+                userStatus.innerHTML = `<i class="fas fa-user-check"></i> ${roleBadge} ${user.username}`;
                 logoutBtn.style.display = 'block';
+                
+                if (user.role === 'admin') {
+                    adminBtn.style.display = 'block';
+                } else {
+                    adminBtn.style.display = 'none';
+                }
             } else {
                 userEmail.textContent = 'Chưa đăng nhập';
                 userStatus.innerHTML = '<i class="fas fa-user"></i> Chưa đăng nhập';
                 logoutBtn.style.display = 'none';
+                adminBtn.style.display = 'none';
             }
         }
         
         // ==================== SYNC FUNCTIONS ====================
+        function setupSupabaseSync() {
+            console.log('📡 Thiết lập Supabase sync cho admin');
+            // Realtime subscription will be set up here
+        }
+        
         async function syncData() {
-            if (isSyncing || !isOnline) return;
+            if (!currentUser || currentUser.role !== 'admin') {
+                showNotification('⚠️ Chỉ admin mới có thể đồng bộ lên cloud', 'warning');
+                return;
+            }
             
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-            
-            isSyncing = true;
             showSyncStatus('Đang đồng bộ...');
             
             try {
-                // 1. Push local data to cloud
-                await pushLocalToCloud(session.user.id);
+                // 1. Push user data to Supabase
+                await pushUserDataToSupabase();
                 
-                // 2. Pull cloud data to local
-                await pullCloudToLocal(session.user.id);
+                // 2. Push work records to Supabase
+                await pushWorkDataToSupabase();
                 
-                // 3. Update UI
-                updateHistory();
-                
-                showNotification('✅ Đồng bộ thành công', 'success');
+                showNotification('✅ Đã đồng bộ dữ liệu lên cloud', 'success');
                 
             } catch (error) {
                 console.error('Lỗi đồng bộ:', error);
-                showNotification('⚠️ Lỗi đồng bộ, sẽ thử lại sau', 'warning');
+                showNotification('❌ Lỗi đồng bộ dữ liệu', 'danger');
             } finally {
-                isSyncing = false;
                 setTimeout(() => hideSyncStatus(), 2000);
             }
         }
         
-        async function pushLocalToCloud(userId) {
-            const localData = JSON.parse(localStorage.getItem('chamcong_work_data') || '[]');
-            
-            for (const record of localData) {
-                try {
-                    const { error } = await supabase
-                        .from('work_records')
-                        .upsert({
-                            user_id: userId,
-                            date: record.date,
-                            start_time: record.startTime,
-                            end_time: record.endTime,
-                            total_hours: parseFloat(record.totalHours) || 0,
-                            overtime: parseFloat(record.overtime) || 0,
-                            is_weekday: record.isWeekday,
-                            lunch_overtime: record.lunchOvertime || false,
-                            device_id: getDeviceId()
-                        }, {
-                            onConflict: 'user_id,date'
-                        });
-                    
-                    if (error) throw error;
-                    
-                } catch (error) {
-                    console.log('Lỗi push record:', error);
-                    pendingSync.push(record);
-                }
-            }
-        }
-        
-        async function pullCloudToLocal(userId) {
+        async function pushUserDataToSupabase() {
             try {
-                const { data, error } = await supabase
-                    .from('work_records')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('date', { ascending: false });
+                const { error } = await supabase
+                    .from('users')
+                    .upsert({
+                        username: currentUser.username,
+                        role: currentUser.role,
+                        created_at: currentUser.created_at,
+                        updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'username'
+                    });
                 
                 if (error) throw error;
                 
-                if (data && data.length > 0) {
-                    // Convert cloud data to local format
-                    const cloudData = data.map(record => ({
-                        id: record.id,
-                        date: record.date,
-                        startTime: record.start_time,
-                        endTime: record.end_time,
-                        totalHours: record.total_hours.toString(),
-                        overtime: record.overtime.toString(),
-                        isWeekday: record.is_weekday,
-                        lunchOvertime: record.lunch_overtime || false,
-                        timestamp: new Date(record.date).getTime()
-                    }));
-                    
-                    // Merge with local data (cloud has priority)
-                    const mergedData = mergeData(workData, cloudData);
-                    workData = mergedData;
-                    
-                    // Save to localStorage
-                    localStorage.setItem('chamcong_work_data', JSON.stringify(workData));
-                    
-                    console.log('✅ Đã đồng bộ', cloudData.length, 'bản ghi từ cloud');
-                }
-                
             } catch (error) {
-                console.error('Lỗi pull data:', error);
+                console.error('Lỗi push user data:', error);
                 throw error;
             }
         }
         
-        function mergeData(localData, cloudData) {
-            const merged = [...localData];
-            
-            cloudData.forEach(cloudRecord => {
-                const existingIndex = merged.findIndex(r => r.date === cloudRecord.date);
-                
-                if (existingIndex >= 0) {
-                    // Cloud data has priority
-                    merged[existingIndex] = cloudRecord;
-                } else {
-                    merged.push(cloudRecord);
-                }
-            });
-            
-            // Sort by date descending
-            return merged.sort((a, b) => {
-                const dateA = new Date(a.date.split('/').reverse().join('-'));
-                const dateB = new Date(b.date.split('/').reverse().join('-'));
-                return dateB - dateA;
-            });
-        }
-        
-        function setupRealtimeSync(userId) {
+        async function pushWorkDataToSupabase() {
             try {
-                const channel = supabase
-                    .channel('work-records-channel')
-                    .on('postgres_changes', 
-                        { 
-                            event: '*', 
-                            schema: 'public', 
-                            table: 'work_records',
-                            filter: `user_id=eq.${userId}`
-                        }, 
-                        (payload) => {
-                            console.log('📡 Realtime update:', payload);
-                            handleCloudUpdate(payload.new);
-                        }
-                    )
-                    .subscribe();
+                const records = workData.map(record => ({
+                    user_id: currentUser.username,
+                    date: record.date,
+                    start_time: record.startTime,
+                    end_time: record.endTime,
+                    total_hours: parseFloat(record.totalHours) || 0,
+                    overtime: parseFloat(record.overtime) || 0,
+                    is_weekday: record.isWeekday,
+                    created_at: new Date().toISOString()
+                }));
                 
-                console.log('📡 Realtime sync đã kích hoạt');
+                if (records.length === 0) return;
+                
+                const { error } = await supabase
+                    .from('work_records')
+                    .upsert(records, {
+                        onConflict: 'user_id,date'
+                    });
+                
+                if (error) throw error;
+                
+                console.log('✅ Đã push', records.length, 'bản ghi lên Supabase');
                 
             } catch (error) {
-                console.error('Lỗi realtime sync:', error);
+                console.error('Lỗi push work data:', error);
+                throw error;
             }
-        }
-        
-        function handleCloudUpdate(cloudRecord) {
-            // Convert to local format
-            const localRecord = {
-                id: cloudRecord.id,
-                date: cloudRecord.date,
-                startTime: cloudRecord.start_time,
-                endTime: cloudRecord.end_time,
-                totalHours: cloudRecord.total_hours.toString(),
-                overtime: cloudRecord.overtime.toString(),
-                isWeekday: cloudRecord.is_weekday,
-                lunchOvertime: cloudRecord.lunch_overtime || false,
-                timestamp: new Date(cloudRecord.date).getTime()
-            };
-            
-            // Update local data
-            const index = workData.findIndex(r => r.date === localRecord.date);
-            if (index >= 0) {
-                workData[index] = localRecord;
-            } else {
-                workData.unshift(localRecord);
-            }
-            
-            // Update UI if today's record changed
-            if (localRecord.date === formatDate(today)) {
-                updateTodayUI(localRecord);
-            }
-            
-            // Save and update history
-            saveData();
-            updateHistory();
-            
-            showNotification('☁️ Cập nhật từ cloud', 'info');
-        }
-        
-        // ==================== NETWORK FUNCTIONS ====================
-        function setupNetworkDetection() {
-            window.addEventListener('online', () => {
-                isOnline = true;
-                showNotification('🌐 Đã kết nối internet', 'success');
-                
-                // Auto sync when back online
-                setTimeout(() => {
-                    if (supabase.auth.getSession()) {
-                        syncData();
-                    }
-                }, 2000);
-            });
-            
-            window.addEventListener('offline', () => {
-                isOnline = false;
-                showNotification('📴 Mất kết nối - Làm việc offline', 'warning');
-            });
-        }
-        
-        function showSyncStatus(text) {
-            const statusEl = document.getElementById('syncStatus');
-            const textEl = document.getElementById('syncStatusText');
-            
-            textEl.textContent = text;
-            statusEl.style.display = 'flex';
-        }
-        
-        function hideSyncStatus() {
-            document.getElementById('syncStatus').style.display = 'none';
-        }
-        
-        function getDeviceId() {
-            let deviceId = localStorage.getItem('chamcong_device_id');
-            if (!deviceId) {
-                deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('chamcong_device_id', deviceId);
-            }
-            return deviceId;
         }
         
         // ==================== TIME FUNCTIONS ====================
@@ -1679,17 +1168,6 @@
         }
         
         function endWork() {
-            // Kiểm tra xem hôm nay đã có bản ghi chưa
-            const todayStr = formatDate(today);
-            const todayRecord = workData.find(record => record.date === todayStr);
-            
-            // Nếu hôm nay đã có bản ghi và đã có giờ kết thúc (đã tan ca trước đó)
-            if (todayRecord && todayRecord.endTime) {
-                // Hiển thị hộp thoại xác nhận
-                showUpdateConfirmation(todayRecord);
-                return;
-            }
-            
             if (!isWorking) {
                 showNotification('⚠️ Bạn chưa bắt đầu làm việc!', 'warning');
                 return;
@@ -1713,78 +1191,6 @@
             saveWorkRecord(workStartTime, workEndTime, workDuration, overtime);
             
             showNotification(`🏁 Đã tan ca. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
-        }
-        
-        function showUpdateConfirmation(todayRecord) {
-            const newEndTime = new Date();
-            const oldEndTime = todayRecord.endTime;
-            
-            // Lưu dữ liệu cập nhật đang chờ
-            pendingUpdateData = {
-                dateStr: formatDate(today),
-                newEndTime: newEndTime,
-                todayRecord: todayRecord
-            };
-            
-            // Hiển thị hộp thoại xác nhận
-            document.getElementById('oldEndTime').textContent = oldEndTime;
-            document.getElementById('newEndTime').textContent = formatTime(newEndTime);
-            document.getElementById('confirmUpdateDialog').style.display = 'flex';
-        }
-        
-        function confirmUpdate() {
-            if (!pendingUpdateData) return;
-            
-            const { dateStr, newEndTime, todayRecord } = pendingUpdateData;
-            
-            // Lấy giờ bắt đầu từ bản ghi cũ
-            const startTimeDate = new Date(todayRecord.timestamp);
-            
-            const workDuration = calculateWorkDuration(startTimeDate, newEndTime);
-            let overtime = calculateOvertime(startTimeDate, newEndTime);
-            
-            document.getElementById('endTime').textContent = formatTime(newEndTime);
-            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
-            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
-            document.getElementById('workStatus').textContent = '🟡 Đã cập nhật giờ tan ca mới';
-            document.getElementById('workStatus').style.color = '#FF9500';
-            
-            updateButtonStates();
-            
-            // Cập nhật bản ghi hiện tại với giờ tan ca mới
-            updateWorkRecordWithNewEndTime(dateStr, newEndTime, workDuration, overtime);
-            
-            showNotification(`🏁 Đã cập nhật giờ tan ca mới: ${formatTime(newEndTime)}`, 'success');
-            
-            // Đóng hộp thoại và xóa dữ liệu đang chờ
-            hideUpdateConfirmation();
-            pendingUpdateData = null;
-        }
-        
-        function cancelUpdate() {
-            hideUpdateConfirmation();
-            pendingUpdateData = null;
-            showNotification('❌ Đã hủy cập nhật giờ tan ca', 'info');
-        }
-        
-        function hideUpdateConfirmation() {
-            document.getElementById('confirmUpdateDialog').style.display = 'none';
-        }
-        
-        function updateWorkRecordWithNewEndTime(dateStr, newEndTime, totalHours, overtime) {
-            // Tìm bản ghi của ngày hôm nay
-            const index = workData.findIndex(record => record.date === dateStr);
-            
-            if (index >= 0) {
-                // Cập nhật bản ghi với giờ kết thúc mới
-                workData[index].endTime = formatTime(newEndTime);
-                workData[index].totalHours = totalHours.toFixed(2);
-                workData[index].overtime = overtime.toFixed(2);
-                workData[index].isAutoEnded = false; // Đánh dấu là không phải tự động tan ca
-                
-                saveData();
-                updateHistory();
-            }
         }
         
         function checkAutoStart() {
@@ -1867,47 +1273,28 @@
             const startBtn = document.getElementById('startWorkBtn');
             const endBtn = document.getElementById('endWorkBtn');
             
-            const todayStr = formatDate(today);
-            const todayRecord = workData.find(record => record.date === todayStr);
-            const hasEndedToday = todayRecord && todayRecord.endTime;
-            
             if (isWorking) {
                 startBtn.disabled = true;
                 endBtn.disabled = false;
-                endBtn.innerHTML = '<i class="fas fa-stop"></i> 🏁 Tan ca';
-                endBtn.title = "";
-            } else if (hasEndedToday) {
-                // Sau khi đã tan ca (tự động hoặc thủ công)
-                // Vẫn cho phép nhấn nút tan ca để cập nhật giờ mới
-                startBtn.disabled = false;
-                endBtn.disabled = false;
-                
-                // Thay đổi nhãn nút tan ca để người dùng biết có thể cập nhật
-                endBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 🔄 Cập nhật giờ tan ca';
-                endBtn.title = "Nhấn để cập nhật giờ tan ca mới";
             } else {
                 startBtn.disabled = false;
                 endBtn.disabled = true;
-                endBtn.innerHTML = '<i class="fas fa-stop"></i> 🏁 Tan ca';
-                endBtn.title = "";
             }
         }
         
         // ==================== CALCULATION FUNCTIONS ====================
         function calculateWorkDuration(startTime, endTime) {
             const diffMs = endTime - startTime;
-            return diffMs / (1000 * 60 * 60); // hours
+            return diffMs / (1000 * 60 * 60);
         }
         
         function calculateOvertime(startTime, endTime) {
-            // Ngày chủ nhật: toàn bộ là tăng ca
             if (isSunday) {
                 return calculateWorkDuration(startTime, endTime);
             }
             
             let overtime = 0;
             
-            // 1. Tính giờ làm trước 7:45 (sáng sớm)
             const standardStart = parseTime(STANDARD_START_TIME);
             standardStart.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
             
@@ -1915,30 +1302,11 @@
                 overtime += calculateWorkDuration(startTime, standardStart);
             }
             
-            // 2. Tính giờ làm sau 17:00 (chiều muộn)
             const standardEnd = parseTime(STANDARD_END_TIME);
             standardEnd.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
             
             if (endTime > standardEnd) {
                 overtime += calculateWorkDuration(standardEnd, endTime);
-            }
-            
-            // 3. Kiểm tra tăng ca trưa (12:00-13:00)
-            const dateStr = formatDate(startTime);
-            const lunchOvertime = getLunchOvertimeForDate(dateStr);
-            
-            if (lunchOvertime) {
-                // Kiểm tra xem có làm qua khung giờ nghỉ trưa không
-                const lunchStart = parseTime('12:00');
-                const lunchEnd = parseTime('13:00');
-                
-                lunchStart.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
-                lunchEnd.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
-                
-                // Nếu làm việc bao phủ cả khung giờ nghỉ trưa
-                if (startTime <= lunchEnd && endTime >= lunchStart) {
-                    overtime += 1; // Thêm 1 giờ tăng ca trưa
-                }
             }
             
             return overtime;
@@ -1971,43 +1339,6 @@
             });
         }
         
-        // ==================== LUNCH OVERTIME MANAGEMENT ====================
-        function getLunchOvertimeForDate(dateStr) {
-            if (!lunchOvertimeSettings[dateStr]) {
-                return false;
-            }
-            return lunchOvertimeSettings[dateStr];
-        }
-        
-        function setLunchOvertimeForDate(dateStr, value) {
-            lunchOvertimeSettings[dateStr] = value;
-            localStorage.setItem('chamcong_lunch_overtime', JSON.stringify(lunchOvertimeSettings));
-        }
-        
-        function loadLunchOvertimeSettings() {
-            try {
-                const saved = localStorage.getItem('chamcong_lunch_overtime');
-                if (saved) {
-                    lunchOvertimeSettings = JSON.parse(saved);
-                } else {
-                    lunchOvertimeSettings = {};
-                }
-            } catch (error) {
-                console.error('Lỗi tải cài đặt tăng ca trưa:', error);
-                lunchOvertimeSettings = {};
-            }
-        }
-        
-        function saveLunchOvertimeSettings() {
-            try {
-                localStorage.setItem('chamcong_lunch_overtime', JSON.stringify(lunchOvertimeSettings));
-                return true;
-            } catch (error) {
-                console.error('Lỗi lưu cài đặt tăng ca trưa:', error);
-                return false;
-            }
-        }
-        
         // ==================== TIMER ====================
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
@@ -2033,54 +1364,6 @@
             }
         }
         
-        // ==================== REFRESH FUNCTION ====================
-        function refreshData() {
-            if (isRefreshing) return;
-            
-            isRefreshing = true;
-            const floatingBtn = document.getElementById('floatingRefreshBtn');
-            const mainBtn = document.getElementById('refreshBtn');
-            
-            // Show loading state
-            if (floatingBtn) {
-                floatingBtn.innerHTML = '<div class="loading"></div>';
-            }
-            if (mainBtn) {
-                const originalText = mainBtn.innerHTML;
-                mainBtn.innerHTML = '<div class="loading"></div> Đang tải...';
-                mainBtn.disabled = true;
-            }
-            
-            // Haptic feedback
-            if (isIOS && window.navigator.vibrate) {
-                window.navigator.vibrate(10);
-            }
-            
-            // Simulate loading
-            setTimeout(() => {
-                // Force reload all data
-                loadAllData();
-                
-                // Update UI
-                updateHistory();
-                checkTodayStatus();
-                updateSaveTime();
-                
-                // Restore button state
-                if (floatingBtn) {
-                    floatingBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-                }
-                if (mainBtn) {
-                    mainBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 🔄 Load Lại Dữ Liệu';
-                    mainBtn.disabled = false;
-                }
-                
-                isRefreshing = false;
-                
-                showNotification('🔄 Dữ liệu đã được làm mới', 'success');
-            }, 800);
-        }
-        
         // ==================== DATA MANAGEMENT ====================
         function saveWorkRecord(startTime, endTime, totalHours, overtime, isAutoEnded = false) {
             const todayStr = formatDate(today);
@@ -2095,11 +1378,9 @@
                 timestamp: startTime.getTime(),
                 isWeekday: isWeekday,
                 isAutoEnded: isAutoEnded || false,
-                isAutoStarted: autoStartTriggered,
-                lunchOvertime: getLunchOvertimeForDate(todayStr) || false
+                isAutoStarted: autoStartTriggered
             };
             
-            // Tìm và cập nhật hoặc thêm mới
             const existingIndex = workData.findIndex(r => r.date === todayStr);
             if (existingIndex >= 0) {
                 workData[existingIndex] = record;
@@ -2107,7 +1388,6 @@
                 workData.unshift(record);
             }
             
-            // Giới hạn số lượng bản ghi
             if (workData.length > 1000) {
                 workData = workData.slice(0, 1000);
             }
@@ -2131,8 +1411,7 @@
                 timestamp: startTimeToday.getTime(),
                 isWeekday: true,
                 isAutoEnded: false,
-                isAutoStarted: true,
-                lunchOvertime: getLunchOvertimeForDate(todayStr) || false
+                isAutoStarted: true
             };
             
             workData.unshift(record);
@@ -2142,81 +1421,55 @@
         
         function saveData() {
             try {
+                // Save to current user
+                if (currentUser) {
+                    currentUser.work_data = workData;
+                    users[currentUser.username] = currentUser;
+                    saveUsers();
+                }
+                
+                // Also save to localStorage for backward compatibility
                 localStorage.setItem('chamcong_work_data', JSON.stringify(workData));
                 localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
                 
-                if (isWorking && workStartTime) {
-                    localStorage.setItem('chamcong_current_state', JSON.stringify({
-                        isWorking: true,
-                        workStartTime: workStartTime.getTime(),
-                        lastUpdate: Date.now()
-                    }));
-                }
-                
-                updateSaveTime();
                 return true;
             } catch (error) {
                 console.error('Lỗi lưu dữ liệu:', error);
-                showNotification('❌ Lỗi lưu dữ liệu', 'danger');
                 return false;
             }
         }
         
         function loadAllData() {
             try {
-                // Load work data
-                const savedData = localStorage.getItem('chamcong_work_data');
-                if (savedData) {
-                    workData = JSON.parse(savedData);
+                // Try to load from current user first
+                if (currentUser && currentUser.work_data) {
+                    workData = currentUser.work_data;
                 } else {
-                    workData = [];
+                    // Fallback to localStorage
+                    const savedData = localStorage.getItem('chamcong_work_data');
+                    if (savedData) {
+                        workData = JSON.parse(savedData);
+                    } else {
+                        workData = [];
+                    }
                 }
                 
                 // Load basic salary
                 const savedSalary = localStorage.getItem('chamcong_basic_salary');
                 if (savedSalary) {
                     basicSalary = parseInt(savedSalary) || 0;
-                } else {
-                    basicSalary = 0;
-                }
-                
-                // Load lunch overtime settings
-                loadLunchOvertimeSettings();
-                
-                // Restore work state
-                const savedState = localStorage.getItem('chamcong_current_state');
-                if (savedState) {
-                    try {
-                        const state = JSON.parse(savedState);
-                        const lastUpdate = new Date(state.lastUpdate);
-                        const now = new Date();
-                        const diffMinutes = (now - lastUpdate) / (1000 * 60);
-                        
-                        if (diffMinutes < 30 && state.isWorking) {
-                            workStartTime = new Date(state.workStartTime);
-                            isWorking = true;
-                            startTimer();
-                        }
-                    } catch (e) {
-                        console.log('Không thể khôi phục trạng thái:', e);
-                    }
                 }
                 
                 updateHistory();
                 checkTodayStatus();
-                updateSaveTime();
                 
-                console.log('📊 Dữ liệu đã tải:', workData.length, 'bản ghi');
-                console.log('💰 Lương căn bản:', formatCurrency(basicSalary));
-                console.log('🍽️ Cài đặt tăng ca trưa:', Object.keys(lunchOvertimeSettings).length, 'ngày');
+                console.log('📊 Đã tải', workData.length, 'bản ghi');
                 
                 return true;
             } catch (error) {
                 console.error('Lỗi tải dữ liệu:', error);
                 workData = [];
                 basicSalary = 0;
-                lunchOvertimeSettings = {};
-                showNotification('⚠️ Lỗi tải dữ liệu, đã khởi tạo mới', 'warning');
                 return false;
             }
         }
@@ -2241,11 +1494,10 @@
                     
                     let statusText = '🟡 Đã tan ca';
                     if (todayRecord.isAutoEnded) {
-                        statusText = '🟡 Đã tan ca (tự động 17:00) - Có thể cập nhật';
+                        statusText = '🟡 Đã tan ca (tự động 17:00)';
                     }
                     document.getElementById('workStatus').textContent = statusText;
                     
-                    // Đánh dấu không đang làm việc
                     isWorking = false;
                 } else {
                     workStartTime = new Date(todayRecord.timestamp);
@@ -2276,7 +1528,6 @@
             workData.forEach(record => {
                 const isToday = record.date === formatDate(today);
                 const todayStyle = isToday ? 'style="color: #007AFF; font-weight: 700;"' : '';
-                const lunchOvertimeIcon = record.lunchOvertime ? '🍽️' : '';
                 
                 html += `
                     <div class="history-item" data-id="${record.id}" onclick="showEditModal('${record.date}')">
@@ -2285,7 +1536,6 @@
                                 ${record.isWeekday ? '📅' : '🎯'} ${record.date} 
                                 ${record.isAutoStarted ? '🤖' : ''}
                                 ${record.isAutoEnded ? '⏰' : ''}
-                                ${lunchOvertimeIcon}
                             </div>
                             <div class="history-time">
                                 ${record.startTime} - ${record.endTime || '--:--'}
@@ -2301,13 +1551,127 @@
             historyContainer.innerHTML = html;
         }
         
-        function updateSaveTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
+        // ==================== ADMIN FUNCTIONS ====================
+        function showAdminPanel() {
+            if (!currentUser || currentUser.role !== 'admin') {
+                showNotification('⚠️ Bạn không có quyền truy cập', 'warning');
+                return;
+            }
+            
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; color: #FF2D55; margin-bottom: 10px;">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3 style="margin-bottom: 5px;">Quản lý Admin</h3>
+                    <p style="color: #8E8E93; font-size: 14px;">
+                        Tổng: <strong>${Object.keys(users).length}</strong> tài khoản
+                    </p>
+                </div>
+                
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Ngày tạo</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            Object.values(users).forEach(user => {
+                const date = new Date(user.created_at);
+                const dateStr = date.toLocaleDateString('vi-VN');
+                
+                html += `
+                    <tr>
+                        <td><strong>${user.username}</strong></td>
+                        <td><span style="padding: 4px 8px; background: ${user.role === 'admin' ? '#FF2D55' : '#007AFF'}; color: white; border-radius: 6px; font-size: 12px;">${user.role === 'admin' ? '👑 Admin' : '👤 User'}</span></td>
+                        <td>${dateStr}</td>
+                        <td>
+                            ${user.username !== currentUser.username ? `
+                                <button onclick="deleteUser('${user.username}')" style="padding: 6px 12px; background: #FF3B30; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            ` : 'N/A'}
+                        </td>
+                    </tr>
+                `;
             });
-            document.getElementById('lastSaveTime').textContent = `Lưu: ${timeStr}`;
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button class="btn btn-full" onclick="showCreateAccountModal()" style="background-color: #34C759;">
+                        <i class="fas fa-user-plus"></i> Thêm tài khoản
+                    </button>
+                    <button class="btn btn-full" onclick="exportAllData()">
+                        <i class="fas fa-download"></i> Export All
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background-color: rgba(255,45,85,0.1); border-radius: 12px;">
+                    <p style="font-size: 13px; color: #FF2D55; text-align: center;">
+                        <i class="fas fa-info-circle"></i> 
+                        Admin có thể xem và quản lý tất cả tài khoản
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('adminContent').innerHTML = html;
+            document.getElementById('adminModal').style.display = 'flex';
+        }
+        
+        function deleteUser(username) {
+            if (username === 'admin007') {
+                showNotification('⚠️ Không thể xóa tài khoản admin mặc định', 'warning');
+                return;
+            }
+            
+            if (username === currentUser.username) {
+                showNotification('⚠️ Không thể xóa tài khoản đang đăng nhập', 'warning');
+                return;
+            }
+            
+            if (confirm(`Xóa tài khoản "${username}"?`)) {
+                delete users[username];
+                saveUsers();
+                showAdminPanel();
+                showNotification(`✅ Đã xóa tài khoản ${username}`, 'success');
+            }
+        }
+        
+        function exportAllData() {
+            try {
+                const exportData = {
+                    users: users,
+                    export_date: new Date().toISOString(),
+                    total_users: Object.keys(users).length,
+                    total_records: Object.values(users).reduce((sum, user) => sum + (user.work_data?.length || 0), 0)
+                };
+                
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chamcong_export_${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification('✅ Đã export tất cả dữ liệu', 'success');
+            } catch (error) {
+                console.error('Lỗi export:', error);
+                showNotification('❌ Lỗi export dữ liệu', 'danger');
+            }
         }
         
         // ==================== MODAL FUNCTIONS ====================
@@ -2315,160 +1679,26 @@
             document.getElementById('loginModal').style.display = 'flex';
         }
         
+        function showCreateAccountModal() {
+            document.getElementById('createAccountModal').style.display = 'flex';
+        }
+        
         function hideModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
         
-        // ==================== EVENT LISTENERS ====================
-        function setupEventListeners() {
-            // Control buttons
-            document.getElementById('startWorkBtn').addEventListener('click', startWork);
-            document.getElementById('endWorkBtn').addEventListener('click', endWork);
-            document.getElementById('syncBtn').addEventListener('click', syncData);
+        function showSyncStatus(text) {
+            const statusEl = document.getElementById('syncStatus');
+            const textEl = document.getElementById('syncStatusText');
             
-            // Auth buttons
-            document.getElementById('loginBtn').addEventListener('click', () => {
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                if (email && password) {
-                    handleLogin(email, password);
-                }
-            });
-            
-            document.getElementById('registerBtn').addEventListener('click', () => {
-                const email = document.getElementById('registerEmail').value;
-                const password = document.getElementById('registerPassword').value;
-                const fullName = document.getElementById('registerFullName').value;
-                if (email && password) {
-                    handleRegister(email, password, fullName);
-                }
-            });
-            
-            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-            
-            // Tab switching
-            document.getElementById('showRegisterBtn').addEventListener('click', () => {
-                document.getElementById('loginTab').style.display = 'none';
-                document.getElementById('registerTab').style.display = 'block';
-            });
-            
-            document.getElementById('showLoginBtn').addEventListener('click', () => {
-                document.getElementById('registerTab').style.display = 'none';
-                document.getElementById('loginTab').style.display = 'block';
-            });
-            
-            // Modal buttons
-            document.getElementById('salaryBtn').addEventListener('click', showSalaryModal);
-            document.getElementById('backupBtn').addEventListener('click', showBackupModal);
-            document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
-            
-            // Refresh buttons
-            document.getElementById('refreshBtn').addEventListener('click', refreshData);
-            document.getElementById('floatingRefreshBtn').addEventListener('click', refreshData);
-            
-            // Close buttons
-            document.getElementById('closeLoginModal').addEventListener('click', () => hideModal('loginModal'));
-            document.getElementById('closeSalaryModal').addEventListener('click', () => hideModal('salaryModal'));
-            document.getElementById('closeBackupModal').addEventListener('click', () => hideModal('backupModal'));
-            document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
-            document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editTimeModal'));
-            
-            // Confirmation dialog buttons
-            document.getElementById('confirmUpdateBtn').addEventListener('click', confirmUpdate);
-            document.getElementById('cancelUpdateBtn').addEventListener('click', cancelUpdate);
-            
-            // Close modals when clicking outside
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        hideModal(this.id);
-                    }
-                });
-            });
-            
-            // Close confirmation dialog when clicking outside
-            document.getElementById('confirmUpdateDialog').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    cancelUpdate();
-                }
-            });
-            
-            // Auto-save interval
-            autoSaveInterval = setInterval(() => {
-                if (isWorking || workData.length > 0) {
-                    saveData();
-                }
-            }, 30000);
-            
-            // Save before unload
-            window.addEventListener('beforeunload', () => {
-                saveData();
-            });
-            
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    const openModals = document.querySelectorAll('.modal[style*="display: flex"]');
-                    if (openModals.length > 0) {
-                        hideModal(openModals[0].id);
-                    }
-                    
-                    // Also close confirmation dialog
-                    if (document.getElementById('confirmUpdateDialog').style.display === 'flex') {
-                        cancelUpdate();
-                    }
-                }
-            });
+            textEl.textContent = text;
+            statusEl.style.display = 'flex';
         }
         
-        // ==================== iOS OPTIMIZATIONS ====================
-        function setupIOSOptimizations() {
-            console.log('🍎 Áp dụng tối ưu cho iOS');
-            
-            // Fix for iOS 100vh issue
-            function setViewportHeight() {
-                const vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
-            }
-            
-            setViewportHeight();
-            window.addEventListener('resize', setViewportHeight);
-            window.addEventListener('orientationchange', setViewportHeight);
-            
-            // Prevent zoom on input focus
-            const inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="time"]');
-            inputs.forEach(input => {
-                input.addEventListener('focus', () => {
-                    setTimeout(() => {
-                        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
-                });
-            });
-            
-            // iOS haptic feedback
-            function hapticFeedback(type = 'light') {
-                if (window.navigator.vibrate) {
-                    switch(type) {
-                        case 'light': window.navigator.vibrate(10); break;
-                        case 'medium': window.navigator.vibrate(20); break;
-                        case 'heavy': window.navigator.vibrate(30); break;
-                    }
-                }
-            }
-            
-            // Add haptic to buttons
-            document.querySelectorAll('.btn, .quick-action-btn, .number-btn, .calendar-nav-btn, .refresh-floating-btn').forEach(btn => {
-                btn.addEventListener('touchstart', () => hapticFeedback('light'));
-            });
-            
-            // Optimize for iOS PWA
-            if (window.navigator.standalone) {
-                console.log('📱 Đang chạy ở chế độ PWA iOS');
-                document.body.style.paddingTop = '20px';
-            }
+        function hideSyncStatus() {
+            document.getElementById('syncStatus').style.display = 'none';
         }
         
-        // ==================== NOTIFICATION ====================
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             const messageEl = document.getElementById('notificationMessage');
@@ -2482,41 +1712,424 @@
             messageEl.textContent = message;
             notification.classList.add('show');
             
-            if (isIOS && window.navigator.vibrate) {
-                if (type === 'success') window.navigator.vibrate(10);
-                if (type === 'warning') window.navigator.vibrate(20);
-                if (type === 'danger') window.navigator.vibrate(30);
-            }
-            
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
         }
         
-        // ==================== BACKUP FUNCTIONS (KEPT FOR COMPATIBILITY) ====================
-        function showBackupModal() {
-            // ... (giữ nguyên code backup modal từ file cũ)
-            // Để tránh quá dài, giữ nguyên chức năng backup local
+        // ==================== EVENT LISTENERS ====================
+        function setupEventListeners() {
+            // Control buttons
+            document.getElementById('startWorkBtn').addEventListener('click', startWork);
+            document.getElementById('endWorkBtn').addEventListener('click', endWork);
+            document.getElementById('syncBtn').addEventListener('click', syncData);
+            
+            // Auth buttons
+            document.getElementById('loginBtn').addEventListener('click', () => {
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                handleLogin(username, password);
+            });
+            
+            document.getElementById('createAccountBtn').addEventListener('click', () => {
+                hideModal('loginModal');
+                showCreateAccountModal();
+            });
+            
+            document.getElementById('createAccountSubmitBtn').addEventListener('click', () => {
+                const username = document.getElementById('createUsername').value;
+                const password = document.getElementById('createPassword').value;
+                const role = document.getElementById('accountType').value;
+                
+                const result = createUser(username, password, role);
+                
+                if (result.success) {
+                    showNotification(`✅ Đã tạo tài khoản ${username}`, 'success');
+                    hideModal('createAccountModal');
+                    
+                    // Auto login
+                    handleLoginSuccess(result.user);
+                } else {
+                    showNotification('❌ ' + result.message, 'danger');
+                }
+            });
+            
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('adminBtn').addEventListener('click', showAdminPanel);
+            
+            // Modal buttons
+            document.getElementById('salaryBtn').addEventListener('click', () => {
+                showSalaryModal();
+            });
+            
+            document.getElementById('viewMonthBtn').addEventListener('click', () => {
+                showMonthCalendar();
+            });
+            
+            // Close buttons
+            document.getElementById('closeLoginModal').addEventListener('click', () => hideModal('loginModal'));
+            document.getElementById('closeCreateModal').addEventListener('click', () => hideModal('createAccountModal'));
+            document.getElementById('closeSalaryModal').addEventListener('click', () => hideModal('salaryModal'));
+            document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
+            document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editTimeModal'));
+            document.getElementById('closeAdminModal').addEventListener('click', () => hideModal('adminModal'));
+            
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        hideModal(this.id);
+                    }
+                });
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const openModals = document.querySelectorAll('.modal[style*="display: flex"]');
+                    if (openModals.length > 0) {
+                        hideModal(openModals[0].id);
+                    }
+                }
+            });
         }
         
+        // ==================== HELPER FUNCTIONS ====================
         function showSalaryModal() {
-            // ... (giữ nguyên code salary modal từ file cũ)
+            // Simplified salary calculator
+            const content = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; color: #5856D6; margin-bottom: 10px;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 style="margin-bottom: 5px;">Tính Lương Tăng Ca</h3>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-money-bill-alt"></i> Lương căn bản (VNĐ/tháng)
+                    </label>
+                    <input type="number" id="salaryInput" class="input-field" value="${basicSalary || ''}" placeholder="Nhập lương tháng">
+                </div>
+                
+                <button class="btn btn-salary btn-full" id="calculateSalaryBtn" style="margin-top: 15px;">
+                    <i class="fas fa-calculator"></i> Tính Lương
+                </button>
+                
+                <div id="salaryResult" style="margin-top: 20px; padding: 15px; background-color: rgba(88,86,214,0.1); border-radius: 12px; display: none;">
+                    <!-- Result will be here -->
+                </div>
+            `;
+            
+            document.getElementById('salaryContent').innerHTML = content;
+            document.getElementById('salaryModal').style.display = 'flex';
+            
+            setTimeout(() => {
+                document.getElementById('calculateSalaryBtn').addEventListener('click', () => {
+                    const salary = parseInt(document.getElementById('salaryInput').value) || 0;
+                    
+                    if (salary <= 0) {
+                        showNotification('⚠️ Vui lòng nhập lương hợp lệ', 'warning');
+                        return;
+                    }
+                    
+                    basicSalary = salary;
+                    localStorage.setItem('chamcong_basic_salary', salary.toString());
+                    
+                    // Calculate total overtime for current month
+                    const now = new Date();
+                    const currentMonth = now.getMonth() + 1;
+                    const currentYear = now.getFullYear();
+                    
+                    const monthData = workData.filter(record => {
+                        const recordDate = new Date(record.timestamp);
+                        return recordDate.getMonth() + 1 === currentMonth && 
+                               recordDate.getFullYear() === currentYear &&
+                               record.endTime;
+                    });
+                    
+                    let totalOvertime = 0;
+                    monthData.forEach(record => {
+                        totalOvertime += parseFloat(record.overtime) || 0;
+                    });
+                    
+                    // Calculate salary
+                    const dailySalary = salary / 26;
+                    const hourlySalary = dailySalary / 8;
+                    const overtimeRate = 2;
+                    const totalSalary = totalOvertime * (hourlySalary * overtimeRate);
+                    
+                    const resultDiv = document.getElementById('salaryResult');
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `
+                        <h4 style="color: #5856D6; margin-bottom: 10px;">
+                            <i class="fas fa-coins"></i> Kết quả tính lương
+                        </h4>
+                        <div style="font-size: 24px; font-weight: 700; color: #5856D6; margin: 10px 0;">
+                            ${formatCurrency(totalSalary)}
+                        </div>
+                        <div style="font-size: 14px; color: #8E8E93;">
+                            <div>Tổng giờ tăng ca: <strong>${totalOvertime.toFixed(2)} giờ</strong></div>
+                            <div>Số ngày có tăng ca: <strong>${monthData.filter(r => parseFloat(r.overtime) > 0).length} ngày</strong></div>
+                            <div>Lương tăng ca/giờ: <strong>${formatCurrency(hourlySalary * 2)}</strong></div>
+                            <div>Lương căn bản: <strong>${formatCurrency(salary)}</strong></div>
+                        </div>
+                    `;
+                    
+                    showNotification('💰 Đã tính lương thành công', 'success');
+                });
+            }, 100);
         }
         
         function showMonthCalendar() {
-            // ... (giữ nguyên code calendar từ file cũ)
+            const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+            
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 48px; color: #5AC8FA; margin-bottom: 10px;">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h3 style="margin-bottom: 5px;">${monthNames[currentMonth]} ${currentYear}</h3>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 20px;">
+                    <div style="text-align: center; padding: 10px; font-weight: 600; color: #FF2D55;">CN</div>
+                    <div style="text-align: center; padding: 10px; font-weight: 600; color: #8E8E93;">T2</div>
+                    <div style="text-align: center; padding: 10px; font-weight: 600; color: #8E8E93;">T3</div>
+                    <div style="text-align: center; padding: 10px; font-weight: 600; color: #8E8E93;">T4</div>
+                    <div style="text-align: center; padding: 10px; font-weight: 600; color: #8E8E93;">T5</div>
+                    <div style="text-align: center; padding: 10px; font-weight: 600; color: #8E8E93;">T6</div>
+                    <div style="text-align: center; padding: 10px; font-weight: 600; color: #8E8E93;">T7</div>
+            `;
+            
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const firstDayIndex = firstDay.getDay();
+            
+            for (let i = 0; i < firstDayIndex; i++) {
+                html += `<div style="padding: 10px;"></div>`;
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateStr = formatDate(date);
+                const isToday = date.toDateString() === today.toDateString();
+                const isSunday = date.getDay() === 0;
+                
+                const dayData = workData.find(record => record.date === dateStr);
+                const hasData = !!dayData;
+                const overtime = hasData ? parseFloat(dayData.overtime) : 0;
+                
+                let bgColor = 'white';
+                let textColor = isSunday ? '#FF2D55' : '#1D1D1F';
+                
+                if (isToday) {
+                    bgColor = 'rgba(0,122,255,0.1)';
+                }
+                if (hasData) {
+                    bgColor = 'rgba(52,199,89,0.1)';
+                }
+                
+                html += `
+                    <div style="
+                        aspect-ratio: 1;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 10px;
+                        background-color: ${bgColor};
+                        color: ${textColor};
+                        font-weight: ${isToday ? '700' : '500'};
+                        cursor: pointer;
+                        position: relative;
+                    " onclick="showEditModal('${dateStr}')">
+                        ${day}
+                        ${overtime > 0 ? `<div style="font-size: 10px; color: #34C759; font-weight: 700;">+${overtime.toFixed(1)}h</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+            
+            document.getElementById('monthCalendar').innerHTML = html;
+            document.getElementById('monthCalendarModal').style.display = 'flex';
         }
         
         function showEditModal(dateStr) {
-            // ... (giữ nguyên code edit modal từ file cũ)
+            const dayData = workData.find(record => record.date === dateStr);
+            const date = parseDate(dateStr);
+            const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
+            const isSundayNew = date.getDay() === 0;
+            
+            let content = '';
+            
+            if (dayData) {
+                const [startHour, startMinute] = dayData.startTime ? dayData.startTime.split(':') : ['07', '45'];
+                const [endHour, endMinute] = dayData.endTime ? dayData.endTime.split(':') : ['17', '00'];
+                
+                content = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: #007AFF;">${dateStr}</h3>
+                        <p style="color: #8E8E93;">${isWeekdayNew ? 'Thứ 2-6' : 'Chủ nhật'}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                        <div>
+                            <label class="input-label">Giờ bắt đầu</label>
+                            <input type="time" id="editStartTime" class="input-field" value="${startHour}:${startMinute}">
+                        </div>
+                        <div>
+                            <label class="input-label">Giờ kết thúc</label>
+                            <input type="time" id="editEndTime" class="input-field" value="${endHour}:${endMinute}">
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-edit" style="flex: 2;" onclick="saveEditedTime('${dateStr}')">
+                            <i class="fas fa-save"></i> Lưu thay đổi
+                        </button>
+                        <button class="btn btn-danger" style="flex: 1;" onclick="deleteRecord('${dateStr}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                content = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 48px; color: #8E8E93; margin-bottom: 15px;">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h3 style="margin-bottom: 10px;">Tạo bản ghi mới</h3>
+                        <p style="color: #8E8E93; margin-bottom: 20px;">Ngày ${dateStr} chưa có dữ liệu</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                            <div>
+                                <label class="input-label">Giờ bắt đầu</label>
+                                <input type="time" id="editStartTime" class="input-field" value="07:45">
+                            </div>
+                            <div>
+                                <label class="input-label">Giờ kết thúc</label>
+                                <input type="time" id="editEndTime" class="input-field" value="17:00">
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-edit btn-full" onclick="saveEditedTime('${dateStr}')">
+                            <i class="fas fa-plus"></i> Tạo bản ghi
+                        </button>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('editTimeContent').innerHTML = content;
+            document.getElementById('editTimeModal').style.display = 'flex';
         }
         
-        // Các hàm khác giữ nguyên từ file gốc
-        // ... (giữ nguyên tất cả các hàm còn lại từ file HTML gốc)
+        function parseDate(dateStr) {
+            const [day, month, year] = dateStr.split('/').map(Number);
+            return new Date(year, month - 1, day);
+        }
         
-        console.log('✅ Ứng dụng Chấm Công Cloud đã sẵn sàng!');
-        console.log('🌐 Supabase URL:', SUPABASE_URL);
-        console.log('🔑 Đã kết nối Supabase thành công');
+        function saveEditedTime(dateStr) {
+            const startInput = document.getElementById('editStartTime');
+            const endInput = document.getElementById('editEndTime');
+            
+            if (!startInput || !startInput.value) {
+                showNotification('⚠️ Vui lòng nhập giờ bắt đầu', 'warning');
+                return;
+            }
+            
+            const startTime = startInput.value;
+            const endTime = endInput ? endInput.value : null;
+            const date = parseDate(dateStr);
+            const isWeekdayNew = date.getDay() >= 1 && date.getDay() <= 6;
+            const isSundayNew = date.getDay() === 0;
+            
+            let startTimeDate = parseTime(startTime);
+            let endTimeDate = endTime ? parseTime(endTime) : null;
+            
+            if (!startTimeDate) {
+                showNotification('❌ Giờ bắt đầu không hợp lệ', 'danger');
+                return;
+            }
+            
+            startTimeDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+            if (endTimeDate) {
+                endTimeDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+            }
+            
+            let totalHours = 0;
+            let overtime = 0;
+            
+            if (endTimeDate) {
+                totalHours = calculateWorkDuration(startTimeDate, endTimeDate);
+                overtime = calculateOvertime(startTimeDate, endTimeDate);
+                
+                if (isSundayNew) {
+                    overtime = totalHours;
+                }
+            }
+            
+            const index = workData.findIndex(record => record.date === dateStr);
+            const record = {
+                id: index >= 0 ? workData[index].id : Date.now(),
+                date: dateStr,
+                startTime: startTime,
+                endTime: endTime,
+                totalHours: totalHours.toFixed(2),
+                overtime: overtime.toFixed(2),
+                timestamp: startTimeDate.getTime(),
+                isWeekday: isWeekdayNew,
+                isAutoEnded: false,
+                isAutoStarted: false
+            };
+            
+            if (index >= 0) {
+                workData[index] = record;
+            } else {
+                workData.unshift(record);
+            }
+            
+            workData.sort((a, b) => {
+                const dateA = parseDate(a.date);
+                const dateB = parseDate(b.date);
+                return dateB - dateA;
+            });
+            
+            saveData();
+            updateHistory();
+            
+            if (document.getElementById('monthCalendarModal').style.display === 'flex') {
+                showMonthCalendar();
+            }
+            
+            showNotification('✅ Đã cập nhật giờ làm', 'success');
+            hideModal('editTimeModal');
+        }
+        
+        function deleteRecord(dateStr) {
+            if (confirm(`Xóa bản ghi ngày ${dateStr}?`)) {
+                const index = workData.findIndex(record => record.date === dateStr);
+                if (index > -1) {
+                    workData.splice(index, 1);
+                    saveData();
+                    updateHistory();
+                    
+                    if (document.getElementById('monthCalendarModal').style.display === 'flex') {
+                        showMonthCalendar();
+                    }
+                    
+                    showNotification('🗑️ Đã xóa bản ghi', 'success');
+                    hideModal('editTimeModal');
+                }
+            }
+        }
+        
+        console.log('✅ Ứng dụng Chấm Công PRO đã sẵn sàng!');
+        console.log('👑 Admin account: admin007 / Caijingui@1234');
+        console.log('📊 Total users:', Object.keys(users).length);
         
     </script>
 </body>
