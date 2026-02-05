@@ -1204,41 +1204,66 @@
             }, 500);
         });
         
-        // ==================== SUPABASE FUNCTIONS (THÊM MỚI) ====================
-        async function initSupabase() {
-            try {
-                updateSupabaseStatus('🔄 Kiểm tra kết nối...');
-                
-                // Test connection
-                const { data, error } = await supabase
-                    .from('work_records')
-                    .select('count')
-                    .limit(1);
-                
-                if (error) {
-                    console.error('Supabase connection error:', error);
-                    updateSupabaseStatus('❌ Lỗi kết nối');
-                    isSupabaseConnected = false;
-                    return false;
+       // ==================== SUPABASE FUNCTIONS (SỬA LẠI) ====================
+async function initSupabase() {
+    try {
+        updateSupabaseStatus('🔄 Kiểm tra kết nối...');
+        
+        // Thêm timeout 5 giây
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout')), 5000);
+        });
+        
+        // Test connection với timeout
+        const connectionPromise = supabase
+            .from('work_records')
+            .select('count')
+            .limit(1);
+        
+        const { data, error } = await Promise.race([connectionPromise, timeoutPromise]);
+        
+        if (error) {
+            console.log('Supabase connection error:', error.message);
+            updateSupabaseStatus('📴 Offline - Dùng dữ liệu local');
+            isSupabaseConnected = false;
+            
+            // Vẫn cho phép dùng local data
+            setTimeout(() => {
+                if (!isSupabaseConnected) {
+                    updateSupabaseStatus('📴 Offline');
                 }
-                
-                isSupabaseConnected = true;
-                updateSupabaseStatus('✅ Đã kết nối');
-                
-                // Load data from Supabase
-                await loadFromSupabase();
-                
-                // Start sync interval
-                startSupabaseSync();
-                
-                return true;
-            } catch (error) {
-                console.error('Supabase init error:', error);
-                updateSupabaseStatus('❌ Lỗi khởi tạo');
-                isSupabaseConnected = false;
-                return false;
-            }
+            }, 3000);
+            
+            return false;
         }
+        
+        isSupabaseConnected = true;
+        updateSupabaseStatus('✅ Đã kết nối');
+        
+        // Load data from Supabase trong background
+        loadFromSupabase().catch(err => {
+            console.log('Không thể tải từ Supabase:', err.message);
+        });
+        
+        // Start sync interval
+        startSupabaseSync();
+        
+        return true;
+    } catch (error) {
+        console.log('Supabase init error:', error.message);
+        updateSupabaseStatus('📴 Offline - Dùng dữ liệu local');
+        isSupabaseConnected = false;
+        
+        // Sau 3 giây ẩn thông báo
+        setTimeout(() => {
+            if (!isSupabaseConnected) {
+                updateSupabaseStatus('📴 Offline');
+            }
+        }, 3000);
+        
+        return false;
+    }
+}
         
         async function loadFromSupabase() {
             if (!isSupabaseConnected) return;
