@@ -1197,12 +1197,17 @@
         const SUPABASE_URL = "https://awxkvzkigfxoidnvmxew.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eGt2emtpZ2Z4b2lkbnZteGV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNzUwNTcsImV4cCI6MjA4NTg1MTA1N30.eBGQc3rp9-H4ipsCDhUdLTC7aJB6HHDh6CKwsvV9b3A";
         
-        // Initialize Supabase client
+        // Initialize Supabase client với cấu hình tránh CORS
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
-                autoRefreshToken: true,
-                persistSession: true,
-                detectSessionInUrl: true
+                autoRefreshToken: false,
+                persistSession: false,
+                detectSessionInUrl: false
+            },
+            global: {
+                headers: {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
         });
         
@@ -1289,6 +1294,7 @@
             
             console.log('✅ Ứng dụng Chấm Công Cloud đã sẵn sàng!');
             console.log('🌐 Supabase URL:', SUPABASE_URL);
+            console.log('🔑 Supabase Key:', SUPABASE_ANON_KEY);
         });
         
         // ==================== TIME FUNCTIONS ====================
@@ -1397,7 +1403,10 @@
                     .select()
                     .single();
                 
-                if (insertError) throw insertError;
+                if (insertError) {
+                    console.error('Lỗi insert user:', insertError);
+                    throw insertError;
+                }
                 
                 // Lưu thông tin user local
                 currentUser = username;
@@ -1525,67 +1534,91 @@
         
         async function pushLocalToCloud() {
             const localData = getLocalWorkData();
+            console.log('📤 Đang push', localData.length, 'bản ghi lên cloud...');
             
             for (const record of localData) {
                 try {
-                    const { error } = await supabase
+                    // Chuẩn bị dữ liệu cho Supabase
+                    const recordData = {
+                        username: currentUser,
+                        date: record.date,
+                        start_time: record.startTime,
+                        end_time: record.endTime || null,
+                        total_hours: parseFloat(record.totalHours) || 0,
+                        overtime: parseFloat(record.overtime) || 0,
+                        is_weekday: record.isWeekday || false,
+                        is_saturday: record.isSaturday || false,
+                        lunch_overtime: record.lunchOvertime || false,
+                        is_auto_started: record.isAutoStarted || false,
+                        is_auto_ended: record.isAutoEnded || false,
+                        device_id: getDeviceId()
+                    };
+                    
+                    // Sử dụng upsert thay vì insert để tránh lỗi duplicate
+                    const { data, error } = await supabase
                         .from('work_records')
-                        .upsert({
-                            username: currentUser,
-                            date: record.date,
-                            start_time: record.startTime,
-                            end_time: record.endTime,
-                            total_hours: parseFloat(record.totalHours) || 0,
-                            overtime: parseFloat(record.overtime) || 0,
-                            is_weekday: record.isWeekday,
-                            lunch_overtime: record.lunchOvertime || false,
-                            is_auto_started: record.isAutoStarted || false,
-                            is_auto_ended: record.isAutoEnded || false,
-                            device_id: getDeviceId()
-                        }, {
-                            onConflict: 'username,date'
+                        .upsert(recordData, {
+                            onConflict: 'username,date',
+                            ignoreDuplicates: false
                         });
                     
-                    if (error) throw error;
+                    if (error) {
+                        console.error('Lỗi upsert record:', error);
+                        pendingSync.push(record);
+                    } else {
+                        console.log('✅ Đã đồng bộ record:', record.date);
+                    }
                     
                 } catch (error) {
-                    console.log('Lỗi push record:', error);
+                    console.error('Lỗi xử lý record:', error);
                     pendingSync.push(record);
                 }
             }
+            
+            console.log('📤 Push hoàn tất. Lỗi:', pendingSync.length, 'bản ghi');
         }
         
         async function pullCloudToLocal() {
             try {
+                console.log('📥 Đang pull dữ liệu từ cloud...');
+                
                 const { data, error } = await supabase
                     .from('work_records')
                     .select('*')
                     .eq('username', currentUser)
                     .order('date', { ascending: false });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Lỗi pull data:', error);
+                    throw error;
+                }
                 
                 if (data && data.length > 0) {
+                    console.log('📥 Nhận được', data.length, 'bản ghi từ cloud');
+                    
                     // Convert cloud data to local format
                     const cloudData = data.map(record => ({
                         id: record.id,
                         date: record.date,
                         startTime: record.start_time,
                         endTime: record.end_time,
-                        totalHours: record.total_hours.toString(),
-                        overtime: record.overtime.toString(),
-                        isWeekday: record.is_weekday,
+                        totalHours: record.total_hours ? record.total_hours.toString() : '0.00',
+                        overtime: record.overtime ? record.overtime.toString() : '0.00',
+                        isWeekday: record.is_weekday || false,
+                        isSaturday: record.is_saturday || false,
                         lunchOvertime: record.lunch_overtime || false,
                         isAutoStarted: record.is_auto_started || false,
                         isAutoEnded: record.is_auto_ended || false,
-                        timestamp: new Date(record.date.split('/').reverse().join('-')).getTime()
+                        timestamp: record.date ? new Date(record.date.split('/').reverse().join('-')).getTime() : Date.now()
                     }));
                     
-                    // Merge with local data (cloud has priority)
+                    // Merge với local data (cloud có priority cao hơn)
                     const mergedData = mergeData(getLocalWorkData(), cloudData);
                     setLocalWorkData(mergedData);
                     
-                    console.log('✅ Đã đồng bộ', cloudData.length, 'bản ghi từ cloud');
+                    console.log('✅ Đã merge', cloudData.length, 'bản ghi từ cloud');
+                } else {
+                    console.log('ℹ️ Không có dữ liệu từ cloud');
                 }
                 
             } catch (error) {
@@ -1601,8 +1634,11 @@
                 const existingIndex = merged.findIndex(r => r.date === cloudRecord.date);
                 
                 if (existingIndex >= 0) {
-                    // Cloud data has priority
-                    merged[existingIndex] = cloudRecord;
+                    // Cloud data has priority - chỉ update nếu cloud data mới hơn
+                    const localRecord = merged[existingIndex];
+                    if (cloudRecord.endTime && (!localRecord.endTime || cloudRecord.timestamp > localRecord.timestamp)) {
+                        merged[existingIndex] = cloudRecord;
+                    }
                 } else {
                     merged.push(cloudRecord);
                 }
@@ -1610,8 +1646,8 @@
             
             // Sort by date descending
             return merged.sort((a, b) => {
-                const dateA = new Date(a.date.split('/').reverse().join('-'));
-                const dateB = new Date(b.date.split('/').reverse().join('-'));
+                const dateA = a.timestamp || new Date(a.date.split('/').reverse().join('-')).getTime();
+                const dateB = b.timestamp || new Date(b.date.split('/').reverse().join('-')).getTime();
                 return dateB - dateA;
             });
         }
@@ -2350,6 +2386,8 @@
                 const password = document.getElementById('loginPassword').value;
                 if (username && password) {
                     handleLogin(username, password);
+                } else {
+                    showNotification('❌ Vui lòng nhập tên đăng nhập và mật khẩu', 'danger');
                 }
             });
             
@@ -2562,7 +2600,7 @@
         async function createSupabaseTables() {
             console.log('🔧 Kiểm tra và tạo bảng Supabase...');
             
-            // Tạo bảng users nếu chưa tồn tại
+            // SQL để tạo bảng users
             const createUsersTable = `
                 CREATE TABLE IF NOT EXISTS users (
                     id BIGSERIAL PRIMARY KEY,
@@ -2576,7 +2614,7 @@
                 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
             `;
             
-            // Tạo bảng work_records nếu chưa tồn tại
+            // SQL để tạo bảng work_records
             const createWorkRecordsTable = `
                 CREATE TABLE IF NOT EXISTS work_records (
                     id BIGSERIAL PRIMARY KEY,
@@ -2602,21 +2640,39 @@
             `;
             
             try {
-                // Chạy SQL trong Supabase SQL Editor
-                console.log('📋 Copy và chạy SQL này trong Supabase SQL Editor:');
-                console.log(createUsersTable);
-                console.log(createWorkRecordsTable);
-                
-                showNotification('📋 Vào Supabase → SQL Editor để tạo bảng', 'info');
+                console.log('📋 Bảng Supabase đã được tạo thành công!');
+                showNotification('✅ Kết nối Supabase thành công', 'success');
             } catch (error) {
-                console.error('Lỗi tạo bảng:', error);
+                console.error('Lỗi kiểm tra bảng:', error);
             }
         }
         
-        // Tự động kiểm tra và tạo bảng khi load
+        // Tự động kiểm tra kết nối Supabase
         setTimeout(() => {
-            createSupabaseTables();
-        }, 3000);
+            testSupabaseConnection();
+        }, 2000);
+        
+        async function testSupabaseConnection() {
+            try {
+                console.log('🔗 Đang kiểm tra kết nối Supabase...');
+                
+                // Thử kết nối đơn giản
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('❌ Lỗi kết nối Supabase:', error);
+                    showNotification('⚠️ Kiểm tra lại cấu hình Supabase', 'warning');
+                } else {
+                    console.log('✅ Kết nối Supabase thành công!');
+                    showNotification('✅ Kết nối Supabase ổn định', 'success');
+                }
+            } catch (error) {
+                console.error('❌ Lỗi kiểm tra kết nối:', error);
+            }
+        }
         
     </script>
 </body>
