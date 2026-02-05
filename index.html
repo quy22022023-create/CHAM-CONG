@@ -12,25 +12,23 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- Simple Manifest -->
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E2%8F%B1%EF%B8%8F%20Ch%E1%BA%A5m%20C%C3%B4ng%22%2C%22short_name%22%3A%22ChamCong%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23007AFF%22%2C%22theme_color%22%3A%22%23007AFF%22%7D">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json,{&#34;name&#34;:&#34;Chấm Công&#34;,&#34;short_name&#34;:&#34;ChamCong&#34;,&#34;start_url&#34;:&#34;.&#34;,&#34;display&#34;:&#34;standalone&#34;,&#34;background_color&#34;:&#34;#007AFF&#34;,&#34;theme_color&#34;:&#34;#007AFF&#34;,&#34;icons&#34;:[{&#34;src&#34;:&#34;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%23007AFF'/><path fill='white' d='M378 224H134c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h244c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16z'/></svg>&#34;,&#34;sizes&#34;:&#34;512x512&#34;,&#34;type&#34;:&#34;image/svg+xml&#34;}]}">
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     
-    <!-- Supabase Client -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* ==================== RESET & BASE ==================== */
+        /* RESET & BASE */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
         }
         
         body {
@@ -38,20 +36,20 @@
             background-color: #F2F2F7;
             color: #1D1D1F;
             line-height: 1.5;
+            max-width: 100%;
+            overflow-x: hidden;
             padding-bottom: env(safe-area-inset-bottom);
             padding-top: env(safe-area-inset-top);
         }
         
-        /* SAFE AREAS */
+        /* iOS SAFE AREAS */
         .safe-top {
             padding-top: env(safe-area-inset-top);
             background: linear-gradient(135deg, #007AFF, #5856D6);
-            height: env(safe-area-inset-top);
         }
         
         .safe-bottom {
             padding-bottom: env(safe-area-inset-bottom);
-            height: env(safe-area-inset-bottom);
         }
         
         /* HEADER */
@@ -80,6 +78,7 @@
             opacity: 0.9;
             font-size: 13px;
             font-weight: 400;
+            line-height: 1.4;
         }
         
         .day-indicator {
@@ -154,13 +153,13 @@
             gap: 10px;
         }
         
-        /* BUTTONS */
+        /* BUTTONS - iOS STYLE */
         .btn {
             background-color: #007AFF;
             color: white;
             border: none;
             border-radius: 12px;
-            padding: 16px;
+            padding: 16px 10px;
             font-size: 17px;
             font-weight: 600;
             text-align: center;
@@ -170,14 +169,18 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            width: 100%;
-            margin-top: 10px;
+            -webkit-user-select: none;
+            user-select: none;
             min-height: 44px;
         }
         
         .btn:active {
             transform: scale(0.97);
             opacity: 0.9;
+        }
+        
+        .btn-full {
+            width: 100%;
         }
         
         .btn-start {
@@ -190,27 +193,48 @@
         
         .btn-salary {
             background: linear-gradient(135deg, #5856D6, #7D3CFF);
+            margin-top: 10px;
         }
         
         .btn-backup {
             background-color: #FF9500;
+            margin-top: 10px;
         }
         
         .btn-month {
             background-color: #5AC8FA;
+            margin-top: 10px;
+        }
+        
+        .btn-edit {
+            background-color: #007AFF;
+            margin-top: 10px;
+        }
+        
+        .btn-danger {
+            background-color: #FF3B30;
+            margin-top: 10px;
         }
         
         .btn-refresh {
             background-color: #5AC8FA;
+            margin-top: 10px;
         }
         
-        .btn-supabase {
-            background: linear-gradient(135deg, #3ECF8E, #3A86FF);
+        .btn-confirm {
+            background-color: #34C759;
+            margin-top: 10px;
+        }
+        
+        .btn-cancel {
+            background-color: #8E8E93;
+            margin-top: 10px;
         }
         
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none !important;
         }
         
         /* CONTROLS */
@@ -221,12 +245,26 @@
             margin-bottom: 15px;
         }
         
+        .auto-start-info {
+            background-color: rgba(52,199,89,0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #34C759;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
         /* WORK INFO */
         .work-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
         
         .info-box {
@@ -240,18 +278,27 @@
             font-size: 14px;
             color: #8E8E93;
             margin-bottom: 5px;
+            font-weight: 500;
         }
         
         .info-value {
             font-size: 20px;
             font-weight: 700;
             color: #1D1D1F;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .info-unit {
+            font-size: 14px;
+            color: #8E8E93;
+            margin-left: 2px;
         }
         
         /* HISTORY */
         .work-history {
             max-height: 300px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         .history-item {
@@ -263,9 +310,18 @@
             cursor: pointer;
         }
         
+        .history-item:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
         .history-date {
             font-weight: 600;
             font-size: 16px;
+            color: #1D1D1F;
         }
         
         .history-time {
@@ -277,6 +333,105 @@
             font-weight: 700;
             font-size: 16px;
             color: #34C759;
+        }
+        
+        /* TIME INPUTS - iOS OPTIMIZED */
+        .time-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .time-input-container {
+            position: relative;
+        }
+        
+        .time-input {
+            width: 100%;
+            background: #F2F2F7;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px 40px 15px 15px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            color: #1D1D1F;
+            font-variant-numeric: tabular-nums;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        /* Fix iOS time input styling */
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            background: none;
+            display: none;
+        }
+        
+        .time-input-custom {
+            position: relative;
+            width: 100%;
+        }
+        
+        .time-input-custom::after {
+            content: "⌚";
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #007AFF;
+            pointer-events: none;
+        }
+        
+        .time-input:focus {
+            outline: none;
+            border-color: #007AFF;
+            background: white;
+        }
+        
+        .time-label {
+            display: block;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #8E8E93;
+        }
+        
+        /* SALARY INPUT - iOS OPTIMIZED */
+        .salary-input-container {
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .salary-input {
+            width: 100%;
+            background: #F2F2F7;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            color: #1D1D1F;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .salary-input:focus {
+            outline: none;
+            border-color: #5856D6;
+            background: white;
+        }
+        
+        .salary-label {
+            display: block;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #5856D6;
         }
         
         /* MODALS */
@@ -292,6 +447,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            overflow-y: auto;
         }
         
         .modal-content {
@@ -300,24 +456,199 @@
             padding: 25px;
             width: 100%;
             max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             max-height: 90vh;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         .modal h3 {
             font-size: 20px;
             margin-bottom: 15px;
+            color: #1D1D1F;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         
-        .close-btn {
+        .modal h3 .close-btn {
             background: none;
             border: none;
+            color: #8E8E93;
             font-size: 24px;
             cursor: pointer;
+            padding: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* CALENDAR */
+        .calendar {
+            width: 100%;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-month-year {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1D1D1F;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-nav-btn {
+            background-color: #F2F2F7;
+            border: none;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
             color: #8E8E93;
+        }
+        
+        .calendar-weekdays div {
+            padding: 8px 0;
+        }
+        
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 44px;
+        }
+        
+        .calendar-day.empty {
+            background-color: transparent;
+            cursor: default;
+        }
+        
+        .calendar-day.today {
+            background-color: rgba(0,122,255,0.1);
+            color: #007AFF;
+            font-weight: 700;
+        }
+        
+        .calendar-day.has-data {
+            background-color: rgba(52,199,89,0.1);
+        }
+        
+        .calendar-day.sunday {
+            color: #FF2D55;
+        }
+        
+        .calendar-day.editable {
+            position: relative;
+        }
+        
+        .calendar-day.editable::after {
+            content: "✏️";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 10px;
+        }
+        
+        /* SWITCH STYLES - iOS Style */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #F2F2F7;
+            border-radius: 12px;
+            margin: 10px 0;
+        }
+        
+        .switch-label {
+            font-weight: 500;
+            color: #1D1D1F;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 51px;
+            height: 31px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #E5E5EA;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 27px;
+            width: 27px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input:checked + .slider {
+            background-color: #34C759;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(20px);
         }
         
         /* NOTIFICATION */
@@ -329,9 +660,10 @@
             color: white;
             padding: 15px 20px;
             border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             z-index: 1001;
             transform: translateX(150%);
-            transition: transform 0.3s;
+            transition: transform 0.3s ease;
             max-width: 300px;
         }
         
@@ -339,10 +671,10 @@
             transform: translateX(0);
         }
         
-        /* STATUS */
-        .status {
+        /* DATA STATUS */
+        .data-status {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             right: 20px;
             background-color: rgba(0,122,255,0.1);
             color: #007AFF;
@@ -356,10 +688,97 @@
             backdrop-filter: blur(10px);
         }
         
-        .supabase-status {
-            bottom: 60px;
-            background-color: rgba(58,134,255,0.1);
-            color: #3A86FF;
+        /* BACKUP STATUS */
+        .backup-status {
+            position: fixed;
+            bottom: 120px;
+            right: 20px;
+            background-color: rgba(255,149,0,0.1);
+            color: #FF9500;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 999;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* SYNC STATUS */
+        .sync-status {
+            position: fixed;
+            bottom: 160px;
+            right: 20px;
+            background-color: rgba(88,86,214,0.1);
+            color: #5856D6;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 999;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* REFRESH BUTTON - FLOATING */
+        .refresh-floating-btn {
+            position: fixed;
+            bottom: 170px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #5AC8FA, #007AFF);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,122,255,0.3);
+            z-index: 998;
+            transition: all 0.3s;
+        }
+        
+        .refresh-floating-btn:active {
+            transform: scale(0.9);
+            background: linear-gradient(135deg, #007AFF, #5AC8FA);
+        }
+        
+        .refresh-floating-btn .loading {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* SYNC BUTTON - FLOATING */
+        .sync-floating-btn {
+            position: fixed;
+            bottom: 230px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #5856D6, #7D3CFF);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(88,86,214,0.3);
+            z-index: 998;
+            transition: all 0.3s;
+        }
+        
+        .sync-floating-btn:active {
+            transform: scale(0.9);
+            background: linear-gradient(135deg, #7D3CFF, #5856D6);
         }
         
         /* LOADING */
@@ -370,14 +789,129 @@
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: white;
-            animation: spin 1s linear infinite;
+            animation: spin 1s ease-in-out infinite;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        /* DARK MODE */
+        /* QUICK ACTIONS */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .quick-action-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px;
+            background: #F2F2F7;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-action-btn:active {
+            background: #007AFF;
+            color: white;
+        }
+        
+        /* NUMBER PAD FOR iOS */
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .number-btn {
+            background: #F2F2F7;
+            border: none;
+            border-radius: 10px;
+            padding: 20px 10px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .number-btn:active {
+            background: #007AFF;
+            color: white;
+        }
+        
+        /* CONFIRMATION DIALOG */
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1002;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .confirmation-content {
+            background-color: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        /* RESPONSIVE */
+        @media (max-width: 350px) {
+            .controls { grid-template-columns: 1fr; }
+            .work-info { grid-template-columns: 1fr; }
+            .modal-content { padding: 15px; }
+            .time-input-group { grid-template-columns: 1fr; }
+            .quick-actions { flex-direction: column; }
+        }
+        
+        /* iOS SPECIFIC FIXES */
+        input, select, textarea {
+            font-size: 16px; /* Prevent zoom on focus */
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        
+        .btn, .calendar-day, .calendar-nav-btn, .quick-action-btn, .number-btn {
+            min-height: 44px; /* Apple HIG minimum touch target */
+        }
+        
+        /* Prevent iOS zoom on input focus */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="number"],
+            input[type="time"] {
+                font-size: 16px !important;
+            }
+        }
+        
+        /* HAPTIC FEEDBACK */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:active,
+            .quick-action-btn:active,
+            .number-btn:active {
+                background-color: rgba(0,122,255,0.8);
+            }
+        }
+        
+        /* DARK MODE SUPPORT */
         @media (prefers-color-scheme: dark) {
             body {
                 background-color: #000;
@@ -391,11 +925,34 @@
             .info-box {
                 background-color: #2C2C2E;
             }
+            
+            .time-input, .salary-input {
+                background-color: #2C2C2E;
+                color: white;
+            }
+            
+            .quick-action-btn, .number-btn {
+                background-color: #2C2C2E;
+                color: white;
+            }
+            
+            .switch-container {
+                background-color: #2C2C2E;
+            }
+            
+            .refresh-floating-btn, .sync-floating-btn {
+                background: linear-gradient(135deg, #007AFF, #5856D6);
+                box-shadow: 0 4px 15px rgba(0,122,255,0.5);
+            }
+            
+            .confirmation-content {
+                background-color: #1C1C1E;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- SAFE AREAS -->
+    <!-- SAFE AREA TOP -->
     <div class="safe-top"></div>
     
     <!-- HEADER -->
@@ -431,6 +988,10 @@
                 </button>
             </div>
             
+            <div id="autoStartInfo" class="auto-start-info" style="display: none;">
+                <i class="fas fa-robot"></i> 🤖 Tự động kích hoạt lúc 7:45 (T2-T7)
+            </div>
+            
             <div class="work-info">
                 <div class="info-box">
                     <h3><i class="fas fa-sign-in-alt"></i> Giờ bắt đầu</h3>
@@ -442,31 +1003,32 @@
                 </div>
                 <div class="info-box">
                     <h3><i class="fas fa-clock"></i> Tổng thời gian</h3>
-                    <div class="info-value" id="totalTime">0 giờ</div>
+                    <div class="info-value" id="totalTime">0<span class="info-unit">giờ</span></div>
                 </div>
                 <div class="info-box">
                     <h3><i class="fas fa-moon"></i> Tăng ca hôm nay</h3>
-                    <div class="info-value" id="overtime">0 giờ</div>
+                    <div class="info-value" id="overtime">0<span class="info-unit">giờ</span></div>
                 </div>
             </div>
             
-            <button class="btn btn-salary" id="salaryBtn">
+            <button class="btn btn-salary btn-full" id="salaryBtn">
                 <i class="fas fa-calculator"></i> 🧮 Tính Lương Tăng Ca
             </button>
             
-            <button class="btn btn-backup" id="backupBtn">
+            <button class="btn btn-backup btn-full" id="backupBtn">
                 <i class="fas fa-database"></i> 💾 Sao Lưu & Khôi Phục
             </button>
             
-            <button class="btn btn-month" id="viewMonthBtn">
+            <button class="btn btn-month btn-full" id="viewMonthBtn">
                 <i class="fas fa-calendar-alt"></i> 📅 Xem Lịch Tháng
             </button>
             
-            <button class="btn btn-refresh" id="refreshBtn">
+            <button class="btn btn-refresh btn-full" id="refreshBtn">
                 <i class="fas fa-sync-alt"></i> 🔄 Load Lại Dữ Liệu
             </button>
             
-            <button class="btn btn-supabase" id="supabaseSyncBtn">
+            <!-- Thêm nút đồng bộ Supabase -->
+            <button class="btn btn-sync btn-full" id="syncBtn" style="background: linear-gradient(135deg, #5856D6, #7D3CFF); margin-top: 10px;">
                 <i class="fas fa-cloud"></i> ☁️ Đồng bộ Supabase
             </button>
         </div>
@@ -486,233 +1048,589 @@
     <!-- SAFE AREA BOTTOM -->
     <div class="safe-bottom"></div>
     
+    <!-- FLOATING BUTTONS -->
+    <button class="sync-floating-btn" id="floatingSyncBtn" title="Đồng bộ với Supabase">
+        <i class="fas fa-cloud-upload-alt"></i>
+    </button>
+    
+    <button class="refresh-floating-btn" id="floatingRefreshBtn" title="Load lại dữ liệu">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+    
     <!-- STATUS INDICATORS -->
-    <div class="status" id="dataStatus">
+    <div class="data-status" id="dataStatus">
         <i class="fas fa-database"></i> <span id="lastSaveTime">🟢 Đã lưu</span>
     </div>
     
-    <div class="status supabase-status" id="supabaseStatus" style="display: none;">
-        <i class="fas fa-cloud"></i> <span id="supabaseStatusText">Supabase: Đang kiểm tra...</span>
+    <div class="backup-status" id="backupStatus" style="display: none;">
+        <i class="fas fa-cloud"></i> <span id="backupStatusText">Đang đồng bộ...</span>
+    </div>
+    
+    <div class="sync-status" id="syncStatus" style="display: none;">
+        <i class="fas fa-database"></i> <span id="syncStatusText">Đang đồng bộ...</span>
     </div>
     
     <!-- MODALS -->
+    <!-- Salary Modal -->
     <div class="modal" id="salaryModal">
         <div class="modal-content">
             <h3>
-                <i class="fas fa-calculator"></i> Tính Lương
+                <i class="fas fa-calculator"></i> 🧮 Tính Lương
                 <button class="close-btn" id="closeSalaryModal">&times;</button>
             </h3>
-            <div id="salaryContent"></div>
+            <div id="salaryContent">
+                <!-- Dynamic content -->
+            </div>
         </div>
     </div>
     
+    <!-- Backup Modal -->
     <div class="modal" id="backupModal">
         <div class="modal-content">
             <h3>
-                <i class="fas fa-database"></i> Sao Lưu & Khôi Phục
+                <i class="fas fa-database"></i> 💾 Sao Lưu
                 <button class="close-btn" id="closeBackupModal">&times;</button>
             </h3>
-            <div id="backupContent"></div>
+            <div id="backupContent">
+                <!-- Dynamic content -->
+            </div>
         </div>
     </div>
     
+    <!-- Month Calendar Modal -->
     <div class="modal" id="monthCalendarModal">
         <div class="modal-content">
             <h3>
-                <i class="fas fa-calendar"></i> Lịch Tháng
+                <i class="fas fa-calendar"></i> 📅 Lịch Tháng
                 <button class="close-btn" id="closeMonthModal">&times;</button>
             </h3>
-            <div id="monthCalendar"></div>
+            <div class="calendar" id="monthCalendar"></div>
         </div>
     </div>
     
+    <!-- Edit Time Modal -->
     <div class="modal" id="editTimeModal">
         <div class="modal-content">
             <h3>
-                <i class="fas fa-edit"></i> Chỉnh sửa giờ làm
+                <i class="fas fa-edit"></i> ⏰ Chỉnh sửa giờ làm
                 <button class="close-btn" id="closeEditModal">&times;</button>
             </h3>
-            <div id="editTimeContent"></div>
+            <div id="editTimeContent">
+                <!-- Dynamic content -->
+            </div>
         </div>
     </div>
     
-    <!-- NOTIFICATION -->
+    <!-- Sync Modal -->
+    <div class="modal" id="syncModal">
+        <div class="modal-content">
+            <h3>
+                <i class="fas fa-cloud"></i> ☁️ Đồng bộ Supabase
+                <button class="close-btn" id="closeSyncModal">&times;</button>
+            </h3>
+            <div id="syncContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmUpdateDialog">
+        <div class="confirmation-content">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #FF9500;">
+                <i class="fas fa-exclamation-triangle"></i> Xác nhận cập nhật
+            </h3>
+            <div style="text-align: center; margin-bottom: 25px;">
+                <p style="margin-bottom: 10px; font-size: 16px;">Bạn có chắc muốn cập nhật giờ tan ca mới?</p>
+                <p style="color: #8E8E93; font-size: 14px; margin-bottom: 5px;">
+                    Giờ tan ca cũ: <span id="oldEndTime" style="font-weight: 600;">--:--</span>
+                </p>
+                <p style="color: #007AFF; font-size: 14px; font-weight: 600;">
+                    Giờ tan ca mới: <span id="newEndTime">--:--</span>
+                </p>
+                <p style="margin-top: 15px; padding: 10px; background: rgba(255,149,0,0.1); border-radius: 8px; font-size: 13px; color: #FF9500;">
+                    <i class="fas fa-info-circle"></i> Giờ tan ca cũ sẽ bị ghi đè
+                </p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-cancel" id="cancelUpdateBtn">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+                <button class="btn btn-confirm" id="confirmUpdateBtn">
+                    <i class="fas fa-check"></i> Xác nhận
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
     <div class="notification" id="notification">
         <div id="notificationMessage">✅ Thao tác thành công!</div>
     </div>
     
     <script>
-        // ==================== CẤU HÌNH SUPABASE ====================
-        const SUPABASE_URL = 'https://awxkvzkigfxoidnvmxew.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eGt2emtpZ2Z4b2lkbnZteGV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNzUwNTcsImV4cCI6MjA4NTg1MTA1N30.eBGQc3rp9-H4ipsCDhUdLTC7aJB6HHDh6CKwsvV9b3A';
-        
-        // ==================== BIẾN TOÀN CỤC ====================
-        let supabase = null;
-        let isSupabaseConnected = false;
-        let workData = [];
-        let basicSalary = 0;
-        let today = new Date();
+        // ==================== CORE VARIABLES ====================
         let workStartTime = null;
         let workEndTime = null;
         let isWorking = false;
         let timerInterval = null;
-        let autoStartTriggered = false;
+        let autoSaveInterval = null;
+        let workData = [];
+        let today = new Date();
+        let dayOfWeek = today.getDay();
+        let isSunday = (dayOfWeek === 0);
+        let isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6);
         let currentMonth = today.getMonth();
         let currentYear = today.getFullYear();
+        let basicSalary = 0;
+        let autoStartTriggered = false;
+        let editingDate = null;
+        let currentSalaryInput = null;
         
-        // ==================== KHỞI ĐỘNG ỨNG DỤNG ====================
-        document.addEventListener('DOMContentLoaded', async function() {
+        // Lunch overtime settings
+        let lunchOvertimeSettings = {};
+        
+        // iOS Detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        // Backup System
+        let lastBackupTime = null;
+        let backupInterval = null;
+        let isBackupRunning = false;
+        
+        // Refresh state
+        let isRefreshing = false;
+        
+        // Update confirmation
+        let pendingUpdateData = null;
+        
+        // Supabase Configuration - THAY BẰNG THÔNG TIN CỦA BẠN
+        const SUPABASE_URL = 'https://awxkvzkigfxoidnvmxew.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eGt2emtpZ2Z4b2lkbnZteGV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyNzUwNTcsImV4cCI6MjA4NTg1MTA1N30.eBGQc3rp9-H4ipsCDhUdLTC7aJB6HHDh6CKwsvV9b3A';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Sync state
+        let lastSyncTime = null;
+        let isSyncing = false;
+        let syncInterval = null;
+        const SYNC_INTERVAL = 30000; // 30 seconds
+        
+        // Constants
+        const STANDARD_START_TIME = '07:45';
+        const STANDARD_END_TIME = '17:00';
+        
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Ứng dụng đang khởi động...');
             
-            // Khởi tạo Supabase
-            await initSupabase();
-            
-            // Khởi tạo ứng dụng
+            // Initialize core
             initTime();
             loadAllData();
             setupEventListeners();
+            setupAutoBackup();
+            setupAutoSync();
             
-            // Hiển thị thông báo
+            // iOS specific optimizations
+            if (isIOS) {
+                setupIOSOptimizations();
+            }
+            
+            // Show welcome notification
             setTimeout(() => {
-                showNotification('✅ Ứng dụng đã sẵn sàng!');
+                showNotification('✅ Ứng dụng đã sẵn sàng!', 'success');
             }, 500);
         });
         
         // ==================== SUPABASE FUNCTIONS ====================
-        async function initSupabase() {
+        async function setupSupabaseTable() {
             try {
-                updateSupabaseStatus('🔄 Đang kết nối...');
-                
-                // Tạo Supabase client
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                
-                // Test connection
+                // Tạo bảng nếu chưa tồn tại
                 const { data, error } = await supabase
                     .from('work_records')
-                    .select('count')
+                    .select('*')
                     .limit(1);
-                
-                if (error) {
-                    console.error('Lỗi kết nối Supabase:', error);
-                    updateSupabaseStatus('❌ Không kết nối được');
+                    
+                if (error && error.code === 'PGRST116') {
+                    // Bảng chưa tồn tại - tạo bảng thông qua SQL
+                    console.log('⚠️ Bảng chưa tồn tại. Cần tạo bảng trong Supabase dashboard.');
+                    showNotification('⚠️ Vui lòng tạo bảng work_records trong Supabase', 'warning');
                     return false;
                 }
                 
-                isSupabaseConnected = true;
-                updateSupabaseStatus('✅ Đã kết nối');
-                
-                // Tải dữ liệu từ Supabase
-                await loadFromSupabase();
-                
+                console.log('✅ Kết nối Supabase thành công');
                 return true;
             } catch (error) {
-                console.error('Lỗi khởi tạo Supabase:', error);
-                updateSupabaseStatus('❌ Lỗi khởi tạo');
+                console.error('❌ Lỗi kết nối Supabase:', error);
+                showNotification('❌ Lỗi kết nối database', 'danger');
                 return false;
+            }
+        }
+        
+        async function syncToSupabase() {
+            if (isSyncing) return;
+            
+            isSyncing = true;
+            showSyncStatus('Đang đồng bộ...');
+            
+            try {
+                console.log('🔄 Bắt đầu đồng bộ với Supabase...');
+                
+                // Lấy timestamp lần đồng bộ cuối
+                const lastSync = localStorage.getItem('chamcong_last_sync');
+                const lastSyncTime = lastSync ? new Date(lastSync) : new Date(0);
+                
+                // Tìm các bản ghi mới hoặc đã chỉnh sửa từ lần đồng bộ cuối
+                const recordsToSync = workData.filter(record => {
+                    const recordTime = new Date(record.timestamp || 0);
+                    return !record.lastSync || recordTime > lastSyncTime;
+                });
+                
+                if (recordsToSync.length === 0) {
+                    showSyncStatus('Đã đồng bộ');
+                    setTimeout(() => hideSyncStatus(), 2000);
+                    showNotification('✅ Dữ liệu đã được đồng bộ', 'success');
+                    return;
+                }
+                
+                console.log(`📤 Đồng bộ ${recordsToSync.length} bản ghi...`);
+                
+                let successCount = 0;
+                let errorCount = 0;
+                
+                // Đồng bộ từng bản ghi
+                for (const record of recordsToSync) {
+                    try {
+                        // Kiểm tra xem bản ghi đã tồn tại chưa
+                        const { data: existingRecords } = await supabase
+                            .from('work_records')
+                            .select('id')
+                            .eq('local_id', record.id)
+                            .limit(1);
+                        
+                        if (existingRecords && existingRecords.length > 0) {
+                            // Cập nhật bản ghi hiện có
+                            const { error } = await supabase
+                                .from('work_records')
+                                .update({
+                                    date: record.date,
+                                    start_time: record.startTime,
+                                    end_time: record.endTime,
+                                    total_hours: record.totalHours,
+                                    overtime: record.overtime,
+                                    is_weekday: record.isWeekday,
+                                    is_auto_started: record.isAutoStarted || false,
+                                    is_auto_ended: record.isAutoEnded || false,
+                                    lunch_overtime: record.lunchOvertime || false,
+                                    last_updated: new Date().toISOString()
+                                })
+                                .eq('local_id', record.id);
+                                
+                            if (error) {
+                                console.error('Lỗi cập nhật:', error);
+                                errorCount++;
+                            } else {
+                                successCount++;
+                            }
+                        } else {
+                            // Thêm bản ghi mới
+                            const { error } = await supabase
+                                .from('work_records')
+                                .insert({
+                                    local_id: record.id,
+                                    date: record.date,
+                                    start_time: record.startTime,
+                                    end_time: record.endTime,
+                                    total_hours: record.totalHours,
+                                    overtime: record.overtime,
+                                    is_weekday: record.isWeekday,
+                                    is_auto_started: record.isAutoStarted || false,
+                                    is_auto_ended: record.isAutoEnded || false,
+                                    lunch_overtime: record.lunchOvertime || false,
+                                    created_at: new Date().toISOString(),
+                                    last_updated: new Date().toISOString()
+                                });
+                                
+                            if (error) {
+                                console.error('Lỗi thêm mới:', error);
+                                errorCount++;
+                            } else {
+                                successCount++;
+                            }
+                        }
+                        
+                        // Cập nhật thời gian sync cho bản ghi local
+                        record.lastSync = new Date().toISOString();
+                        
+                    } catch (error) {
+                        console.error('Lỗi đồng bộ bản ghi:', error);
+                        errorCount++;
+                    }
+                }
+                
+                // Lưu thời gian sync
+                localStorage.setItem('chamcong_last_sync', new Date().toISOString());
+                lastSyncTime = new Date().toISOString();
+                
+                // Lưu dữ liệu local đã cập nhật
+                saveData();
+                
+                // Hiển thị kết quả
+                if (successCount > 0) {
+                    showSyncStatus(`Đã đồng bộ ${successCount} bản ghi`);
+                    setTimeout(() => hideSyncStatus(), 3000);
+                    showNotification(`✅ Đã đồng bộ ${successCount} bản ghi lên Supabase`, 'success');
+                }
+                
+                if (errorCount > 0) {
+                    showNotification(`⚠️ ${errorCount} bản ghi đồng bộ thất bại`, 'warning');
+                }
+                
+                console.log(`✅ Đồng bộ hoàn tất: ${successCount} thành công, ${errorCount} thất bại`);
+                
+            } catch (error) {
+                console.error('❌ Lỗi đồng bộ Supabase:', error);
+                showSyncStatus('Lỗi đồng bộ');
+                setTimeout(() => hideSyncStatus(), 3000);
+                showNotification('❌ Lỗi đồng bộ với Supabase', 'danger');
+            } finally {
+                isSyncing = false;
             }
         }
         
         async function loadFromSupabase() {
-            if (!isSupabaseConnected) return;
+            if (isSyncing) return;
+            
+            isSyncing = true;
+            showSyncStatus('Đang tải dữ liệu...');
             
             try {
-                updateSupabaseStatus('🔄 Đang tải dữ liệu...');
+                console.log('📥 Tải dữ liệu từ Supabase...');
                 
                 const { data, error } = await supabase
                     .from('work_records')
                     .select('*')
-                    .order('work_date', { ascending: false });
+                    .order('created_at', { ascending: false });
                 
-                if (error) throw error;
+                if (error) {
+                    throw error;
+                }
                 
                 if (data && data.length > 0) {
-                    // Chuyển đổi dữ liệu Supabase
-                    const supabaseData = data.map(record => ({
-                        id: record.id,
-                        date: formatDate(new Date(record.work_date)),
-                        startTime: record.start_time,
-                        endTime: record.end_time,
-                        totalHours: record.total_hours?.toString() || '0',
-                        overtime: record.overtime?.toString() || '0',
-                        timestamp: new Date(record.work_date).getTime(),
-                        isWeekday: record.is_weekday || false,
-                        lunchOvertime: record.lunch_overtime || false
+                    console.log(`📥 Nhận được ${data.length} bản ghi từ Supabase`);
+                    
+                    // Chuyển đổi dữ liệu từ Supabase sang định dạng local
+                    const supabaseData = data.map(item => ({
+                        id: item.local_id || Date.now() + Math.random(),
+                        date: item.date,
+                        startTime: item.start_time,
+                        endTime: item.end_time,
+                        totalHours: item.total_hours,
+                        overtime: item.overtime,
+                        timestamp: new Date(item.created_at).getTime(),
+                        isWeekday: item.is_weekday,
+                        isAutoStarted: item.is_auto_started || false,
+                        isAutoEnded: item.is_auto_ended || false,
+                        lunchOvertime: item.lunch_overtime || false,
+                        lastSync: item.last_updated || item.created_at
                     }));
                     
-                    // Hợp nhất dữ liệu
-                    workData = mergeData(workData, supabaseData);
-                    saveLocalData();
+                    // Merge với dữ liệu local
+                    const localMap = new Map();
+                    workData.forEach(record => {
+                        localMap.set(record.id, record);
+                    });
+                    
+                    supabaseData.forEach(record => {
+                        if (!localMap.has(record.id)) {
+                            workData.push(record);
+                        }
+                    });
+                    
+                    // Sắp xếp theo thời gian
+                    workData.sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    // Lưu dữ liệu đã merge
+                    saveData();
                     updateHistory();
                     
-                    updateSupabaseStatus(`✅ Đã tải ${data.length} bản ghi`);
-                    showNotification(`☁️ Đã tải ${data.length} bản ghi từ đám mây`);
-                }
-            } catch (error) {
-                console.error('Lỗi tải từ Supabase:', error);
-            }
-        }
-        
-        async function saveToSupabase() {
-            if (!isSupabaseConnected || workData.length === 0) return false;
-            
-            try {
-                updateSupabaseStatus('🔄 Đang lưu lên đám mây...');
-                
-                const recordsToSave = workData.map(record => ({
-                    work_date: new Date(record.timestamp).toISOString().split('T')[0],
-                    start_time: record.startTime,
-                    end_time: record.endTime,
-                    total_hours: parseFloat(record.totalHours) || 0,
-                    overtime: parseFloat(record.overtime) || 0,
-                    is_weekday: record.isWeekday || false,
-                    lunch_overtime: record.lunchOvertime || false
-                }));
-                
-                const { error } = await supabase
-                    .from('work_records')
-                    .upsert(recordsToSave, { onConflict: 'work_date' });
-                
-                if (error) throw error;
-                
-                updateSupabaseStatus('✅ Đã lưu lên đám mây');
-                return true;
-            } catch (error) {
-                console.error('Lỗi lưu lên Supabase:', error);
-                updateSupabaseStatus('❌ Lỗi lưu dữ liệu');
-                return false;
-            }
-        }
-        
-        function mergeData(localData, cloudData) {
-            const merged = [...localData];
-            
-            cloudData.forEach(cloudRecord => {
-                const existingIndex = merged.findIndex(local => local.date === cloudRecord.date);
-                if (existingIndex === -1) {
-                    merged.push(cloudRecord);
+                    showSyncStatus(`Đã tải ${data.length} bản ghi`);
+                    setTimeout(() => hideSyncStatus(), 3000);
+                    showNotification(`✅ Đã tải ${data.length} bản ghi từ Supabase`, 'success');
                 } else {
-                    // Ưu tiên dữ liệu mới hơn
-                    if (cloudRecord.timestamp > merged[existingIndex].timestamp) {
-                        merged[existingIndex] = cloudRecord;
-                    }
+                    showSyncStatus('Không có dữ liệu mới');
+                    setTimeout(() => hideSyncStatus(), 2000);
+                    console.log('📭 Không có dữ liệu trên Supabase');
                 }
-            });
-            
-            // Sắp xếp theo thời gian
-            return merged.sort((a, b) => b.timestamp - a.timestamp);
-        }
-        
-        function updateSupabaseStatus(text) {
-            const status = document.getElementById('supabaseStatus');
-            const textEl = document.getElementById('supabaseStatusText');
-            
-            if (status && textEl) {
-                textEl.textContent = text;
-                status.style.display = 'flex';
+                
+            } catch (error) {
+                console.error('❌ Lỗi tải dữ liệu từ Supabase:', error);
+                showSyncStatus('Lỗi tải dữ liệu');
+                setTimeout(() => hideSyncStatus(), 3000);
+                showNotification('❌ Lỗi tải dữ liệu từ Supabase', 'danger');
+            } finally {
+                isSyncing = false;
             }
         }
         
-        // ==================== CORE FUNCTIONS ====================
+        async function syncAllData() {
+            if (isSyncing) {
+                showNotification('⏳ Đang đồng bộ, vui lòng đợi...', 'warning');
+                return;
+            }
+            
+            showNotification('🔄 Bắt đầu đồng bộ hai chiều...', 'info');
+            
+            // Đầu tiên tải dữ liệu từ server
+            await loadFromSupabase();
+            
+            // Sau đó đồng bộ dữ liệu local lên server
+            setTimeout(async () => {
+                await syncToSupabase();
+            }, 1000);
+        }
+        
+        function showSyncStatus(text) {
+            const statusEl = document.getElementById('syncStatus');
+            const textEl = document.getElementById('syncStatusText');
+            
+            textEl.textContent = text;
+            statusEl.style.display = 'flex';
+        }
+        
+        function hideSyncStatus() {
+            document.getElementById('syncStatus').style.display = 'none';
+        }
+        
+        function setupAutoSync() {
+            // Đồng bộ mỗi 30 giây
+            syncInterval = setInterval(() => {
+                if (workData.length > 0 && !isSyncing) {
+                    syncToSupabase();
+                }
+            }, SYNC_INTERVAL);
+            
+            // Đồng bộ khi có thay đổi dữ liệu
+            setupSyncOnDataChange();
+            
+            console.log('🔧 Hệ thống tự động đồng bộ đã sẵn sàng');
+        }
+        
+        function setupSyncOnDataChange() {
+            let lastDataHash = '';
+            
+            setInterval(() => {
+                const currentHash = JSON.stringify(workData).length + '-' + workData.length;
+                
+                if (currentHash !== lastDataHash) {
+                    lastDataHash = currentHash;
+                    
+                    // Đồng bộ sau 10 giây nếu có thay đổi
+                    clearTimeout(window.syncChangeTimeout);
+                    window.syncChangeTimeout = setTimeout(() => {
+                        syncToSupabase();
+                    }, 10000);
+                }
+            }, 5000);
+        }
+        
+        // ==================== SYNC MODAL ====================
+        function showSyncModal() {
+            const lastSync = localStorage.getItem('chamcong_last_sync');
+            const lastSyncStr = lastSync ? 
+                new Date(lastSync).toLocaleDateString('vi-VN') + ' ' + 
+                new Date(lastSync).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 
+                'Chưa có';
+            
+            const content = `
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 48px; color: #5856D6; margin-bottom: 15px;">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <h3 style="margin-bottom: 10px;">Đồng bộ Supabase</h3>
+                    <p style="color: #8E8E93; margin-bottom: 20px;">
+                        Tổng bản ghi: <strong>${workData.length}</strong><br>
+                        Lần đồng bộ cuối: <strong>${lastSyncStr}</strong><br>
+                        Trạng thái: <strong id="syncStatusText">${isSyncing ? 'Đang đồng bộ...' : 'Sẵn sàng'}</strong>
+                    </p>
+                </div>
+                
+                <div style="display: grid; gap: 10px; margin: 20px 0;">
+                    <button class="btn btn-full" style="background-color: #5856D6;" id="syncUpBtn">
+                        <i class="fas fa-cloud-upload-alt"></i> Đồng bộ lên Supabase
+                    </button>
+                    
+                    <button class="btn btn-full" style="background-color: #007AFF;" id="syncDownBtn">
+                        <i class="fas fa-cloud-download-alt"></i> Tải từ Supabase
+                    </button>
+                    
+                    <button class="btn btn-full" style="background-color: #34C759;" id="syncBothBtn">
+                        <i class="fas fa-sync-alt"></i> Đồng bộ hai chiều
+                    </button>
+                    
+                    <button class="btn btn-full" style="background-color: #8E8E93;" id="clearSyncBtn">
+                        <i class="fas fa-trash"></i> Xóa lịch sử đồng bộ
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background-color: rgba(88,86,214,0.1); border-radius: 12px;">
+                    <h4 style="color: #5856D6; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-info-circle"></i> Thông tin đồng bộ
+                    </h4>
+                    <p style="font-size: 13px; color: #8E8E93;">
+                        • Tự động đồng bộ mỗi 30 giây<br>
+                        • Đồng bộ khi có thay đổi dữ liệu<br>
+                        • Dữ liệu được lưu trên cloud an toàn<br>
+                        • Có thể truy cập từ nhiều thiết bị
+                    </p>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 12px; background: rgba(88,86,214,0.1); border-radius: 10px;">
+                    <div style="font-size: 12px; color: #5856D6; text-align: center;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Dữ liệu local và cloud sẽ được đồng bộ hai chiều
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('syncContent').innerHTML = content;
+            document.getElementById('syncModal').style.display = 'flex';
+            
+            // Cập nhật trạng thái đồng bộ
+            document.getElementById('syncStatusText').textContent = isSyncing ? 'Đang đồng bộ...' : 'Sẵn sàng';
+            
+            setTimeout(() => {
+                document.getElementById('syncUpBtn').addEventListener('click', () => {
+                    hideModal('syncModal');
+                    syncToSupabase();
+                });
+                
+                document.getElementById('syncDownBtn').addEventListener('click', () => {
+                    hideModal('syncModal');
+                    loadFromSupabase();
+                });
+                
+                document.getElementById('syncBothBtn').addEventListener('click', () => {
+                    hideModal('syncModal');
+                    syncAllData();
+                });
+                
+                document.getElementById('clearSyncBtn').addEventListener('click', () => {
+                    if (confirm('Xóa lịch sử đồng bộ? Dữ liệu vẫn giữ nguyên trên cả local và cloud.')) {
+                        localStorage.removeItem('chamcong_last_sync');
+                        workData.forEach(record => {
+                            delete record.lastSync;
+                        });
+                        saveData();
+                        showNotification('🗑️ Đã xóa lịch sử đồng bộ', 'success');
+                        hideModal('syncModal');
+                    }
+                });
+            }, 100);
+        }
+        
+        // ==================== TIME FUNCTIONS ====================
         function initTime() {
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
@@ -721,6 +1639,9 @@
         function updateCurrentTime() {
             const now = new Date();
             today = now;
+            dayOfWeek = today.getDay();
+            isSunday = (dayOfWeek === 0);
+            isWeekday = (dayOfWeek >= 1 && dayOfWeek <= 6);
             
             const dateStr = now.toLocaleDateString('vi-VN', { 
                 weekday: 'long', 
@@ -738,18 +1659,29 @@
             document.getElementById('currentDate').textContent = dateStr;
             document.getElementById('currentTime').textContent = timeStr;
             
-            // Cập nhật thứ
-            const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
-            const dayName = dayNames[today.getDay()];
-            document.getElementById('dayName').textContent = dayName;
-            
-            // Kiểm tra tự động bắt đầu
+            updateDayName();
             checkAutoStart();
+            checkAutoEnd();
         }
         
-        async function startWork() {
+        function updateDayName() {
+            const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+            const dayName = dayNames[dayOfWeek];
+            
+            document.getElementById('dayName').textContent = dayName;
+            
+            const dayIndicator = document.getElementById('dayIndicator');
+            if (isSunday) {
+                dayIndicator.classList.add('sunday');
+            } else {
+                dayIndicator.classList.remove('sunday');
+            }
+        }
+        
+        // ==================== WORK CONTROL ====================
+        function startWork() {
             if (isWorking) {
-                showNotification('⚠️ Bạn đã bắt đầu làm việc!');
+                showNotification('⚠️ Bạn đã bắt đầu làm việc trước đó!', 'warning');
                 return;
             }
             
@@ -760,20 +1692,23 @@
             document.getElementById('workStatus').textContent = '🟢 Đang làm việc';
             document.getElementById('workStatus').style.color = '#34C759';
             
-            startTimer();
             updateButtonStates();
+            startTimer();
             
-            // Lưu vào Supabase
-            if (isSupabaseConnected) {
-                await saveCurrentWorkToSupabase();
-            }
-            
-            showNotification('🚀 Đã bắt đầu làm việc');
+            showNotification('🚀 Đã bắt đầu làm việc', 'success');
         }
         
-        async function endWork() {
+        function endWork() {
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            
+            if (todayRecord && todayRecord.endTime) {
+                showUpdateConfirmation(todayRecord);
+                return;
+            }
+            
             if (!isWorking) {
-                showNotification('⚠️ Bạn chưa bắt đầu làm việc!');
+                showNotification('⚠️ Bạn chưa bắt đầu làm việc!', 'warning');
                 return;
             }
             
@@ -782,81 +1717,94 @@
             
             stopTimer();
             
-            const totalHours = calculateTotalHours(workStartTime, workEndTime);
-            const overtimeHours = calculateOvertime(workStartTime, workEndTime);
+            const workDuration = calculateWorkDuration(workStartTime, workEndTime);
+            let overtime = calculateOvertime(workStartTime, workEndTime);
             
             document.getElementById('endTime').textContent = formatTime(workEndTime);
-            document.getElementById('totalTime').textContent = totalHours.toFixed(2) + ' giờ';
-            document.getElementById('overtime').textContent = overtimeHours.toFixed(2) + ' giờ';
-            document.getElementById('workStatus').textContent = '🟡 Đã tan ca';
+            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = '🟡 Đã kết thúc làm việc';
+            document.getElementById('workStatus').style.color = '#FF9500';
+            
+            updateButtonStates();
+            saveWorkRecord(workStartTime, workEndTime, workDuration, overtime);
+            
+            showNotification(`🏁 Đã tan ca. Tăng ca: ${overtime.toFixed(2)} giờ`, 'success');
+        }
+        
+        function showUpdateConfirmation(todayRecord) {
+            const newEndTime = new Date();
+            const oldEndTime = todayRecord.endTime;
+            
+            pendingUpdateData = {
+                dateStr: formatDate(today),
+                newEndTime: newEndTime,
+                todayRecord: todayRecord
+            };
+            
+            document.getElementById('oldEndTime').textContent = oldEndTime;
+            document.getElementById('newEndTime').textContent = formatTime(newEndTime);
+            document.getElementById('confirmUpdateDialog').style.display = 'flex';
+        }
+        
+        function confirmUpdate() {
+            if (!pendingUpdateData) return;
+            
+            const { dateStr, newEndTime, todayRecord } = pendingUpdateData;
+            
+            const startTimeDate = new Date(todayRecord.timestamp);
+            
+            const workDuration = calculateWorkDuration(startTimeDate, newEndTime);
+            let overtime = calculateOvertime(startTimeDate, newEndTime);
+            
+            document.getElementById('endTime').textContent = formatTime(newEndTime);
+            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = '🟡 Đã cập nhật giờ tan ca mới';
             document.getElementById('workStatus').style.color = '#FF9500';
             
             updateButtonStates();
             
-            // Lưu bản ghi
-            const record = saveWorkRecord(workStartTime, workEndTime, totalHours, overtimeHours);
+            updateWorkRecordWithNewEndTime(dateStr, newEndTime, workDuration, overtime);
             
-            // Lưu vào Supabase
-            if (isSupabaseConnected) {
-                await saveRecordToSupabase(record);
-            }
+            showNotification(`🏁 Đã cập nhật giờ tan ca mới: ${formatTime(newEndTime)}`, 'success');
             
-            showNotification(`🏁 Đã tan ca. Tăng ca: ${overtimeHours.toFixed(2)} giờ`);
+            hideUpdateConfirmation();
+            pendingUpdateData = null;
         }
         
-        async function saveCurrentWorkToSupabase() {
-            if (!isSupabaseConnected) return;
-            
-            try {
-                const record = {
-                    work_date: today.toISOString().split('T')[0],
-                    start_time: formatTime(workStartTime),
-                    end_time: null,
-                    total_hours: 0,
-                    overtime: 0,
-                    is_weekday: (today.getDay() >= 1 && today.getDay() <= 6),
-                    lunch_overtime: false
-                };
-                
-                const { error } = await supabase
-                    .from('work_records')
-                    .upsert([record], { onConflict: 'work_date' });
-                
-                if (error) throw error;
-            } catch (error) {
-                console.error('Lỗi lưu công việc hiện tại:', error);
-            }
+        function cancelUpdate() {
+            hideUpdateConfirmation();
+            pendingUpdateData = null;
+            showNotification('❌ Đã hủy cập nhật giờ tan ca', 'info');
         }
         
-        async function saveRecordToSupabase(record) {
-            if (!isSupabaseConnected) return;
+        function hideUpdateConfirmation() {
+            document.getElementById('confirmUpdateDialog').style.display = 'none';
+        }
+        
+        function updateWorkRecordWithNewEndTime(dateStr, newEndTime, totalHours, overtime) {
+            const index = workData.findIndex(record => record.date === dateStr);
             
-            try {
-                const supabaseRecord = {
-                    work_date: new Date(record.timestamp).toISOString().split('T')[0],
-                    start_time: record.startTime,
-                    end_time: record.endTime,
-                    total_hours: parseFloat(record.totalHours),
-                    overtime: parseFloat(record.overtime),
-                    is_weekday: record.isWeekday,
-                    lunch_overtime: record.lunchOvertime || false
-                };
+            if (index >= 0) {
+                workData[index].endTime = formatTime(newEndTime);
+                workData[index].totalHours = totalHours.toFixed(2);
+                workData[index].overtime = overtime.toFixed(2);
+                workData[index].isAutoEnded = false;
                 
-                const { error } = await supabase
-                    .from('work_records')
-                    .upsert([supabaseRecord], { onConflict: 'work_date' });
-                
-                if (error) throw error;
-            } catch (error) {
-                console.error('Lỗi lưu bản ghi:', error);
+                saveData();
+                updateHistory();
             }
         }
         
         function checkAutoStart() {
-            if (autoStartTriggered || today.getDay() === 0 || today.getDay() === 6) return;
+            if (autoStartTriggered || !isWeekday) return;
             
             const now = new Date();
-            if (now.getHours() === 7 && now.getMinutes() >= 45) {
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            if (currentHour === 7 && currentMinute >= 45) {
                 autoStartWork();
             }
         }
@@ -864,60 +1812,133 @@
         function autoStartWork() {
             autoStartTriggered = true;
             
-            const startTime = new Date(today);
-            startTime.setHours(7, 45, 0, 0);
+            const startTimeToday = new Date(today);
+            startTimeToday.setHours(7, 45, 0, 0);
             
-            workStartTime = startTime;
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            
+            if (todayRecord) return;
+            
+            workStartTime = startTimeToday;
             isWorking = true;
             
             document.getElementById('startTime').textContent = '07:45';
-            document.getElementById('workStatus').textContent = '🟢 Đang làm việc (tự động)';
+            document.getElementById('workStatus').textContent = '🟢 Đang làm việc (tự động 7:45)';
+            document.getElementById('workStatus').style.color = '#34C759';
             
-            startTimer();
+            const autoStartInfo = document.getElementById('autoStartInfo');
+            autoStartInfo.style.display = 'flex';
+            
             updateButtonStates();
+            startTimer();
+            createAutoWorkRecord();
             
-            showNotification('🤖 Tự động bắt đầu làm việc lúc 7:45');
+            showNotification('🤖 Tự động bắt đầu làm việc từ 7:45', 'info');
+        }
+        
+        function checkAutoEnd() {
+            if (!isWorking || !isWeekday) return;
+            
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            if (currentHour === 17 && currentMinute >= 0) {
+                autoEndWork();
+            }
+        }
+        
+        function autoEndWork() {
+            const endTimeToday = new Date(today);
+            endTimeToday.setHours(17, 0, 0, 0);
+            
+            workEndTime = endTimeToday;
+            isWorking = false;
+            
+            stopTimer();
+            
+            const workDuration = calculateWorkDuration(workStartTime, workEndTime);
+            let overtime = calculateOvertime(workStartTime, workEndTime);
+            
+            document.getElementById('endTime').textContent = '17:00';
+            document.getElementById('totalTime').innerHTML = `${workDuration.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}<span class="info-unit">giờ</span>`;
+            document.getElementById('workStatus').textContent = '🟡 Đã kết thúc làm việc (tự động 17:00)';
+            document.getElementById('workStatus').style.color = '#FF9500';
+            
+            updateButtonStates();
+            saveWorkRecord(workStartTime, workEndTime, workDuration, overtime, true);
+            
+            showNotification(`⏰ Tự động tan ca 17:00. Tăng ca: ${overtime.toFixed(2)} giờ`, 'info');
         }
         
         function updateButtonStates() {
             const startBtn = document.getElementById('startWorkBtn');
             const endBtn = document.getElementById('endWorkBtn');
             
+            const todayStr = formatDate(today);
+            const todayRecord = workData.find(record => record.date === todayStr);
+            const hasEndedToday = todayRecord && todayRecord.endTime;
+            
             if (isWorking) {
                 startBtn.disabled = true;
                 endBtn.disabled = false;
+                endBtn.innerHTML = '<i class="fas fa-stop"></i> 🏁 Tan ca';
+                endBtn.title = "";
+            } else if (hasEndedToday) {
+                startBtn.disabled = false;
+                endBtn.disabled = false;
+                endBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 🔄 Cập nhật giờ tan ca';
+                endBtn.title = "Nhấn để cập nhật giờ tan ca mới";
             } else {
                 startBtn.disabled = false;
                 endBtn.disabled = true;
+                endBtn.innerHTML = '<i class="fas fa-stop"></i> 🏁 Tan ca';
+                endBtn.title = "";
             }
         }
         
         // ==================== CALCULATION FUNCTIONS ====================
-        function calculateTotalHours(start, end) {
-            const diffMs = end - start;
+        function calculateWorkDuration(startTime, endTime) {
+            const diffMs = endTime - startTime;
             return diffMs / (1000 * 60 * 60);
         }
         
-        function calculateOvertime(start, end) {
-            // Chủ nhật: toàn bộ là tăng ca
-            if (today.getDay() === 0) {
-                return calculateTotalHours(start, end);
+        function calculateOvertime(startTime, endTime) {
+            if (isSunday) {
+                return calculateWorkDuration(startTime, endTime);
             }
             
             let overtime = 0;
             
-            // Trước 7:45
-            const standardStart = new Date(start);
-            standardStart.setHours(7, 45, 0, 0);
-            if (start < standardStart) {
-                overtime += calculateTotalHours(start, standardStart);
+            const standardStart = parseTime(STANDARD_START_TIME);
+            standardStart.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+            
+            if (startTime < standardStart) {
+                overtime += calculateWorkDuration(startTime, standardStart);
             }
             
-            // Sau 17:00
-            const standardEnd = new Date(start);
-            standardEnd.setHours(17, 0, 0, 0);
-            if (end > standardEnd) {
-                overtime += calculateTotalHours(standardEnd, end);
+            const standardEnd = parseTime(STANDARD_END_TIME);
+            standardEnd.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+            
+            if (endTime > standardEnd) {
+                overtime += calculateWorkDuration(standardEnd, endTime);
+            }
+            
+            const dateStr = formatDate(startTime);
+            const lunchOvertime = getLunchOvertimeForDate(dateStr);
+            
+            if (lunchOvertime) {
+                const lunchStart = parseTime('12:00');
+                const lunchEnd = parseTime('13:00');
+                
+                lunchStart.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+                lunchEnd.setFullYear(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+                
+                if (startTime <= lunchEnd && endTime >= lunchStart) {
+                    overtime += 1;
+                }
             }
             
             return overtime;
@@ -934,682 +1955,27 @@
             return date.toLocaleDateString('vi-VN');
         }
         
-        // ==================== TIMER ====================
-        function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            
-            timerInterval = setInterval(() => {
-                if (workStartTime && isWorking) {
-                    const now = new Date();
-                    const totalHours = calculateTotalHours(workStartTime, now);
-                    const overtimeHours = calculateOvertime(workStartTime, now);
-                    
-                    document.getElementById('totalTime').textContent = totalHours.toFixed(2) + ' giờ';
-                    document.getElementById('overtime').textContent = overtimeHours.toFixed(2) + ' giờ';
-                }
-            }, 1000);
-        }
-        
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-        
-        // ==================== DATA MANAGEMENT ====================
-        function saveWorkRecord(startTime, endTime, totalHours, overtimeHours) {
-            const record = {
-                id: Date.now(),
-                date: formatDate(today),
-                startTime: formatTime(startTime),
-                endTime: formatTime(endTime),
-                totalHours: totalHours.toFixed(2),
-                overtime: overtimeHours.toFixed(2),
-                timestamp: startTime.getTime(),
-                isWeekday: (today.getDay() >= 1 && today.getDay() <= 6),
-                lunchOvertime: false
-            };
-            
-            // Kiểm tra nếu đã có bản ghi hôm nay
-            const existingIndex = workData.findIndex(r => r.date === record.date);
-            if (existingIndex >= 0) {
-                workData[existingIndex] = record;
-            } else {
-                workData.unshift(record);
-            }
-            
-            saveLocalData();
-            updateHistory();
-            
-            return record;
-        }
-        
-        function saveLocalData() {
-            try {
-                localStorage.setItem('chamcong_work_data', JSON.stringify(workData));
-                localStorage.setItem('chamcong_basic_salary', basicSalary.toString());
-                updateSaveTime();
-            } catch (error) {
-                console.error('Lỗi lưu dữ liệu:', error);
-            }
-        }
-        
-        function loadAllData() {
-            try {
-                // Load work data
-                const savedData = localStorage.getItem('chamcong_work_data');
-                if (savedData) {
-                    workData = JSON.parse(savedData);
-                }
-                
-                // Load salary
-                const savedSalary = localStorage.getItem('chamcong_basic_salary');
-                if (savedSalary) {
-                    basicSalary = parseInt(savedSalary) || 0;
-                }
-                
-                updateHistory();
-                checkTodayStatus();
-                updateSaveTime();
-            } catch (error) {
-                console.error('Lỗi tải dữ liệu:', error);
-                workData = [];
-            }
-        }
-        
-        function checkTodayStatus() {
-            const todayStr = formatDate(today);
-            const todayRecord = workData.find(record => record.date === todayStr);
-            
-            if (todayRecord) {
-                document.getElementById('startTime').textContent = todayRecord.startTime;
-                
-                if (todayRecord.endTime) {
-                    document.getElementById('endTime').textContent = todayRecord.endTime;
-                    document.getElementById('totalTime').textContent = todayRecord.totalHours + ' giờ';
-                    document.getElementById('overtime').textContent = todayRecord.overtime + ' giờ';
-                    document.getElementById('workStatus').textContent = '🟡 Đã tan ca';
-                } else {
-                    workStartTime = new Date(todayRecord.timestamp);
-                    isWorking = true;
-                    document.getElementById('workStatus').textContent = '🟢 Đang làm việc';
-                    startTimer();
-                }
-            }
-            
-            updateButtonStates();
-        }
-        
-        function updateHistory() {
-            const historyContainer = document.getElementById('workHistory');
-            
-            if (workData.length === 0) {
-                historyContainer.innerHTML = `
-                    <div style="text-align: center; padding: 30px; color: #8E8E93;">
-                        <i class="fas fa-history" style="font-size: 40px; margin-bottom: 10px;"></i>
-                        <p>Chưa có dữ liệu chấm công</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            workData.forEach(record => {
-                html += `
-                    <div class="history-item" onclick="showEditModal('${record.date}')">
-                        <div>
-                            <div class="history-date">
-                                ${record.isWeekday ? '📅' : '🎯'} ${record.date}
-                            </div>
-                            <div class="history-time">
-                                ${record.startTime} - ${record.endTime || '--:--'}
-                            </div>
-                        </div>
-                        <div class="history-overtime">
-                            ${record.endTime ? `💰 +${record.overtime}h` : '🟢 Đang làm'}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            historyContainer.innerHTML = html;
-        }
-        
-        function updateSaveTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            document.getElementById('lastSaveTime').textContent = `Lưu: ${timeStr}`;
-        }
-        
-        // ==================== MODAL FUNCTIONS ====================
-        function showSalaryModal() {
-            const content = `
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Lương tháng (VNĐ)</label>
-                    <input type="number" id="salaryInput" value="${basicSalary || ''}" 
-                           style="width: 100%; padding: 12px; border: 2px solid #F2F2F7; border-radius: 8px; font-size: 16px;"
-                           placeholder="Nhập lương tháng">
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Chọn tháng</label>
-                    <select id="monthSelect" style="width: 100%; padding: 12px; border: 2px solid #F2F2F7; border-radius: 8px; font-size: 16px;">
-                        <option value="">Chọn tháng...</option>
-                    </select>
-                </div>
-                
-                <button class="btn btn-salary" onclick="calculateSalary()" style="margin-top: 0;">
-                    <i class="fas fa-calculator"></i> Tính Lương
-                </button>
-                
-                <div id="salaryResult" style="margin-top: 20px; padding: 15px; background: #F2F2F7; border-radius: 8px; display: none;"></div>
-            `;
-            
-            document.getElementById('salaryContent').innerHTML = content;
-            document.getElementById('salaryModal').style.display = 'flex';
-            
-            populateMonthSelect();
-        }
-        
-        function populateMonthSelect() {
-            const select = document.getElementById('monthSelect');
-            const months = new Set();
-            
-            workData.forEach(record => {
-                const date = new Date(record.timestamp);
-                const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
-                months.add(monthYear);
-            });
-            
-            select.innerHTML = '<option value="">Chọn tháng...</option>';
-            months.forEach(monthYear => {
-                const [month, year] = monthYear.split('/');
-                const option = document.createElement('option');
-                option.value = monthYear;
-                option.textContent = `Tháng ${month}/${year}`;
-                select.appendChild(option);
-            });
-        }
-        
-        function calculateSalary() {
-            const salaryInput = document.getElementById('salaryInput');
-            const salary = parseInt(salaryInput.value) || 0;
-            const monthYear = document.getElementById('monthSelect').value;
-            
-            if (!salary || !monthYear) {
-                showNotification('⚠️ Vui lòng nhập đầy đủ thông tin');
-                return;
-            }
-            
-            // Lưu lương
-            basicSalary = salary;
-            localStorage.setItem('chamcong_basic_salary', salary.toString());
-            
-            const [month, year] = monthYear.split('/').map(Number);
-            
-            // Lọc dữ liệu
-            const monthData = workData.filter(record => {
-                const recordDate = new Date(record.timestamp);
-                return recordDate.getMonth() + 1 === month && 
-                       recordDate.getFullYear() === year &&
-                       record.endTime;
-            });
-            
-            // Tính lương
-            let totalOvertime = 0;
-            monthData.forEach(record => {
-                totalOvertime += parseFloat(record.overtime) || 0;
-            });
-            
-            const hourlySalary = (salary / 26 / 8) * 2; // Lương tăng ca/giờ
-            const totalSalary = totalOvertime * hourlySalary;
-            
-            // Hiển thị kết quả
-            const resultDiv = document.getElementById('salaryResult');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `
-                <h4 style="margin-bottom: 10px;">Kết quả tính lương</h4>
-                <div style="font-size: 24px; font-weight: 700; color: #5856D6; margin: 10px 0;">
-                    ${formatCurrency(totalSalary)}
-                </div>
-                <div style="font-size: 14px; color: #8E8E93;">
-                    <div>Tổng giờ tăng ca: <strong>${totalOvertime.toFixed(2)} giờ</strong></div>
-                    <div>Số ngày: <strong>${monthData.length} ngày</strong></div>
-                    <div>Lương tháng: <strong>${formatCurrency(salary)}</strong></div>
-                </div>
-            `;
+        function parseTime(timeStr) {
+            if (!timeStr) return null;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours, minutes, 0, 0);
+            return date;
         }
         
         function formatCurrency(amount) {
+            if (!amount) return '0 VNĐ';
             return amount.toLocaleString('vi-VN', {
                 style: 'currency',
                 currency: 'VND'
             });
         }
         
-        function showBackupModal() {
-            const content = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <p style="color: #8E8E93; margin-bottom: 20px;">
-                        Tổng: <strong>${workData.length}</strong> bản ghi
-                    </p>
-                </div>
-                
-                <button class="btn" onclick="exportData()" style="background-color: #34C759;">
-                    <i class="fas fa-file-export"></i> Xuất dữ liệu
-                </button>
-                
-                <button class="btn" onclick="importData()" style="background-color: #007AFF; margin-top: 10px;">
-                    <i class="fas fa-file-import"></i> Nhập dữ liệu
-                </button>
-                
-                <div style="margin-top: 20px; padding: 15px; background: #F2F2F7; border-radius: 8px;">
-                    <p style="font-size: 14px; color: #8E8E93; text-align: center;">
-                        <i class="fas fa-info-circle"></i> Dữ liệu sẽ được lưu vào file JSON
-                    </p>
-                </div>
-            `;
-            
-            document.getElementById('backupContent').innerHTML = content;
-            document.getElementById('backupModal').style.display = 'flex';
-        }
-        
-        function exportData() {
-            try {
-                const backupData = {
-                    workData: workData,
-                    basicSalary: basicSalary,
-                    timestamp: new Date().toISOString()
-                };
-                
-                const dataStr = JSON.stringify(backupData, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `chamcong_backup_${new Date().toISOString().slice(0,10)}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showNotification('✅ Đã xuất dữ liệu thành công');
-                hideModal('backupModal');
-            } catch (error) {
-                showNotification('❌ Lỗi xuất dữ liệu');
+        // ==================== LUNCH OVERTIME MANAGEMENT ====================
+        function getLunchOvertimeForDate(dateStr) {
+            if (!lunchOvertimeSettings[dateStr]) {
+                return false;
             }
+            return lunchOvertimeSettings[dateStr];
         }
         
-        function importData() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            
-            input.onchange = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const backupData = JSON.parse(e.target.result);
-                        
-                        if (!backupData.workData) {
-                            throw new Error('File không hợp lệ');
-                        }
-                        
-                        if (confirm(`Nhập ${backupData.workData.length} bản ghi? Dữ liệu cũ sẽ được thêm vào.`)) {
-                            workData = [...backupData.workData, ...workData];
-                            if (backupData.basicSalary) {
-                                basicSalary = backupData.basicSalary;
-                            }
-                            
-                            saveLocalData();
-                            updateHistory();
-                            
-                            // Đồng bộ lên Supabase
-                            if (isSupabaseConnected) {
-                                saveToSupabase();
-                            }
-                            
-                            showNotification(`✅ Đã nhập ${backupData.workData.length} bản ghi`);
-                            hideModal('backupModal');
-                        }
-                    } catch (error) {
-                        showNotification('❌ File không hợp lệ');
-                    }
-                };
-                
-                reader.readAsText(file);
-            };
-            
-            input.click();
-        }
-        
-        function showMonthCalendar() {
-            renderCalendar();
-            document.getElementById('monthCalendarModal').style.display = 'flex';
-        }
-        
-        function renderCalendar() {
-            const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-                               'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-            
-            const firstDay = new Date(currentYear, currentMonth, 1);
-            const lastDay = new Date(currentYear, currentMonth + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const firstDayIndex = firstDay.getDay();
-            
-            let html = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <div style="font-size: 18px; font-weight: 600;">${monthNames[currentMonth]} ${currentYear}</div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="prevMonth()" style="padding: 8px; background: #F2F2F7; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button onclick="todayMonth()" style="padding: 8px 12px; background: #007AFF; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            Hôm nay
-                        </button>
-                        <button onclick="nextMonth()" style="padding: 8px; background: #F2F2F7; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 10px; text-align: center;">
-                    <div>CN</div><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">
-            `;
-            
-            // Ngày trống đầu tháng
-            for (let i = 0; i < firstDayIndex; i++) {
-                html += `<div style="aspect-ratio: 1; display: flex; align-items: center; justify-content: center;"></div>`;
-            }
-            
-            // Các ngày trong tháng
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(currentYear, currentMonth, day);
-                const dateStr = formatDate(date);
-                const isToday = date.toDateString() === today.toDateString();
-                const dayData = workData.find(record => record.date === dateStr);
-                
-                let style = 'aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer;';
-                
-                if (isToday) {
-                    style += 'background: rgba(0,122,255,0.1); color: #007AFF; font-weight: 700;';
-                } else if (dayData) {
-                    style += 'background: rgba(52,199,89,0.1);';
-                }
-                
-                html += `
-                    <div style="${style}" onclick="showEditModal('${dateStr}')">
-                        ${day}
-                        ${dayData && parseFloat(dayData.overtime) > 0 ? 
-                          `<div style="font-size: 10px; color: #34C759;">+${parseFloat(dayData.overtime).toFixed(1)}h</div>` : ''}
-                    </div>
-                `;
-            }
-            
-            html += `</div>`;
-            
-            document.getElementById('monthCalendar').innerHTML = html;
-        }
-        
-        function prevMonth() {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            renderCalendar();
-        }
-        
-        function nextMonth() {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            renderCalendar();
-        }
-        
-        function todayMonth() {
-            const now = new Date();
-            currentMonth = now.getMonth();
-            currentYear = now.getFullYear();
-            renderCalendar();
-        }
-        
-        function showEditModal(dateStr) {
-            const dayData = workData.find(record => record.date === dateStr);
-            
-            let content = '';
-            
-            if (dayData) {
-                content = `
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h3>${dateStr}</h3>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label>Giờ bắt đầu</label>
-                        <input type="time" id="editStartTime" value="${dayData.startTime}" 
-                               style="width: 100%; padding: 12px; border: 2px solid #F2F2F7; border-radius: 8px; margin-top: 5px;">
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label>Giờ kết thúc</label>
-                        <input type="time" id="editEndTime" value="${dayData.endTime || ''}" 
-                               style="width: 100%; padding: 12px; border: 2px solid #F2F2F7; border-radius: 8px; margin-top: 5px;">
-                    </div>
-                    
-                    <button class="btn" onclick="saveEditedTime('${dateStr}')" style="background-color: #34C759;">
-                        <i class="fas fa-save"></i> Lưu thay đổi
-                    </button>
-                    
-                    <button class="btn" onclick="deleteRecord('${dateStr}')" style="background-color: #FF3B30; margin-top: 10px;">
-                        <i class="fas fa-trash"></i> Xóa bản ghi
-                    </button>
-                `;
-            } else {
-                content = `
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h3>Tạo bản ghi mới</h3>
-                        <p style="color: #8E8E93;">${dateStr}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label>Giờ bắt đầu</label>
-                        <input type="time" id="editStartTime" value="07:45" 
-                               style="width: 100%; padding: 12px; border: 2px solid #F2F2F7; border-radius: 8px; margin-top: 5px;">
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label>Giờ kết thúc</label>
-                        <input type="time" id="editEndTime" value="17:00" 
-                               style="width: 100%; padding: 12px; border: 2px solid #F2F2F7; border-radius: 8px; margin-top: 5px;">
-                    </div>
-                    
-                    <button class="btn" onclick="saveNewRecord('${dateStr}')" style="background-color: #007AFF;">
-                        <i class="fas fa-plus"></i> Tạo bản ghi
-                    </button>
-                `;
-            }
-            
-            document.getElementById('editTimeContent').innerHTML = content;
-            document.getElementById('editTimeModal').style.display = 'flex';
-        }
-        
-        async function saveEditedTime(dateStr) {
-            const startTime = document.getElementById('editStartTime').value;
-            const endTime = document.getElementById('editEndTime').value;
-            
-            if (!startTime) {
-                showNotification('⚠️ Vui lòng nhập giờ bắt đầu');
-                return;
-            }
-            
-            const date = parseDate(dateStr);
-            const startDate = new Date(date);
-            const [startHour, startMinute] = startTime.split(':');
-            startDate.setHours(startHour, startMinute, 0, 0);
-            
-            let totalHours = 0;
-            let overtime = 0;
-            
-            if (endTime) {
-                const endDate = new Date(date);
-                const [endHour, endMinute] = endTime.split(':');
-                endDate.setHours(endHour, endMinute, 0, 0);
-                
-                totalHours = calculateTotalHours(startDate, endDate);
-                overtime = calculateOvertime(startDate, endDate);
-            }
-            
-            const record = {
-                id: Date.now(),
-                date: dateStr,
-                startTime: startTime,
-                endTime: endTime || null,
-                totalHours: totalHours.toFixed(2),
-                overtime: overtime.toFixed(2),
-                timestamp: startDate.getTime(),
-                isWeekday: (date.getDay() >= 1 && date.getDay() <= 6),
-                lunchOvertime: false
-            };
-            
-            const index = workData.findIndex(r => r.date === dateStr);
-            if (index >= 0) {
-                workData[index] = record;
-            } else {
-                workData.unshift(record);
-            }
-            
-            saveLocalData();
-            updateHistory();
-            
-            // Lưu vào Supabase
-            if (isSupabaseConnected) {
-                await saveRecordToSupabase(record);
-            }
-            
-            showNotification('✅ Đã cập nhật bản ghi');
-            hideModal('editTimeModal');
-        }
-        
-        function saveNewRecord(dateStr) {
-            saveEditedTime(dateStr);
-        }
-        
-        async function deleteRecord(dateStr) {
-            if (!confirm(`Xóa bản ghi ngày ${dateStr}?`)) return;
-            
-            const index = workData.findIndex(r => r.date === dateStr);
-            if (index >= 0) {
-                workData.splice(index, 1);
-                saveLocalData();
-                updateHistory();
-                
-                // Xóa khỏi Supabase
-                if (isSupabaseConnected) {
-                    try {
-                        const date = parseDate(dateStr);
-                        const isoDate = date.toISOString().split('T')[0];
-                        
-                        const { error } = await supabase
-                            .from('work_records')
-                            .delete()
-                            .eq('work_date', isoDate);
-                        
-                        if (error) throw error;
-                    } catch (error) {
-                        console.error('Lỗi xóa từ Supabase:', error);
-                    }
-                }
-                
-                showNotification('🗑️ Đã xóa bản ghi');
-                hideModal('editTimeModal');
-            }
-        }
-        
-        function parseDate(dateStr) {
-            const [day, month, year] = dateStr.split('/').map(Number);
-            return new Date(year, month - 1, day);
-        }
-        
-        function hideModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-        
-        // ==================== UTILITY FUNCTIONS ====================
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            const messageEl = document.getElementById('notificationMessage');
-            
-            messageEl.textContent = message;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        function refreshData() {
-            loadAllData();
-            showNotification('🔄 Đã làm mới dữ liệu');
-        }
-        
-        // ==================== EVENT LISTENERS ====================
-        function setupEventListeners() {
-            // Control buttons
-            document.getElementById('startWorkBtn').addEventListener('click', startWork);
-            document.getElementById('endWorkBtn').addEventListener('click', endWork);
-            
-            // Modal buttons
-            document.getElementById('salaryBtn').addEventListener('click', showSalaryModal);
-            document.getElementById('backupBtn').addEventListener('click', showBackupModal);
-            document.getElementById('viewMonthBtn').addEventListener('click', showMonthCalendar);
-            document.getElementById('refreshBtn').addEventListener('click', refreshData);
-            document.getElementById('supabaseSyncBtn').addEventListener('click', async () => {
-                if (isSupabaseConnected) {
-                    await saveToSupabase();
-                } else {
-                    showNotification('❌ Chưa kết nối Supabase');
-                }
-            });
-            
-            // Close buttons
-            document.getElementById('closeSalaryModal').addEventListener('click', () => hideModal('salaryModal'));
-            document.getElementById('closeBackupModal').addEventListener('click', () => hideModal('backupModal'));
-            document.getElementById('closeMonthModal').addEventListener('click', () => hideModal('monthCalendarModal'));
-            document.getElementById('closeEditModal').addEventListener('click', () => hideModal('editTimeModal'));
-            
-            // Close modals on outside click
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        hideModal(this.id);
-                    }
-                });
-            });
-            
-            // Auto-save
-            setInterval(() => {
-                saveLocalData();
-            }, 30000);
-            
-            // Save before unload
-            window.addEventListener('beforeunload', () => {
-                saveLocalData();
-            });
-        }
-    </script>
-</body>
-</html>
