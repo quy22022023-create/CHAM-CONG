@@ -13,8 +13,38 @@
     <meta name="mobile-web-app-capable" content="yes">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="data:application/manifest+json,{&#34;name&#34;:&#34;Chấm Công&#34;,&#34;short_name&#34;:&#34;ChamCong&#34;,&#34;start_url&#34;:&#34;.&#34;,&#34;display&#34;:&#34;standalone&#34;,&#34;background_color&#34;:&#34;#007AFF&#34;,&#34;theme_color&#34;:&#34;#007AFF&#34;,&#34;icons&#34;:[{&#34;src&#34;:&#34;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='256' fill='%23007AFF'/><path fill='white' d='M378 224H134c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h244c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16z'/></svg>&#34;,&#34;sizes&#34;:&#34;512x512&#34;,&#34;type&#34;:&#34;image/svg+xml&#34;}]}">
-    
+<!-- PWA Manifest -->
+<link rel="manifest" id="app-manifest" href="javascript:void(0)">
+<script>
+    // Tạo manifest programmatically để tránh lỗi encoding
+    document.addEventListener('DOMContentLoaded', function() {
+        const manifest = {
+            "name": "⏱️ Chấm Công iOS",
+            "short_name": "Chấm Công",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#007AFF",
+            "theme_color": "#007AFF",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='256' fill='%23007AFF'/%3E%3Cpath fill='white' d='M378 224H134c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h244c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16z'/%3E%3C/svg%3E",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ],
+            "categories": ["productivity", "utilities"],
+            "description": "Ứng dụng chấm công thông minh cho iOS",
+            "orientation": "portrait",
+            "scope": "/"
+        };
+        
+        // Tạo blob và URL cho manifest
+        const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        const manifestURL = URL.createObjectURL(blob);
+        document.getElementById('app-manifest').href = manifestURL;
+    });
+</script>    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     
