@@ -151,6 +151,33 @@
         .stat-label { font-size: 13px; color: #8E8E93; margin-bottom: 6px; }
         .stat-value { font-size: 22px; font-weight: 700; color: #1C1C1E; }
         
+        /* Monthly Overtime Card */
+        .monthly-card {
+            background: linear-gradient(135deg, #FF9500, #FF3B30);
+            color: white;
+            margin: 16px;
+            padding: 20px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255,149,0,0.3);
+        }
+        
+        .monthly-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .monthly-value {
+            font-size: 32px;
+            font-weight: 800;
+        }
+        
+        .monthly-unit {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
         /* History */
         .history-list {
             max-height: 280px;
@@ -411,8 +438,13 @@
     <button class="btn btn-calendar" id="calendarBtn"><i class="fas fa-calendar-alt"></i> 📅 Lịch & Sửa tăng ca</button>
 </div>
 
+<!-- Hiển thị tổng giờ tăng ca trong tháng -->
+<div class="monthly-card" id="monthlyCard">
+    <div class="monthly-label"><i class="fas fa-chart-line"></i> Tổng tăng ca tháng này</div>
+    <div class="monthly-value" id="monthlyOvertime">0<span class="monthly-unit"> giờ</span></div>
+</div>
+
 <div class="card">
-    <div class="card-title"><i class="fas fa-history"></i> Lịch sử (nhấn để sửa)</div>
     <div class="history-list" id="historyList">
         <div style="text-align: center; padding: 30px; color: #8E8E93;">
             <i class="fas fa-spinner fa-pulse"></i> Đang tải...
@@ -526,6 +558,24 @@
         }
     }
     
+    // ==================== MONTHLY OVERTIME ====================
+    function updateMonthlyOvertime() {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        let totalOvertime = 0;
+        
+        workData.forEach(record => {
+            const [day, month, year] = record.date.split('/').map(Number);
+            if (month - 1 === currentMonth && year === currentYear) {
+                totalOvertime += parseFloat(record.overtime) || 0;
+            }
+        });
+        
+        document.getElementById('monthlyOvertime').innerHTML = `${totalOvertime.toFixed(1)}<span class="monthly-unit"> giờ</span>`;
+    }
+    
     // ==================== GOOGLE SHEETS API ====================
     async function loadFromSheets() {
         showLoading(true);
@@ -548,6 +598,7 @@
             }
             updateHistoryUI();
             updateTodayStatus();
+            updateMonthlyOvertime();
             return true;
         } catch (error) {
             console.error(error);
@@ -619,6 +670,7 @@
         await saveToSheets(updatedRecord);
         updateHistoryUI();
         updateTodayStatus();
+        updateMonthlyOvertime();
         
         if (selectedEditDate === dateStr) {
             displayEditPanel(dateStr);
@@ -635,6 +687,7 @@
             await saveToSheets({ date: dateStr, startTime: '', endTime: '', totalHours: '0', overtime: '0', isWeekday: false });
             updateHistoryUI();
             updateTodayStatus();
+            updateMonthlyOvertime();
             showToast("Đã xóa ngày " + dateStr);
             if (selectedEditDate === dateStr) {
                 document.getElementById('editPanel').style.display = 'none';
@@ -764,6 +817,7 @@
         
         updateHistoryUI();
         updateTodayStatus();
+        updateMonthlyOvertime();
         showToast("Đã bắt đầu làm việc");
     }
     
@@ -796,6 +850,7 @@
         
         updateHistoryUI();
         updateTodayStatus();
+        updateMonthlyOvertime();
         await saveToSheets(todayRecord);
         showToast(`Đã tan ca! Tăng ca: ${overtime.toFixed(2)} giờ`);
     }
