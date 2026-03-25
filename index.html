@@ -178,27 +178,20 @@
             font-weight: 500;
         }
         
-        /* History */
-        .history-list {
-            max-height: 280px;
-            overflow-y: auto;
+        /* Info Text */
+        .info-text {
+            text-align: center;
+            padding: 20px;
+            color: #8E8E93;
+            font-size: 14px;
+            background: white;
+            margin: 16px;
+            border-radius: 24px;
         }
         
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid #F2F2F7;
-            cursor: pointer;
-            transition: background 0.2s;
+        .info-text i {
+            margin-right: 8px;
         }
-        
-        .history-item:active { background: #F2F2F7; }
-        
-        .history-date { font-weight: 600; font-size: 15px; }
-        .history-time { font-size: 13px; color: #8E8E93; margin-top: 4px; }
-        .history-overtime { font-weight: 700; color: #34C759; font-size: 15px; }
         
         /* Calendar Modal */
         .modal {
@@ -395,9 +388,8 @@
         /* Dark mode */
         @media (prefers-color-scheme: dark) {
             body { background: #000; }
-            .time-card, .card, .modal-content { background: #1C1C1E; color: #fff; }
+            .time-card, .card, .modal-content, .info-text { background: #1C1C1E; color: #fff; }
             .stat-box, .calendar-day, .calendar-nav-btn, .edit-input { background: #2C2C2E; color: #fff; }
-            .history-item { border-bottom-color: #2C2C2E; }
             .calendar-day.has-data { background: #1E3A2A; }
             .calendar-day.has-overtime { background: #3E2A1E; }
         }
@@ -444,12 +436,9 @@
     <div class="monthly-value" id="monthlyOvertime">0<span class="monthly-unit"> giờ</span></div>
 </div>
 
-<div class="card">
-    <div class="history-list" id="historyList">
-        <div style="text-align: center; padding: 30px; color: #8E8E93;">
-            <i class="fas fa-spinner fa-pulse"></i> Đang tải...
-        </div>
-    </div>
+<!-- Thông báo thay thế lịch sử -->
+<div class="info-text">
+    <i class="fas fa-calendar-alt"></i> Nhấn vào "Lịch & Sửa tăng ca" để xem và chỉnh sửa dữ liệu theo tháng
 </div>
 
 <!-- Calendar Modal -->
@@ -596,7 +585,6 @@
             } else {
                 workData = [];
             }
-            updateHistoryUI();
             updateTodayStatus();
             updateMonthlyOvertime();
             return true;
@@ -628,6 +616,32 @@
             return true;
         } catch (error) {
             console.error(error);
+            return false;
+        }
+    }
+    
+    // ==================== DELETE FROM SHEETS ====================
+    async function deleteFromSheets(dateStr) {
+        try {
+            // Gửi một bản ghi rỗng để xóa (hoặc bạn có thể gửi flag xóa)
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    date: dateStr,
+                    startTime: '',
+                    endTime: '',
+                    totalHours: '0',
+                    overtime: '0',
+                    isWeekday: 'Không',
+                    lunchOvertime: 'Không',
+                    delete_flag: true
+                })
+            });
+            return true;
+        } catch (error) {
+            console.error("Lỗi xóa trên Sheets:", error);
             return false;
         }
     }
@@ -668,7 +682,6 @@
         workData.sort((a, b) => b.timestamp - a.timestamp);
         
         await saveToSheets(updatedRecord);
-        updateHistoryUI();
         updateTodayStatus();
         updateMonthlyOvertime();
         
@@ -684,8 +697,7 @@
         const index = workData.findIndex(r => r.date === dateStr);
         if (index >= 0) {
             workData.splice(index, 1);
-            await saveToSheets({ date: dateStr, startTime: '', endTime: '', totalHours: '0', overtime: '0', isWeekday: false });
-            updateHistoryUI();
+            await deleteFromSheets(dateStr);
             updateTodayStatus();
             updateMonthlyOvertime();
             showToast("Đã xóa ngày " + dateStr);
@@ -698,31 +710,6 @@
     }
     
     // ==================== UI UPDATE ====================
-    function updateHistoryUI() {
-        const container = document.getElementById('historyList');
-        if (!workData.length) {
-            container.innerHTML = `<div style="text-align:center;padding:30px;color:#8E8E93;"><i class="fas fa-calendar-alt"></i><br>Chưa có dữ liệu</div>`;
-            return;
-        }
-        
-        let html = '';
-        workData.forEach(record => {
-            const isToday = record.date === formatDate(currentDate);
-            html += `
-                <div class="history-item" onclick="openEditForDate('${record.date}')">
-                    <div>
-                        <div class="history-date" style="${isToday ? 'color:#007AFF' : ''}">
-                            ${record.isWeekday ? '📅' : '🎯'} ${record.date}
-                        </div>
-                        <div class="history-time">${record.startTime} - ${record.endTime || 'Đang làm'}</div>
-                    </div>
-                    <div class="history-overtime">${record.endTime ? `+${record.overtime}h` : '🟢'}</div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-    
     function updateTodayStatus() {
         const todayStr = formatDate(currentDate);
         const todayRecord = workData.find(r => r.date === todayStr);
@@ -815,7 +802,6 @@
         if (index >= 0) workData[index] = newRecord;
         else workData.unshift(newRecord);
         
-        updateHistoryUI();
         updateTodayStatus();
         updateMonthlyOvertime();
         showToast("Đã bắt đầu làm việc");
@@ -848,7 +834,6 @@
         isWorking = false;
         if (timerInterval) clearInterval(timerInterval);
         
-        updateHistoryUI();
         updateTodayStatus();
         updateMonthlyOvertime();
         await saveToSheets(todayRecord);
