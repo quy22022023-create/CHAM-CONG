@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>⏱️ Chấm Công</title>
+    <title>⏱️ Chấm Công - Lịch & Sửa Tăng Ca</title>
     
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -61,11 +61,9 @@
             margin-top: 10px;
         }
         
-        .day-badge.sunday {
-            background: #FF3B30;
-        }
+        .day-badge.sunday { background: #FF3B30; }
         
-        /* Current Time Card */
+        /* Time Card */
         .time-card {
             background: white;
             margin: 16px;
@@ -75,20 +73,8 @@
             text-align: center;
         }
         
-        .date {
-            font-size: 16px;
-            color: #8E8E93;
-            margin-bottom: 8px;
-        }
-        
-        .clock {
-            font-size: 48px;
-            font-weight: 700;
-            font-family: monospace;
-            letter-spacing: 2px;
-            margin: 8px 0;
-        }
-        
+        .date { font-size: 16px; color: #8E8E93; margin-bottom: 8px; }
+        .clock { font-size: 48px; font-weight: 700; font-family: monospace; margin: 8px 0; }
         .work-status {
             font-size: 15px;
             font-weight: 600;
@@ -114,7 +100,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #1C1C1E;
         }
         
         /* Buttons */
@@ -146,6 +131,7 @@
         .btn-start { background: #34C759; color: white; }
         .btn-end { background: #FF9500; color: white; }
         .btn-refresh { background: #007AFF; color: white; width: 100%; margin-top: 12px; }
+        .btn-calendar { background: #5856D6; color: white; width: 100%; margin-top: 12px; }
         
         /* Stats Grid */
         .stats {
@@ -162,21 +148,12 @@
             text-align: center;
         }
         
-        .stat-label {
-            font-size: 13px;
-            color: #8E8E93;
-            margin-bottom: 6px;
-        }
-        
-        .stat-value {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1C1C1E;
-        }
+        .stat-label { font-size: 13px; color: #8E8E93; margin-bottom: 6px; }
+        .stat-value { font-size: 22px; font-weight: 700; color: #1C1C1E; }
         
         /* History */
         .history-list {
-            max-height: 320px;
+            max-height: 280px;
             overflow-y: auto;
         }
         
@@ -186,28 +163,190 @@
             align-items: center;
             padding: 14px 0;
             border-bottom: 1px solid #F2F2F7;
+            cursor: pointer;
+            transition: background 0.2s;
         }
         
-        .history-item:last-child { border-bottom: none; }
+        .history-item:active { background: #F2F2F7; }
         
-        .history-date {
-            font-weight: 600;
-            font-size: 15px;
+        .history-date { font-weight: 600; font-size: 15px; }
+        .history-time { font-size: 13px; color: #8E8E93; margin-top: 4px; }
+        .history-overtime { font-weight: 700; color: #34C759; font-size: 15px; }
+        
+        /* Calendar Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
         
-        .history-time {
-            font-size: 13px;
-            color: #8E8E93;
-            margin-top: 4px;
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
         }
         
-        .history-overtime {
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 20px;
             font-weight: 700;
-            color: #34C759;
-            font-size: 15px;
         }
         
-        /* Notification */
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0 8px;
+            color: #8E8E93;
+        }
+        
+        /* Calendar */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-year {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .calendar-nav-btn {
+            background: #F2F2F7;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #8E8E93;
+            margin-bottom: 12px;
+        }
+        
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            background: #F2F2F7;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .calendar-day:active { transform: scale(0.95); }
+        .calendar-day.empty { background: transparent; cursor: default; }
+        .calendar-day.today { background: #007AFF; color: white; }
+        .calendar-day.has-data { background: #E8F5E9; border: 1px solid #34C759; }
+        .calendar-day.has-overtime { background: #FFF3E0; border: 1px solid #FF9500; }
+        
+        .overtime-badge {
+            font-size: 10px;
+            font-weight: 600;
+            color: #FF9500;
+            margin-top: 2px;
+        }
+        
+        /* Edit Panel */
+        .edit-panel {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #F2F2F7;
+        }
+        
+        .edit-panel h4 {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .edit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .edit-input {
+            background: #F2F2F7;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            width: 120px;
+            text-align: center;
+        }
+        
+        .edit-input:focus { outline: none; background: #E8E8ED; }
+        
+        .edit-save-btn {
+            background: #34C759;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .edit-delete-btn {
+            background: #FF3B30;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -221,46 +360,19 @@
             font-weight: 500;
             transform: translateY(100px);
             transition: transform 0.3s;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 300;
         }
         
         .toast.show { transform: translateY(0); }
         
-        /* Loading */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
         /* Dark mode */
         @media (prefers-color-scheme: dark) {
             body { background: #000; }
-            .time-card, .card { background: #1C1C1E; color: #fff; }
-            .stat-box { background: #2C2C2E; }
-            .stat-value { color: #fff; }
+            .time-card, .card, .modal-content { background: #1C1C1E; color: #fff; }
+            .stat-box, .calendar-day, .calendar-nav-btn, .edit-input { background: #2C2C2E; color: #fff; }
             .history-item { border-bottom-color: #2C2C2E; }
+            .calendar-day.has-data { background: #1E3A2A; }
+            .calendar-day.has-overtime { background: #3E2A1E; }
         }
     </style>
 </head>
@@ -289,32 +401,50 @@
     </div>
     
     <div class="stats">
-        <div class="stat-box">
-            <div class="stat-label"><i class="fas fa-sign-in-alt"></i> Bắt đầu</div>
-            <div class="stat-value" id="startTime">--:--</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label"><i class="fas fa-sign-out-alt"></i> Kết thúc</div>
-            <div class="stat-value" id="endTime">--:--</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label"><i class="fas fa-hourglass-half"></i> Tổng giờ</div>
-            <div class="stat-value" id="totalHours">0h</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label"><i class="fas fa-moon"></i> Tăng ca</div>
-            <div class="stat-value" id="overtime">0h</div>
-        </div>
+        <div class="stat-box"><div class="stat-label">Bắt đầu</div><div class="stat-value" id="startTime">--:--</div></div>
+        <div class="stat-box"><div class="stat-label">Kết thúc</div><div class="stat-value" id="endTime">--:--</div></div>
+        <div class="stat-box"><div class="stat-label">Tổng giờ</div><div class="stat-value" id="totalHours">0h</div></div>
+        <div class="stat-box"><div class="stat-label">Tăng ca</div><div class="stat-value" id="overtime">0h</div></div>
     </div>
     
     <button class="btn btn-refresh" id="refreshBtn"><i class="fas fa-sync-alt"></i> Đồng bộ dữ liệu</button>
+    <button class="btn btn-calendar" id="calendarBtn"><i class="fas fa-calendar-alt"></i> 📅 Lịch & Sửa tăng ca</button>
 </div>
 
 <div class="card">
-    <div class="card-title"><i class="fas fa-history"></i> Lịch sử</div>
+    <div class="card-title"><i class="fas fa-history"></i> Lịch sử (nhấn để sửa)</div>
     <div class="history-list" id="historyList">
         <div style="text-align: center; padding: 30px; color: #8E8E93;">
             <i class="fas fa-spinner fa-pulse"></i> Đang tải...
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Modal -->
+<div class="modal" id="calendarModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span><i class="fas fa-calendar-alt"></i> Lịch tháng</span>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+        </div>
+        <div id="calendarContainer"></div>
+        <div class="edit-panel" id="editPanel" style="display: none;">
+            <h4><i class="fas fa-edit"></i> Chỉnh sửa giờ tăng ca</h4>
+            <div id="editDateDisplay" style="font-size: 14px; color: #8E8E93; margin-bottom: 12px;"></div>
+            <div class="edit-row">
+                <span>Giờ bắt đầu:</span>
+                <input type="time" id="editStartTime" class="edit-input">
+            </div>
+            <div class="edit-row">
+                <span>Giờ kết thúc:</span>
+                <input type="time" id="editEndTime" class="edit-input">
+            </div>
+            <div class="edit-row">
+                <span>Tăng ca (giờ):</span>
+                <input type="number" id="editOvertime" class="edit-input" step="0.5" placeholder="0">
+            </div>
+            <button class="edit-save-btn" id="saveEditBtn"><i class="fas fa-save"></i> Lưu thay đổi</button>
+            <button class="edit-delete-btn" id="deleteRecordBtn"><i class="fas fa-trash-alt"></i> Xóa ngày này</button>
         </div>
     </div>
 </div>
@@ -331,6 +461,8 @@
     let workStartTime = null;
     let timerInterval = null;
     let currentDate = new Date();
+    let currentCalendarMonth = new Date();
+    let selectedEditDate = null;
     
     // Giờ chuẩn
     const STANDARD_START = "07:45";
@@ -363,17 +495,11 @@
     
     function calculateOvertime(start, end, isSunday) {
         if (isSunday) return calculateHours(start, end);
-        
         let overtime = 0;
         const standardStart = parseTimeToDate(STANDARD_START, start);
         const standardEnd = parseTimeToDate(STANDARD_END, start);
-        
-        if (start < standardStart) {
-            overtime += calculateHours(start, standardStart);
-        }
-        if (end > standardEnd) {
-            overtime += calculateHours(standardEnd, end);
-        }
+        if (start < standardStart) overtime += calculateHours(start, standardStart);
+        if (end > standardEnd) overtime += calculateHours(standardEnd, end);
         return overtime;
     }
     
@@ -391,8 +517,8 @@
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.id = 'loadingOverlay';
-                overlay.className = 'loading-overlay';
-                overlay.innerHTML = '<div class="spinner"></div>';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center';
+                overlay.innerHTML = '<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite"></div>';
                 document.body.appendChild(overlay);
             }
         } else {
@@ -406,7 +532,6 @@
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
-            
             if (data && Array.isArray(data)) {
                 workData = data.map(record => ({
                     date: record.date,
@@ -418,16 +543,14 @@
                     timestamp: new Date(record.date.split('/').reverse().join('-')).getTime()
                 }));
                 workData.sort((a, b) => b.timestamp - a.timestamp);
-                console.log(`📥 Đã tải ${workData.length} bản ghi từ Sheets`);
             } else {
                 workData = [];
             }
-            
             updateHistoryUI();
             updateTodayStatus();
             return true;
         } catch (error) {
-            console.error("Lỗi tải từ Sheets:", error);
+            console.error(error);
             showToast("Không thể tải dữ liệu", true);
             return false;
         } finally {
@@ -437,7 +560,6 @@
     
     async function saveToSheets(record) {
         try {
-            // Sử dụng mode no-cors để tránh lỗi CORS
             await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -452,25 +574,81 @@
                     lunchOvertime: 'Không'
                 })
             });
-            console.log(`📤 Đã ghi lên Sheets: ${record.date}`);
             return true;
         } catch (error) {
-            console.error("Lỗi ghi lên Sheets:", error);
+            console.error(error);
             return false;
+        }
+    }
+    
+    // ==================== UPDATE RECORD ====================
+    async function updateRecord(dateStr, newStartTime, newEndTime, newOvertime) {
+        const index = workData.findIndex(r => r.date === dateStr);
+        const startDate = parseTimeToDate(newStartTime);
+        const endDate = parseTimeToDate(newEndTime);
+        const isSunday = new Date(dateStr.split('/').reverse().join('-')).getDay() === 0;
+        
+        let totalHours = 0;
+        let overtime = parseFloat(newOvertime) || 0;
+        
+        if (startDate && endDate && newEndTime) {
+            totalHours = calculateHours(startDate, endDate);
+            if (overtime === 0) {
+                overtime = calculateOvertime(startDate, endDate, isSunday);
+            }
+        }
+        
+        const updatedRecord = {
+            date: dateStr,
+            startTime: newStartTime,
+            endTime: newEndTime || null,
+            totalHours: totalHours.toFixed(2),
+            overtime: overtime.toFixed(2),
+            isWeekday: !isSunday,
+            timestamp: new Date(dateStr.split('/').reverse().join('-')).getTime()
+        };
+        
+        if (index >= 0) {
+            workData[index] = updatedRecord;
+        } else {
+            workData.unshift(updatedRecord);
+        }
+        
+        workData.sort((a, b) => b.timestamp - a.timestamp);
+        
+        await saveToSheets(updatedRecord);
+        updateHistoryUI();
+        updateTodayStatus();
+        
+        if (selectedEditDate === dateStr) {
+            displayEditPanel(dateStr);
+        }
+        
+        showToast("Đã cập nhật dữ liệu");
+        return true;
+    }
+    
+    async function deleteRecord(dateStr) {
+        const index = workData.findIndex(r => r.date === dateStr);
+        if (index >= 0) {
+            workData.splice(index, 1);
+            await saveToSheets({ date: dateStr, startTime: '', endTime: '', totalHours: '0', overtime: '0', isWeekday: false });
+            updateHistoryUI();
+            updateTodayStatus();
+            showToast("Đã xóa ngày " + dateStr);
+            if (selectedEditDate === dateStr) {
+                document.getElementById('editPanel').style.display = 'none';
+                selectedEditDate = null;
+            }
+            renderCalendar();
         }
     }
     
     // ==================== UI UPDATE ====================
     function updateHistoryUI() {
         const container = document.getElementById('historyList');
-        
-        if (!workData || workData.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 30px; color: #8E8E93;">
-                    <i class="fas fa-calendar-alt"></i><br>
-                    Chưa có dữ liệu
-                </div>
-            `;
+        if (!workData.length) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:#8E8E93;"><i class="fas fa-calendar-alt"></i><br>Chưa có dữ liệu</div>`;
             return;
         }
         
@@ -478,22 +656,17 @@
         workData.forEach(record => {
             const isToday = record.date === formatDate(currentDate);
             html += `
-                <div class="history-item">
+                <div class="history-item" onclick="openEditForDate('${record.date}')">
                     <div>
-                        <div class="history-date" style="${isToday ? 'color: #007AFF' : ''}">
+                        <div class="history-date" style="${isToday ? 'color:#007AFF' : ''}">
                             ${record.isWeekday ? '📅' : '🎯'} ${record.date}
                         </div>
-                        <div class="history-time">
-                            ${record.startTime} - ${record.endTime || 'Đang làm'}
-                        </div>
+                        <div class="history-time">${record.startTime} - ${record.endTime || 'Đang làm'}</div>
                     </div>
-                    <div class="history-overtime">
-                        ${record.endTime ? `+${record.overtime}h` : '🟢'}
-                    </div>
+                    <div class="history-overtime">${record.endTime ? `+${record.overtime}h` : '🟢'}</div>
                 </div>
             `;
         });
-        
         container.innerHTML = html;
     }
     
@@ -513,7 +686,6 @@
                 isWorking = false;
                 if (timerInterval) clearInterval(timerInterval);
             } else {
-                // Đang làm việc nhưng chưa tan ca
                 workStartTime = parseTimeToDate(todayRecord.startTime);
                 isWorking = true;
                 document.getElementById('workStatus').innerHTML = '<i class="fas fa-play-circle"></i> Đang làm việc';
@@ -522,7 +694,6 @@
                 startTimer();
             }
         } else {
-            // Hôm nay chưa có dữ liệu
             document.getElementById('startTime').textContent = '--:--';
             document.getElementById('endTime').textContent = '--:--';
             document.getElementById('totalHours').innerHTML = '0h';
@@ -534,10 +705,8 @@
             if (timerInterval) clearInterval(timerInterval);
         }
         
-        // Cập nhật trạng thái nút
         const startBtn = document.getElementById('startBtn');
         const endBtn = document.getElementById('endBtn');
-        
         if (todayRecord && todayRecord.endTime) {
             startBtn.disabled = false;
             endBtn.disabled = true;
@@ -552,7 +721,6 @@
     
     function startTimer() {
         if (timerInterval) clearInterval(timerInterval);
-        
         timerInterval = setInterval(() => {
             if (isWorking && workStartTime) {
                 const now = new Date();
@@ -566,30 +734,20 @@
     
     // ==================== WORK ACTIONS ====================
     function startWork() {
-        if (isWorking) {
-            showToast("Bạn đang làm việc rồi!");
-            return;
-        }
-        
+        if (isWorking) { showToast("Bạn đang làm việc rồi!"); return; }
         const todayStr = formatDate(currentDate);
         const existing = workData.find(r => r.date === todayStr);
-        if (existing && existing.endTime) {
-            showToast("Hôm nay đã tan ca rồi!", true);
-            return;
-        }
+        if (existing && existing.endTime) { showToast("Hôm nay đã tan ca rồi!", true); return; }
         
         workStartTime = new Date();
         isWorking = true;
-        
         const startTimeStr = formatTime(workStartTime);
         document.getElementById('startTime').textContent = startTimeStr;
         document.getElementById('workStatus').innerHTML = '<i class="fas fa-play-circle"></i> Đang làm việc';
         document.getElementById('workStatus').style.background = '#E3F2FD';
         document.getElementById('workStatus').style.color = '#007AFF';
-        
         startTimer();
         
-        // Lưu tạm record (chưa có endTime)
         const newRecord = {
             date: todayStr,
             startTime: startTimeStr,
@@ -601,11 +759,8 @@
         };
         
         const index = workData.findIndex(r => r.date === todayStr);
-        if (index >= 0) {
-            workData[index] = newRecord;
-        } else {
-            workData.unshift(newRecord);
-        }
+        if (index >= 0) workData[index] = newRecord;
+        else workData.unshift(newRecord);
         
         updateHistoryUI();
         updateTodayStatus();
@@ -615,31 +770,20 @@
     async function endWork() {
         const todayStr = formatDate(currentDate);
         const todayRecord = workData.find(r => r.date === todayStr);
-        
-        if (!todayRecord || !todayRecord.startTime) {
-            showToast("Bạn chưa bắt đầu làm việc!", true);
-            return;
-        }
-        
-        if (todayRecord.endTime) {
-            showToast("Hôm nay đã tan ca rồi!", true);
-            return;
-        }
+        if (!todayRecord || !todayRecord.startTime) { showToast("Bạn chưa bắt đầu làm việc!", true); return; }
+        if (todayRecord.endTime) { showToast("Hôm nay đã tan ca rồi!", true); return; }
         
         const endTime = new Date();
         const endTimeStr = formatTime(endTime);
         const startTimeDate = parseTimeToDate(todayRecord.startTime, endTime);
-        
         const isSunday = currentDate.getDay() === 0;
         const totalHours = calculateHours(startTimeDate, endTime);
         const overtime = calculateOvertime(startTimeDate, endTime, isSunday);
         
-        // Cập nhật record
         todayRecord.endTime = endTimeStr;
         todayRecord.totalHours = totalHours.toFixed(2);
         todayRecord.overtime = overtime.toFixed(2);
         
-        // Cập nhật UI
         document.getElementById('endTime').textContent = endTimeStr;
         document.getElementById('totalHours').innerHTML = `${totalHours.toFixed(2)}h`;
         document.getElementById('overtime').innerHTML = `${overtime.toFixed(2)}h`;
@@ -652,63 +796,159 @@
         
         updateHistoryUI();
         updateTodayStatus();
-        
-        // Ghi lên Google Sheets
         await saveToSheets(todayRecord);
-        
         showToast(`Đã tan ca! Tăng ca: ${overtime.toFixed(2)} giờ`);
+    }
+    
+    // ==================== CALENDAR & EDIT ====================
+    function openCalendar() {
+        currentCalendarMonth = new Date();
+        renderCalendar();
+        document.getElementById('calendarModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('calendarModal').style.display = 'none';
+        document.getElementById('editPanel').style.display = 'none';
+        selectedEditDate = null;
+    }
+    
+    function renderCalendar() {
+        const year = currentCalendarMonth.getFullYear();
+        const month = currentCalendarMonth.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startWeekday = firstDay.getDay();
+        const daysInMonth = lastDay.getDate();
+        
+        let calendarHtml = `
+            <div class="calendar-header">
+                <button class="calendar-nav-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                <span class="month-year">Tháng ${month + 1}/${year}</span>
+                <button class="calendar-nav-btn" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="weekdays">
+                <div>CN</div><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div>
+            </div>
+            <div class="calendar-days">
+        `;
+        
+        for (let i = 0; i < startWeekday; i++) {
+            calendarHtml += `<div class="calendar-day empty"></div>`;
+        }
+        
+        const today = new Date();
+        const todayStr = formatDate(today);
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateObj = new Date(year, month, d);
+            const dateStr = formatDate(dateObj);
+            const record = workData.find(r => r.date === dateStr);
+            const isToday = dateStr === todayStr;
+            const hasData = record && record.endTime;
+            const hasOvertime = record && parseFloat(record.overtime) > 0;
+            
+            let additionalClass = '';
+            if (isToday) additionalClass = 'today';
+            else if (hasOvertime) additionalClass = 'has-overtime';
+            else if (hasData) additionalClass = 'has-data';
+            
+            let badgeHtml = '';
+            if (hasOvertime) badgeHtml = `<div class="overtime-badge">+${record.overtime}h</div>`;
+            
+            calendarHtml += `
+                <div class="calendar-day ${additionalClass}" onclick="openEditForDate('${dateStr}')">
+                    <div>${d}</div>
+                    ${badgeHtml}
+                </div>
+            `;
+        }
+        
+        calendarHtml += `</div>`;
+        document.getElementById('calendarContainer').innerHTML = calendarHtml;
+    }
+    
+    function changeMonth(delta) {
+        currentCalendarMonth.setMonth(currentCalendarMonth.getMonth() + delta);
+        renderCalendar();
+    }
+    
+    function openEditForDate(dateStr) {
+        selectedEditDate = dateStr;
+        displayEditPanel(dateStr);
+        renderCalendar();
+        document.getElementById('calendarModal').style.display = 'flex';
+    }
+    
+    function displayEditPanel(dateStr) {
+        const record = workData.find(r => r.date === dateStr);
+        const panel = document.getElementById('editPanel');
+        const editDateDisplay = document.getElementById('editDateDisplay');
+        
+        editDateDisplay.innerHTML = `<strong>${dateStr}</strong> ${record && record.isWeekday ? '(Ngày thường)' : '(Chủ nhật)'}`;
+        
+        if (record && record.startTime) {
+            document.getElementById('editStartTime').value = record.startTime;
+            document.getElementById('editEndTime').value = record.endTime || '';
+            document.getElementById('editOvertime').value = record.overtime;
+        } else {
+            document.getElementById('editStartTime').value = STANDARD_START;
+            document.getElementById('editEndTime').value = STANDARD_END;
+            document.getElementById('editOvertime').value = '0';
+        }
+        
+        panel.style.display = 'block';
+        
+        document.getElementById('saveEditBtn').onclick = async () => {
+            const newStart = document.getElementById('editStartTime').value;
+            const newEnd = document.getElementById('editEndTime').value;
+            const newOT = document.getElementById('editOvertime').value;
+            if (newStart && newEnd) {
+                await updateRecord(dateStr, newStart, newEnd, newOT);
+            } else {
+                showToast("Vui lòng nhập đầy đủ giờ", true);
+            }
+        };
+        
+        document.getElementById('deleteRecordBtn').onclick = async () => {
+            if (confirm(`Xóa dữ liệu ngày ${dateStr}?`)) {
+                await deleteRecord(dateStr);
+            }
+        };
     }
     
     // ==================== CLOCK UPDATE ====================
     function updateClock() {
         const now = new Date();
         currentDate = now;
-        
-        document.getElementById('currentDate').textContent = now.toLocaleDateString('vi-VN', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         document.getElementById('currentTime').textContent = formatDateTime(now);
-        
         const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
-        const dayName = dayNames[now.getDay()];
-        document.getElementById('dayName').textContent = dayName;
-        
+        document.getElementById('dayName').textContent = dayNames[now.getDay()];
         const badge = document.getElementById('dayBadge');
         if (now.getDay() === 0) badge.classList.add('sunday');
         else badge.classList.remove('sunday');
         
-        // Kiểm tra tự động bắt đầu lúc 7:45 (thứ 2-7)
-        const hour = now.getHours();
-        const minute = now.getMinutes();
+        const hour = now.getHours(), minute = now.getMinutes();
         const isWeekday = now.getDay() >= 1 && now.getDay() <= 6;
-        
         if (isWeekday && hour === 7 && minute === 45 && !isWorking) {
             const todayStr = formatDate(now);
             const existing = workData.find(r => r.date === todayStr);
-            if (!existing) {
-                setTimeout(() => startWork(), 1000);
-            }
+            if (!existing) setTimeout(() => startWork(), 1000);
         }
     }
     
     // ==================== INIT ====================
     document.addEventListener('DOMContentLoaded', async () => {
-        // Cập nhật đồng hồ
         updateClock();
         setInterval(updateClock, 1000);
-        
-        // Gán sự kiện
         document.getElementById('startBtn').addEventListener('click', startWork);
         document.getElementById('endBtn').addEventListener('click', endWork);
-        document.getElementById('refreshBtn').addEventListener('click', async () => {
-            await loadFromSheets();
-            showToast("Đã đồng bộ dữ liệu");
-        });
-        
-        // Tải dữ liệu từ Sheets
+        document.getElementById('refreshBtn').addEventListener('click', async () => { await loadFromSheets(); showToast("Đã đồng bộ"); });
+        document.getElementById('calendarBtn').addEventListener('click', openCalendar);
+        window.openEditForDate = openEditForDate;
+        window.changeMonth = changeMonth;
+        window.closeModal = closeModal;
         await loadFromSheets();
     });
 </script>
