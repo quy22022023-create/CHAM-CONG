@@ -425,8 +425,8 @@
 <div class="toast" id="toast">✅ Thành công</div>
 
 <script>
-    // ==================== URL API CỦA BẠN ====================
-    const API_URL = "https://script.google.com/macros/s/AKfycbwoP_0tXMr7Ovf3ngKG4bbD5XMFaEvYSqg3iaz8OfaRgSUAHVGYBTzPysBv6x88YY8Z4g/exec";
+    // ==================== URL API MỚI ====================
+    const API_URL = "https://script.google.com/macros/s/AKfycbzJOhJfzA-hk3XIKKOhOJMIAkU9xiPXk2z_3vsEHnfnhMf7-9czQX9SjcGSa8Y9Prhi/exec";
     
     // ==================== BIẾN TOÀN CỤC ====================
     let workData = [];
@@ -536,10 +536,8 @@
     
     async function saveToSheets(record) {
         try {
-            // Dùng fetch với mode no-cors để tránh lỗi CORS
-            await fetch(API_URL, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     date: record.date,
@@ -551,8 +549,10 @@
                     lunchOvertime: 'Không'
                 })
             });
-            console.log('📤 Đã ghi lên Sheets:', record.date);
-            return true;
+            
+            const result = await response.json();
+            console.log('📤 Kết quả lưu:', result);
+            return result.success;
         } catch (error) {
             console.error('Lỗi ghi lên Sheets:', error);
             return false;
@@ -561,10 +561,8 @@
     
     async function deleteFromSheets(dateStr) {
         try {
-            // Ghi đè dữ liệu rỗng để xóa
-            await fetch(API_URL, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     date: dateStr,
@@ -576,8 +574,9 @@
                     lunchOvertime: 'Không'
                 })
             });
-            console.log('🗑️ Đã xóa ngày:', dateStr);
-            return true;
+            const result = await response.json();
+            console.log('🗑️ Kết quả xóa:', result);
+            return result.success;
         } catch (error) {
             console.error('Lỗi xóa:', error);
             return false;
