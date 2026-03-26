@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>⏱️ Chấm Công - Lịch & Sửa Tăng Ca</title>
+    <title>⏱️ Chấm Công</title>
     
-    <!-- iOS PWA Meta Tags -->
+    <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Chấm Công">
     
-    <!-- Font Awesome -->
+    <!-- Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -29,7 +29,6 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
         
-        /* Header */
         .header {
             background: linear-gradient(135deg, #007AFF, #5856D6);
             color: white;
@@ -63,7 +62,6 @@
         
         .day-badge.sunday { background: #FF3B30; }
         
-        /* Time Card */
         .time-card {
             background: white;
             margin: 16px;
@@ -73,8 +71,19 @@
             text-align: center;
         }
         
-        .date { font-size: 16px; color: #8E8E93; margin-bottom: 8px; }
-        .clock { font-size: 48px; font-weight: 700; font-family: monospace; margin: 8px 0; }
+        .date {
+            font-size: 16px;
+            color: #8E8E93;
+            margin-bottom: 8px;
+        }
+        
+        .clock {
+            font-size: 48px;
+            font-weight: 700;
+            font-family: monospace;
+            margin: 8px 0;
+        }
+        
         .work-status {
             font-size: 15px;
             font-weight: 600;
@@ -84,7 +93,6 @@
             margin-top: 8px;
         }
         
-        /* Cards */
         .card {
             background: white;
             margin: 16px;
@@ -102,7 +110,6 @@
             gap: 10px;
         }
         
-        /* Buttons */
         .btn-group {
             display: flex;
             gap: 12px;
@@ -133,7 +140,6 @@
         .btn-refresh { background: #007AFF; color: white; width: 100%; margin-top: 12px; }
         .btn-calendar { background: #5856D6; color: white; width: 100%; margin-top: 12px; }
         
-        /* Stats Grid */
         .stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -148,10 +154,18 @@
             text-align: center;
         }
         
-        .stat-label { font-size: 13px; color: #8E8E93; margin-bottom: 6px; }
-        .stat-value { font-size: 22px; font-weight: 700; color: #1C1C1E; }
+        .stat-label {
+            font-size: 13px;
+            color: #8E8E93;
+            margin-bottom: 6px;
+        }
         
-        /* Monthly Overtime Card */
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1C1C1E;
+        }
+        
         .monthly-card {
             background: linear-gradient(135deg, #FF9500, #FF3B30);
             color: white;
@@ -178,7 +192,6 @@
             font-weight: 500;
         }
         
-        /* Info Text */
         .info-text {
             text-align: center;
             padding: 20px;
@@ -193,7 +206,7 @@
             margin-right: 8px;
         }
         
-        /* Calendar Modal */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -236,7 +249,6 @@
             color: #8E8E93;
         }
         
-        /* Calendar */
         .calendar-header {
             display: flex;
             justify-content: space-between;
@@ -247,11 +259,6 @@
         .month-year {
             font-size: 18px;
             font-weight: 600;
-        }
-        
-        .calendar-nav {
-            display: flex;
-            gap: 12px;
         }
         
         .calendar-nav-btn {
@@ -308,7 +315,6 @@
             margin-top: 2px;
         }
         
-        /* Edit Panel */
         .edit-panel {
             margin-top: 20px;
             padding-top: 20px;
@@ -366,7 +372,6 @@
             margin-top: 10px;
         }
         
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -385,7 +390,6 @@
         
         .toast.show { transform: translateY(0); }
         
-        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             body { background: #000; }
             .time-card, .card, .modal-content, .info-text { background: #1C1C1E; color: #fff; }
@@ -430,18 +434,16 @@
     <button class="btn btn-calendar" id="calendarBtn"><i class="fas fa-calendar-alt"></i> 📅 Lịch & Sửa tăng ca</button>
 </div>
 
-<!-- Hiển thị tổng giờ tăng ca trong tháng -->
 <div class="monthly-card" id="monthlyCard">
     <div class="monthly-label"><i class="fas fa-chart-line"></i> Tổng tăng ca tháng này</div>
     <div class="monthly-value" id="monthlyOvertime">0<span class="monthly-unit"> giờ</span></div>
 </div>
 
-<!-- Thông báo thay thế lịch sử -->
 <div class="info-text">
     <i class="fas fa-calendar-alt"></i> Nhấn vào "Lịch & Sửa tăng ca" để xem và chỉnh sửa dữ liệu theo tháng
 </div>
 
-<!-- Calendar Modal -->
+<!-- Modal -->
 <div class="modal" id="calendarModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -474,7 +476,8 @@
 
 <script>
     // ==================== CONFIG ====================
-    const API_URL = "https://script.google.com/macros/s/AKfycbydny_ueG93KlnQz0J-sFRUsF5OaFHbZ82dR7YxIQj4NpZub2zQ5Pnhxho1DrysIsOK/exec";
+    // 👇👇👇 THAY URL NÀY BẰNG URL API CỦA BẠN 👇👇👇
+    const API_URL = "https://script.google.com/macros/s/AKfycbzrR1cAlKW3zqcJ6TZ0dP56wVLVMYaqVRb2EM0UdVWd5J9k3u8H1vtkz5y3EBw8xyynWg/exec";
     
     // ==================== VARIABLES ====================
     let workData = [];
@@ -485,7 +488,6 @@
     let currentCalendarMonth = new Date();
     let selectedEditDate = null;
     
-    // Giờ chuẩn
     const STANDARD_START = "07:45";
     const STANDARD_END = "17:00";
     
@@ -547,24 +549,6 @@
         }
     }
     
-    // ==================== MONTHLY OVERTIME ====================
-    function updateMonthlyOvertime() {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        let totalOvertime = 0;
-        
-        workData.forEach(record => {
-            const [day, month, year] = record.date.split('/').map(Number);
-            if (month - 1 === currentMonth && year === currentYear) {
-                totalOvertime += parseFloat(record.overtime) || 0;
-            }
-        });
-        
-        document.getElementById('monthlyOvertime').innerHTML = `${totalOvertime.toFixed(1)}<span class="monthly-unit"> giờ</span>`;
-    }
-    
     // ==================== GOOGLE SHEETS API ====================
     async function loadFromSheets() {
         showLoading(true);
@@ -599,9 +583,8 @@
     
     async function saveToSheets(record) {
         try {
-            await fetch(API_URL, {
+            const response = await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     date: record.date,
@@ -613,33 +596,24 @@
                     lunchOvertime: 'Không'
                 })
             });
-            return true;
+            
+            const result = await response.json();
+            console.log('Save result:', result);
+            return result.success;
         } catch (error) {
-            console.error(error);
+            console.error("Lỗi ghi lên Sheets:", error);
             return false;
         }
     }
     
-    // ==================== DELETE FROM SHEETS ====================
     async function deleteFromSheets(dateStr) {
         try {
-            // Gửi một bản ghi rỗng để xóa (hoặc bạn có thể gửi flag xóa)
-            await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date: dateStr,
-                    startTime: '',
-                    endTime: '',
-                    totalHours: '0',
-                    overtime: '0',
-                    isWeekday: 'Không',
-                    lunchOvertime: 'Không',
-                    delete_flag: true
-                })
+            const response = await fetch(`${API_URL}?date=${encodeURIComponent(dateStr)}`, {
+                method: 'DELETE'
             });
-            return true;
+            const result = await response.json();
+            console.log('Delete result:', result);
+            return result.success;
         } catch (error) {
             console.error("Lỗi xóa trên Sheets:", error);
             return false;
@@ -681,31 +655,40 @@
         
         workData.sort((a, b) => b.timestamp - a.timestamp);
         
-        await saveToSheets(updatedRecord);
-        updateTodayStatus();
-        updateMonthlyOvertime();
-        
-        if (selectedEditDate === dateStr) {
-            displayEditPanel(dateStr);
+        const saved = await saveToSheets(updatedRecord);
+        if (saved) {
+            updateTodayStatus();
+            updateMonthlyOvertime();
+            
+            if (selectedEditDate === dateStr) {
+                displayEditPanel(dateStr);
+            }
+            
+            showToast("Đã cập nhật dữ liệu");
+            return true;
+        } else {
+            showToast("Lỗi khi lưu lên Sheets", true);
+            return false;
         }
-        
-        showToast("Đã cập nhật dữ liệu");
-        return true;
     }
     
     async function deleteRecord(dateStr) {
         const index = workData.findIndex(r => r.date === dateStr);
         if (index >= 0) {
-            workData.splice(index, 1);
-            await deleteFromSheets(dateStr);
-            updateTodayStatus();
-            updateMonthlyOvertime();
-            showToast("Đã xóa ngày " + dateStr);
-            if (selectedEditDate === dateStr) {
-                document.getElementById('editPanel').style.display = 'none';
-                selectedEditDate = null;
+            const deleted = await deleteFromSheets(dateStr);
+            if (deleted) {
+                workData.splice(index, 1);
+                updateTodayStatus();
+                updateMonthlyOvertime();
+                showToast("Đã xóa ngày " + dateStr);
+                if (selectedEditDate === dateStr) {
+                    document.getElementById('editPanel').style.display = 'none';
+                    selectedEditDate = null;
+                }
+                renderCalendar();
+            } else {
+                showToast("Lỗi khi xóa trên Sheets", true);
             }
-            renderCalendar();
         }
     }
     
@@ -772,6 +755,23 @@
         }, 1000);
     }
     
+    function updateMonthlyOvertime() {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        let totalOvertime = 0;
+        
+        workData.forEach(record => {
+            const [day, month, year] = record.date.split('/').map(Number);
+            if (month - 1 === currentMonth && year === currentYear) {
+                totalOvertime += parseFloat(record.overtime) || 0;
+            }
+        });
+        
+        document.getElementById('monthlyOvertime').innerHTML = `${totalOvertime.toFixed(1)}<span class="monthly-unit"> giờ</span>`;
+    }
+    
     // ==================== WORK ACTIONS ====================
     function startWork() {
         if (isWorking) { showToast("Bạn đang làm việc rồi!"); return; }
@@ -836,8 +836,13 @@
         
         updateTodayStatus();
         updateMonthlyOvertime();
-        await saveToSheets(todayRecord);
-        showToast(`Đã tan ca! Tăng ca: ${overtime.toFixed(2)} giờ`);
+        
+        const saved = await saveToSheets(todayRecord);
+        if (saved) {
+            showToast(`Đã tan ca! Tăng ca: ${overtime.toFixed(2)} giờ`);
+        } else {
+            showToast("Lưu lên Sheets thất bại, sẽ thử lại sau", true);
+        }
     }
     
     // ==================== CALENDAR & EDIT ====================
