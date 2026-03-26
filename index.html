@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>⏱️ Chấm Công</title>
     
-    <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Chấm Công">
     
-    <!-- Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -32,7 +30,7 @@
         .header {
             background: linear-gradient(135deg, #007AFF, #5856D6);
             color: white;
-            padding: 20px 20px 16px;
+            padding: 20px;
             text-align: center;
             position: sticky;
             top: 0;
@@ -71,18 +69,8 @@
             text-align: center;
         }
         
-        .date {
-            font-size: 16px;
-            color: #8E8E93;
-            margin-bottom: 8px;
-        }
-        
-        .clock {
-            font-size: 48px;
-            font-weight: 700;
-            font-family: monospace;
-            margin: 8px 0;
-        }
+        .date { font-size: 16px; color: #8E8E93; margin-bottom: 8px; }
+        .clock { font-size: 48px; font-weight: 700; font-family: monospace; margin: 8px 0; }
         
         .work-status {
             font-size: 15px;
@@ -154,17 +142,8 @@
             text-align: center;
         }
         
-        .stat-label {
-            font-size: 13px;
-            color: #8E8E93;
-            margin-bottom: 6px;
-        }
-        
-        .stat-value {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1C1C1E;
-        }
+        .stat-label { font-size: 13px; color: #8E8E93; margin-bottom: 6px; }
+        .stat-value { font-size: 22px; font-weight: 700; color: #1C1C1E; }
         
         .monthly-card {
             background: linear-gradient(135deg, #FF9500, #FF3B30);
@@ -173,24 +152,11 @@
             padding: 20px;
             border-radius: 24px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(255,149,0,0.3);
         }
         
-        .monthly-label {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 8px;
-        }
-        
-        .monthly-value {
-            font-size: 32px;
-            font-weight: 800;
-        }
-        
-        .monthly-unit {
-            font-size: 16px;
-            font-weight: 500;
-        }
+        .monthly-label { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+        .monthly-value { font-size: 32px; font-weight: 800; }
+        .monthly-unit { font-size: 16px; font-weight: 500; }
         
         .info-text {
             text-align: center;
@@ -202,11 +168,6 @@
             border-radius: 24px;
         }
         
-        .info-text i {
-            margin-right: 8px;
-        }
-        
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -256,10 +217,7 @@
             margin-bottom: 20px;
         }
         
-        .month-year {
-            font-size: 18px;
-            font-weight: 600;
-        }
+        .month-year { font-size: 18px; font-weight: 600; }
         
         .calendar-nav-btn {
             background: #F2F2F7;
@@ -319,13 +277,6 @@
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #F2F2F7;
-        }
-        
-        .edit-panel h4 {
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
         .edit-row {
@@ -434,7 +385,7 @@
     <button class="btn btn-calendar" id="calendarBtn"><i class="fas fa-calendar-alt"></i> 📅 Lịch & Sửa tăng ca</button>
 </div>
 
-<div class="monthly-card" id="monthlyCard">
+<div class="monthly-card">
     <div class="monthly-label"><i class="fas fa-chart-line"></i> Tổng tăng ca tháng này</div>
     <div class="monthly-value" id="monthlyOvertime">0<span class="monthly-unit"> giờ</span></div>
 </div>
@@ -443,7 +394,6 @@
     <i class="fas fa-calendar-alt"></i> Nhấn vào "Lịch & Sửa tăng ca" để xem và chỉnh sửa dữ liệu theo tháng
 </div>
 
-<!-- Modal -->
 <div class="modal" id="calendarModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -475,11 +425,10 @@
 <div class="toast" id="toast">✅ Thành công</div>
 
 <script>
-    // ==================== CONFIG ====================
-    // 👇👇👇 THAY URL NÀY BẰNG URL API CỦA BẠN 👇👇👇
-    const API_URL = "https://script.google.com/macros/s/AKfycbyAhkSZb5NVJKxgegqdowaDHkTQf_m8EfvP9OEhlJQptwZatUCx6Thg_vHDGOYDmlUGqw/exec";
+    // ==================== ĐÃ THAY URL CỦA BẠN ====================
+    const API_URL = "https://script.google.com/macros/s/AKfycbwoP_0tXMr7Ovf3ngKG4bbD5XMFaEvYSqg3iaz8OfaRgSUAHVGYBTzPysBv6x88YY8Z4g/exec";
     
-    // ==================== VARIABLES ====================
+    // ==================== BIẾN TOÀN CỤC ====================
     let workData = [];
     let isWorking = false;
     let workStartTime = null;
@@ -491,7 +440,7 @@
     const STANDARD_START = "07:45";
     const STANDARD_END = "17:00";
     
-    // ==================== HELPER FUNCTIONS ====================
+    // ==================== HÀM TIỆN ÍCH ====================
     function formatTime(date) {
         return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     }
@@ -555,25 +504,29 @@
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
-            if (data && Array.isArray(data)) {
+            
+            if (data && !data.error && Array.isArray(data)) {
                 workData = data.map(record => ({
                     date: record.date,
                     startTime: record.startTime,
                     endTime: record.endTime || null,
                     totalHours: record.totalHours || "0",
                     overtime: record.overtime || "0",
-                    isWeekday: record.isWeekday === "Có" || record.isWeekday === true,
+                    isWeekday: record.isWeekday === "Có",
                     timestamp: new Date(record.date.split('/').reverse().join('-')).getTime()
                 }));
                 workData.sort((a, b) => b.timestamp - a.timestamp);
+                console.log('📥 Đã tải', workData.length, 'bản ghi');
             } else {
                 workData = [];
+                console.log('📭 Không có dữ liệu');
             }
+            
             updateTodayStatus();
             updateMonthlyOvertime();
             return true;
         } catch (error) {
-            console.error(error);
+            console.error('Lỗi tải dữ liệu:', error);
             showToast("Không thể tải dữ liệu", true);
             return false;
         } finally {
@@ -583,8 +536,9 @@
     
     async function saveToSheets(record) {
         try {
-            const response = await fetch(API_URL, {
+            await fetch(API_URL, {
                 method: 'POST',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     date: record.date,
@@ -596,31 +550,39 @@
                     lunchOvertime: 'Không'
                 })
             });
-            
-            const result = await response.json();
-            console.log('Save result:', result);
-            return result.success;
+            console.log('📤 Đã ghi lên Sheets:', record.date);
+            return true;
         } catch (error) {
-            console.error("Lỗi ghi lên Sheets:", error);
+            console.error('Lỗi ghi lên Sheets:', error);
             return false;
         }
     }
     
     async function deleteFromSheets(dateStr) {
         try {
-            const response = await fetch(`${API_URL}?date=${encodeURIComponent(dateStr)}`, {
-                method: 'DELETE'
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    date: dateStr,
+                    startTime: '',
+                    endTime: '',
+                    totalHours: '0',
+                    overtime: '0',
+                    isWeekday: 'Không',
+                    lunchOvertime: 'Không'
+                })
             });
-            const result = await response.json();
-            console.log('Delete result:', result);
-            return result.success;
+            console.log('🗑️ Đã xóa ngày:', dateStr);
+            return true;
         } catch (error) {
-            console.error("Lỗi xóa trên Sheets:", error);
+            console.error('Lỗi xóa:', error);
             return false;
         }
     }
     
-    // ==================== UPDATE RECORD ====================
+    // ==================== CẬP NHẬT DỮ LIỆU ====================
     async function updateRecord(dateStr, newStartTime, newEndTime, newOvertime) {
         const index = workData.findIndex(r => r.date === dateStr);
         const startDate = parseTimeToDate(newStartTime);
@@ -659,15 +621,11 @@
         if (saved) {
             updateTodayStatus();
             updateMonthlyOvertime();
-            
-            if (selectedEditDate === dateStr) {
-                displayEditPanel(dateStr);
-            }
-            
+            if (selectedEditDate === dateStr) displayEditPanel(dateStr);
             showToast("Đã cập nhật dữ liệu");
             return true;
         } else {
-            showToast("Lỗi khi lưu lên Sheets", true);
+            showToast("Lỗi khi lưu", true);
             return false;
         }
     }
@@ -687,12 +645,12 @@
                 }
                 renderCalendar();
             } else {
-                showToast("Lỗi khi xóa trên Sheets", true);
+                showToast("Lỗi khi xóa", true);
             }
         }
     }
     
-    // ==================== UI UPDATE ====================
+    // ==================== CẬP NHẬT GIAO DIỆN ====================
     function updateTodayStatus() {
         const todayStr = formatDate(currentDate);
         const todayRecord = workData.find(r => r.date === todayStr);
@@ -761,7 +719,6 @@
         const currentYear = now.getFullYear();
         
         let totalOvertime = 0;
-        
         workData.forEach(record => {
             const [day, month, year] = record.date.split('/').map(Number);
             if (month - 1 === currentMonth && year === currentYear) {
@@ -772,7 +729,7 @@
         document.getElementById('monthlyOvertime').innerHTML = `${totalOvertime.toFixed(1)}<span class="monthly-unit"> giờ</span>`;
     }
     
-    // ==================== WORK ACTIONS ====================
+    // ==================== CHẤM CÔNG ====================
     function startWork() {
         if (isWorking) { showToast("Bạn đang làm việc rồi!"); return; }
         const todayStr = formatDate(currentDate);
@@ -841,11 +798,11 @@
         if (saved) {
             showToast(`Đã tan ca! Tăng ca: ${overtime.toFixed(2)} giờ`);
         } else {
-            showToast("Lưu lên Sheets thất bại, sẽ thử lại sau", true);
+            showToast("Lưu thất bại, sẽ thử lại sau", true);
         }
     }
     
-    // ==================== CALENDAR & EDIT ====================
+    // ==================== LỊCH & CHỈNH SỬA ====================
     function openCalendar() {
         currentCalendarMonth = new Date();
         renderCalendar();
@@ -866,7 +823,7 @@
         const startWeekday = firstDay.getDay();
         const daysInMonth = lastDay.getDate();
         
-        let calendarHtml = `
+        let html = `
             <div class="calendar-header">
                 <button class="calendar-nav-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
                 <span class="month-year">Tháng ${month + 1}/${year}</span>
@@ -879,7 +836,7 @@
         `;
         
         for (let i = 0; i < startWeekday; i++) {
-            calendarHtml += `<div class="calendar-day empty"></div>`;
+            html += `<div class="calendar-day empty"></div>`;
         }
         
         const today = new Date();
@@ -898,19 +855,19 @@
             else if (hasOvertime) additionalClass = 'has-overtime';
             else if (hasData) additionalClass = 'has-data';
             
-            let badgeHtml = '';
-            if (hasOvertime) badgeHtml = `<div class="overtime-badge">+${record.overtime}h</div>`;
+            let badge = '';
+            if (hasOvertime) badge = `<div class="overtime-badge">+${record.overtime}h</div>`;
             
-            calendarHtml += `
+            html += `
                 <div class="calendar-day ${additionalClass}" onclick="openEditForDate('${dateStr}')">
                     <div>${d}</div>
-                    ${badgeHtml}
+                    ${badge}
                 </div>
             `;
         }
         
-        calendarHtml += `</div>`;
-        document.getElementById('calendarContainer').innerHTML = calendarHtml;
+        html += `</div>`;
+        document.getElementById('calendarContainer').innerHTML = html;
     }
     
     function changeMonth(delta) {
@@ -962,14 +919,16 @@
         };
     }
     
-    // ==================== CLOCK UPDATE ====================
+    // ==================== ĐỒNG HỒ ====================
     function updateClock() {
         const now = new Date();
         currentDate = now;
         document.getElementById('currentDate').textContent = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         document.getElementById('currentTime').textContent = formatDateTime(now);
+        
         const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
         document.getElementById('dayName').textContent = dayNames[now.getDay()];
+        
         const badge = document.getElementById('dayBadge');
         if (now.getDay() === 0) badge.classList.add('sunday');
         else badge.classList.remove('sunday');
@@ -983,17 +942,20 @@
         }
     }
     
-    // ==================== INIT ====================
+    // ==================== KHỞI TẠO ====================
     document.addEventListener('DOMContentLoaded', async () => {
         updateClock();
         setInterval(updateClock, 1000);
+        
         document.getElementById('startBtn').addEventListener('click', startWork);
         document.getElementById('endBtn').addEventListener('click', endWork);
         document.getElementById('refreshBtn').addEventListener('click', async () => { await loadFromSheets(); showToast("Đã đồng bộ"); });
         document.getElementById('calendarBtn').addEventListener('click', openCalendar);
+        
         window.openEditForDate = openEditForDate;
         window.changeMonth = changeMonth;
         window.closeModal = closeModal;
+        
         await loadFromSheets();
     });
 </script>
