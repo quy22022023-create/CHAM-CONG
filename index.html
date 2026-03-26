@@ -425,7 +425,7 @@
 <div class="toast" id="toast">✅ Thành công</div>
 
 <script>
-    // ==================== ĐÃ THAY URL CỦA BẠN ====================
+    // ==================== URL API CỦA BẠN ====================
     const API_URL = "https://script.google.com/macros/s/AKfycbwoP_0tXMr7Ovf3ngKG4bbD5XMFaEvYSqg3iaz8OfaRgSUAHVGYBTzPysBv6x88YY8Z4g/exec";
     
     // ==================== BIẾN TOÀN CỤC ====================
@@ -536,6 +536,7 @@
     
     async function saveToSheets(record) {
         try {
+            // Dùng fetch với mode no-cors để tránh lỗi CORS
             await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -560,6 +561,7 @@
     
     async function deleteFromSheets(dateStr) {
         try {
+            // Ghi đè dữ liệu rỗng để xóa
             await fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
