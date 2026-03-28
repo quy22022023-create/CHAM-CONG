@@ -23,10 +23,10 @@
         .btn:active { transform: scale(0.97); }
         .btn-start { background: #34C759; color: white; }
         .btn-end { background: #FF9500; color: white; }
+        .btn-end:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-secondary { background: #F2F2F7; color: #007AFF; width: 100%; margin-top: 10px; }
         .btn-salary { background: #E5E5EA; color: #1C1C1E; width: 100%; margin-top: 10px; }
 
-        /* TOGGLE SWITCH */
         .lunch-box { display: flex; justify-content: space-between; align-items: center; background: #FFF9F2; padding: 12px 15px; border-radius: 16px; margin-bottom: 15px; border: 1px dashed #FF9500; }
         .lunch-label { font-size: 13px; font-weight: 700; color: #FF9500; display: flex; align-items: center; gap: 8px; }
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
@@ -45,16 +45,13 @@
         .modal-content { background: white; border-radius: 28px; width: 100%; max-width: 450px; padding: 20px; max-height: 95vh; overflow-y: auto; }
         
         .calendar-header-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 10px; border-bottom: 1px solid #EEE; padding-bottom: 5px; }
-        .calendar-header-grid span { font-size: 11px; font-weight: 700; color: #8E8E93; }
         .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .calendar-day { padding: 8px 0; border-radius: 12px; background: #F9F9F9; cursor: pointer; font-size: 13px; min-height: 55px; display: flex; flex-direction: column; justify-content: center; border: 1px solid transparent; }
-        .calendar-day.empty { background: transparent; cursor: default; }
         .calendar-day.has-data { background: #FFF; border: 1px solid #34C759; color: #34C759; font-weight: 600; }
         .ot-badge { font-size: 9px; color: #FF3B30; font-weight: 800; margin-top: 2px; }
 
         .salary-input { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid #E5E5EA; font-size: 16px; font-weight: 600; color: #007AFF; outline: none; margin-bottom: 15px; text-align: center; }
         .result-box { background: #F2F2F7; padding: 20px; border-radius: 18px; text-align: center; border: 1px solid #FF3B30; }
-        .result-val { font-size: 24px; font-weight: 800; color: #FF3B30; display: block; margin-top: 5px; }
 
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #34C759; color: white; padding: 12px 24px; border-radius: 30px; transition: 0.4s; z-index: 1000; font-weight: 600; }
         .toast.show { transform: translateX(-50%) translateY(0); }
@@ -64,7 +61,6 @@
             body { background: #000; color: white; }
             .time-card, .card, .modal-content, .stat-box { background: #1C1C1E; color: white; }
             .stat-box, .calendar-day, .btn-secondary, .salary-input, .result-box, .btn-salary { background: #2C2C2E; color: white; border-color: #3A3A3C; }
-            .calendar-day:not(.empty) { background: #2C2C2E; }
             .lunch-box { background: #2C1A00; border-color: #FF9500; }
         }
     </style>
@@ -75,7 +71,7 @@
 
 <div class="header">
     <h2 style="font-weight: 800;">QUẢN LÝ TĂNG CA</h2>
-    <p style="font-size: 11px; opacity: 0.9;">Ca: 07:45 - 17:00 | OT: Sớm, Trưa, Trễ</p>
+    <p style="font-size: 11px; opacity: 0.9;">Ca: 07:45 - 17:00 | OT: Trước, Trưa, Sau</p>
 </div>
 
 <div class="time-card">
@@ -86,13 +82,13 @@
 
 <div class="card">
     <div class="lunch-box">
-        <div class="lunch-label"><i class="fas fa-utensils"></i> Tăng ca trưa hôm nay (+1h)</div>
+        <div class="lunch-label"><i class="fas fa-utensils"></i> Tăng ca trưa (+1h)</div>
         <label class="switch"><input type="checkbox" id="lunchCheckMain"><span class="slider"></span></label>
     </div>
 
     <div class="btn-group">
         <button class="btn btn-start" id="startBtn"><i class="fas fa-sign-in-alt"></i> Vào ca</button>
-        <button class="btn btn-end" id="endBtn"><i class="fas fa-sign-out-alt"></i> Tan ca</button>
+        <button class="btn btn-end" id="endBtn" disabled><i class="fas fa-sign-out-alt"></i> Tan ca</button>
     </div>
     
     <div class="stats">
@@ -110,27 +106,24 @@
             <h3 id="monthYearTitle" style="font-size: 18px;">Tháng --/----</h3>
             <button onclick="closeModal('calendarModal')" style="border:none; background:none; font-size:28px; color:#888;">&times;</button>
         </div>
-        <div class="calendar-header-grid"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span style="color:#FF3B30">CN</span></div>
+        <div class="calendar-header-grid" style="display:grid; grid-template-columns: repeat(7, 1fr); text-align:center; font-size:11px; color:#888; margin-bottom:10px;">
+            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+        </div>
         <div class="calendar-days" id="calendarGrid"></div>
         
         <div id="editPanel" style="display:none; margin-top: 20px; border-top: 2px solid #F2F2F7; padding-top: 15px;">
             <p id="editDateLabel" style="font-weight: 700; color: #FF3B30; margin-bottom: 12px; text-align: center;"></p>
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                 <div><label style="font-size: 10px; color: #888;">GIỜ VÀO</label><input type="time" id="editIn" class="salary-input"></div>
                 <div><label style="font-size: 10px; color: #888;">GIỜ RA</label><input type="time" id="editOut" class="salary-input"></div>
             </div>
-
             <div class="lunch-box" style="margin-bottom: 15px;">
                 <div class="lunch-label"><i class="fas fa-utensils"></i> Có tăng ca trưa (+1h)</div>
                 <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
             </div>
-
-            <label style="font-size: 10px; color: #888;">TỔNG GIỜ OT CỦA NGÀY</label>
-            <input type="number" id="editOT" class="salary-input" step="0.01" style="background: #FFF9F9; border-color: #FFCDD2; color: #FF3B30;">
-            
-            <button class="btn btn-start" style="width:100%;" id="saveBtn">Cập nhật dữ liệu</button>
-            <button class="btn" style="color:#888; width:100%; margin-top: 8px; font-size: 12px;" id="delBtn">Xóa ngày này</button>
+            <label style="font-size: 10px; color: #888;">TỔNG GIỜ OT</label>
+            <input type="number" id="editOT" class="salary-input" step="0.01" style="background: #FFF9F9; color: #FF3B30;">
+            <button class="btn btn-start" style="width:100%;" id="saveBtn">Cập nhật</button>
         </div>
     </div>
 </div>
@@ -141,11 +134,11 @@
             <h3>Tính Lương Dự Tính</h3>
             <button onclick="closeModal('salaryModal')" style="border:none; background:none; font-size:28px; color:#888;">&times;</button>
         </div>
-        <label style="font-size: 11px; color: #8E8E93; font-weight: 700;">LƯƠNG CƠ BẢN (VNĐ)</label>
+        <label style="font-size: 11px; font-weight: 700;">LƯƠNG CƠ BẢN</label>
         <input type="number" id="baseSalaryInput" class="salary-input" oninput="updateSalaryUI()">
         <div class="result-box">
-            <span style="font-size: 14px; color: #8E8E93;">Tiền OT tháng này (x2.0):</span>
-            <span class="result-val" id="otMoneyDisplay">0đ</span>
+            <span style="font-size: 14px; color: #8E8E93;">Tiền OT tháng này:</span>
+            <span style="font-size: 24px; font-weight: 800; color: #FF3B30; display: block;" id="otMoneyDisplay">0đ</span>
         </div>
     </div>
 </div>
@@ -166,7 +159,6 @@
         setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    // Logic tính OT (07:45 - 17:00) + Option trưa
     function calculateFullOT(inT, outT, isL) {
         if (!inT || !outT) return 0;
         const d = "2024-01-01";
@@ -180,7 +172,6 @@
         return parseFloat(ot.toFixed(2));
     }
 
-    // Tự động cập nhật ô OT trong Modal Edit
     function triggerAutoEditOT() {
         const i = document.getElementById('editIn').value;
         const o = document.getElementById('editOut').value;
@@ -204,9 +195,9 @@
         
         if (todayRec) {
             document.getElementById('otToday').textContent = todayRec.overtime + 'h';
-            document.getElementById('workStatus').textContent = todayRec.end_time ? "Đã tan ca" : "Đang tính giờ...";
+            document.getElementById('workStatus').textContent = todayRec.end_time ? "Đã tan ca (Có thể cập nhật lại)" : "Đang làm việc...";
             document.getElementById('startBtn').disabled = true;
-            document.getElementById('endBtn').disabled = !!todayRec.end_time;
+            document.getElementById('endBtn').disabled = false; // Luôn cho phép bấm nếu đã vào ca
         } else {
             document.getElementById('workStatus').textContent = "Chưa vào ca";
             document.getElementById('startBtn').disabled = false;
@@ -226,7 +217,7 @@
     async function startWork() {
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
         await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t });
-        showToast("Vào ca lúc: " + t); loadData();
+        showToast("Vào ca: " + t); loadData();
     }
 
     async function endWork() {
@@ -236,7 +227,7 @@
         const isL = document.getElementById('lunchCheckMain').checked;
         const ot = calculateFullOT(rec.start_time, t, isL);
         await supabaseClient.from('work_logs').update({ end_time: t, overtime: ot }).eq('work_date', today);
-        showToast("Tan ca. Tổng OT: " + ot + "h"); loadData();
+        showToast("Cập nhật giờ tan: " + t + " (OT: " + ot + "h)"); loadData();
     }
 
     function openCalendar() {
@@ -266,7 +257,6 @@
         document.getElementById('editIn').value = rec?.start_time || "07:45";
         document.getElementById('editOut').value = rec?.end_time || "17:00";
         document.getElementById('editOT').value = rec?.overtime || 0;
-        document.getElementById('lunchCheckEdit').checked = false; // Reset toggle khi mở
         
         document.getElementById('saveBtn').onclick = async () => {
             await supabaseClient.from('work_logs').upsert({
@@ -276,12 +266,6 @@
                 overtime: parseFloat(document.getElementById('editOT').value) || 0
             });
             closeModal('calendarModal'); loadData();
-        };
-        document.getElementById('delBtn').onclick = async () => {
-            if(confirm("Xóa ngày này?")) {
-                await supabaseClient.from('work_logs').delete().eq('work_date', date);
-                closeModal('calendarModal'); loadData();
-            }
         };
     }
 
@@ -301,7 +285,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('startBtn').onclick = startWork;
         document.getElementById('endBtn').onclick = endWork;
-        // Gán sự kiện tự tính giờ cho Modal Edit
         document.getElementById('editIn').oninput = triggerAutoEditOT;
         document.getElementById('editOut').oninput = triggerAutoEditOT;
         document.getElementById('lunchCheckEdit').onchange = triggerAutoEditOT;
