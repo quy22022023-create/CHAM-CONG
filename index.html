@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>⏱️ OT Pro - Multi User</title>
+    <title>⏱️ OT Pro - Ultimate V3</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -14,10 +14,6 @@
         :root { --ios-red: #FF3B30; --ios-green: #34C759; --ios-blue: #007AFF; --ios-orange: #FF9500; --ios-bg: #F2F2F7; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
-        
-        /* Màn hình Login */
-        #loginOverlay { position: fixed; inset: 0; background: var(--ios-bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .login-card { background: white; padding: 30px; border-radius: 32px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
         .header { background: linear-gradient(135deg, var(--ios-red), #AF52DE); color: white; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; border-radius: 0 0 32px 32px; }
         .time-card { background: white; margin: -30px 20px 20px; padding: 24px; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: center; position: relative; z-index: 10; }
@@ -58,22 +54,9 @@
 </head>
 <body>
 
-<div id="loginOverlay">
-    <div class="login-card">
-        <i class="fas fa-user-circle fa-4x" style="color: var(--ios-red); margin-bottom: 15px;"></i>
-        <h2 style="margin-bottom: 10px;">OT PRO</h2>
-        <p style="color: #888; font-size: 13px; margin-bottom: 20px;">Nhập tên tài khoản để bắt đầu</p>
-        <input type="text" id="usernameInput" placeholder="Ví dụ: quy123" style="margin-bottom: 15px;">
-        <button class="btn btn-start" style="width: 100%;" onclick="handleLogin()">Vào ứng dụng</button>
-    </div>
-</div>
-
 <div id="loading"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--ios-red)"></i></div>
 
-<div class="header">
-    <h1 id="userTitle">QUẢN LÝ TĂNG CA</h1>
-    <span onclick="logout()" style="font-size: 12px; opacity: 0.7;">Đăng xuất</span>
-</div>
+<div class="header"><h1>QUẢN LÝ TĂNG CA</h1></div>
 
 <div class="time-card">
     <div id="currentDate" style="color: #8E8E93; font-size: 14px;">--/--/----</div>
@@ -126,7 +109,9 @@
                 <div id="lunchLabelEdit" style="font-size:14px; font-weight:700;">Tăng ca trưa (+1h)</div>
                 <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
             </div>
+            <div style="text-align:center; margin-bottom:5px;"><small style="color:#888; font-size:10px;">TỔNG GIỜ OT CỦA NGÀY</small></div>
             <input type="number" id="editOT" step="0.1" style="color:var(--ios-red); font-size:24px;">
+            
             <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu thay đổi</button>
             <button class="btn btn-secondary" style="background:#FFE5E5; color:var(--ios-red);" id="deleteBtn">Xóa dữ liệu ngày</button>
         </div>
@@ -155,65 +140,47 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    // CẤU HÌNH SUPABASE
     const SB_URL = 'https://dtdknettwfgilklaqeae.supabase.co', SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZGtuZXR0d2ZnaWxrbGFxZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzMTgsImV4cCI6MjA5MDI0NzMxOH0.qDvvZHNyNPh4QxpD6fDkR4Jr1xUnLSzCm79bsKI6ILk';
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    
     let workData = [], currentViewDate = new Date(), salaryViewDate = new Date();
-    let currentUsername = localStorage.getItem('ot_username');
 
-    // --- LOGIC ĐĂNG NHẬP ---
-    function handleLogin() {
-        const user = document.getElementById('usernameInput').value.trim().toLowerCase();
-        if (!user) return alert("Vui lòng nhập tên tài khoản!");
-        localStorage.setItem('ot_username', user);
-        currentUsername = user;
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('userTitle').innerText = "Chào, " + user.toUpperCase();
-        loadData();
+    // Kiểm tra ngày là Chủ Nhật
+    function isSunday(dateStr) {
+        return new Date(dateStr).getDay() === 0;
     }
 
-    function logout() {
-        if(confirm("Đăng xuất?")) {
-            localStorage.removeItem('ot_username');
-            location.reload();
-        }
-    }
-
-    // --- LOGIC TÍNH TOÁN ---
-    function isSunday(dateStr) { return new Date(dateStr).getDay() === 0; }
-
+    // LOGIC TÍNH OT CỐT LÕI
     function calculateOT(inT, outT, isL, dateStr) {
         if (!inT || !outT) return 0;
         const d = "2024-01-01";
         const actS = new Date(`${d}T${inT}:00`), actE = new Date(`${d}T${outT}:00`);
+        
         if (!isSunday(dateStr)) {
+            // NGÀY THƯỜNG: OT tính ngoài khung 07:45 - 17:00
             const limitS = new Date(`${d}T07:45:00`), limitE = new Date(`${d}T17:00:00`);
             let mins = 0;
             if (actS < limitS) mins += (limitS - actS) / 60000;
             if (actE > limitE) mins += (actE - limitE) / 60000;
             return parseFloat((mins / 60 + (isL ? 1 : 0)).toFixed(2));
         } else {
+            // CHỦ NHẬT: Toàn bộ thời gian làm việc là OT
             let totalMins = (actE - actS) / 60000;
-            let netMins = totalMins - (isL ? 60 : 0);
+            let netMins = totalMins - (isL ? 60 : 0); // isL ở đây đóng vai trò trừ 1h nghỉ trưa
             return parseFloat((Math.max(0, netMins) / 60).toFixed(2));
         }
     }
 
-    // --- TỰ ĐỘNG CHẤM CÔNG ---
+    // TỰ ĐỘNG CHẤM CÔNG (Chỉ ngày thường)
     async function handleAutoCheck() {
-        if (!currentUsername) return;
         const now = new Date();
         const todayStr = now.toLocaleDateString('en-CA');
-        if (now.getDay() === 0) return; 
+        if (now.getDay() === 0) return; // Không tự động điền Chủ Nhật
 
         const todayRec = workData.find(r => r.work_date === todayStr);
         const currentHour = now.getHours();
 
         if (!todayRec && currentHour >= 8) {
-            await supabaseClient.from('work_logs').insert({ 
-                work_date: todayStr, start_time: "07:45", username: currentUsername 
-            });
+            await supabaseClient.from('work_logs').insert({ work_date: todayStr, start_time: "07:45", note: "Auto" });
             showToast("Hệ thống tự động Vào ca (07:45)");
             await loadData();
         }
@@ -222,25 +189,15 @@
         if (updatedRec && updatedRec.start_time && !updatedRec.end_time && currentHour >= 18) {
             const outT = "17:00";
             const ot = calculateOT(updatedRec.start_time, outT, document.getElementById('lunchCheckMain').checked, todayStr);
-            await supabaseClient.from('work_logs').update({ 
-                end_time: outT, overtime: ot 
-            }).eq('work_date', todayStr).eq('username', currentUsername);
+            await supabaseClient.from('work_logs').update({ end_time: outT, overtime: ot, note: "Auto" }).eq('work_date', todayStr);
             showToast("Hệ thống tự động Tan ca (17:00)");
             await loadData();
         }
     }
 
-    // --- TẢI DỮ LIỆU ---
     async function loadData() {
-        if (!currentUsername) return;
         document.getElementById('loading').style.display = 'flex';
-        
-        const { data } = await supabaseClient
-            .from('work_logs')
-            .select('*')
-            .eq('username', currentUsername) // Lọc theo username
-            .order('work_date', { ascending: false });
-            
+        const { data } = await supabaseClient.from('work_logs').select('*').order('work_date', { ascending: false });
         workData = data || [];
         await handleAutoCheck();
         updateSummary();
@@ -258,19 +215,16 @@
         document.getElementById('endBtn').disabled = !todayRec;
         document.getElementById('workStatus').innerText = todayRec ? (todayRec.end_time ? "Đã tan ca ✅" : "Đang làm việc... ⏱️") : "Chưa vào ca";
         
+        // Cập nhật giao diện nút nghỉ trưa chính
         const label = document.getElementById('lunchLabelMain');
-        if (now.getDay() === 0) label.innerHTML = '<i class="fas fa-coffee"></i> Có nghỉ trưa 1h (Trừ OT)';
+        if (now.getDay() === 0) label.innerHTML = '<i class="fas fa-coffee"></i> Có nghỉ trưa 1h (Trừ vào OT)';
         else label.innerHTML = '<i class="fas fa-utensils"></i> Tăng ca trưa (+1h)';
     }
 
-    // --- SỰ KIỆN NÚT ---
+    // SỰ KIỆN NÚT CHÍNH
     document.getElementById('startBtn').onclick = async () => {
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
-        await supabaseClient.from('work_logs').upsert({ 
-            work_date: new Date().toLocaleDateString('en-CA'), 
-            start_time: t, 
-            username: currentUsername 
-        });
+        await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t });
         loadData(); showToast("Đã vào ca lúc " + t);
     };
 
@@ -279,23 +233,24 @@
         const todayStr = new Date().toLocaleDateString('en-CA');
         const rec = workData.find(r => r.work_date === todayStr);
         const ot = calculateOT(rec.start_time, t, document.getElementById('lunchCheckMain').checked, todayStr);
-        await supabaseClient.from('work_logs').update({ 
-            end_time: t, overtime: ot 
-        }).eq('work_date', todayStr).eq('username', currentUsername);
+        await supabaseClient.from('work_logs').update({ end_time: t, overtime: ot }).eq('work_date', todayStr);
         loadData(); showToast("Đã tan ca lúc " + t);
     };
 
-    // --- LỊCH & CHỈNH SỬA ---
+    // LOGIC LỊCH & CHỈNH SỬA
     function renderCalendar() {
         const grid = document.getElementById('calendarDays'); grid.innerHTML = '';
         const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
         document.getElementById('calMonthYear').innerText = `Tháng ${m + 1}/${y}`;
         const firstDay = new Date(y, m, 1).getDay(), emptySlots = firstDay === 0 ? 6 : firstDay - 1, daysInMonth = new Date(y, m + 1, 0).getDate();
+        
         for (let i = 0; i < emptySlots; i++) grid.appendChild(document.createElement('div'));
+        
         for (let d = 1; d <= daysInMonth; d++) {
             const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
+            const isSun = isSunday(dStr);
             const el = document.createElement('div');
-            el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSunday(dStr) ? 'sunday' : ''}`;
+            el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSun ? 'sunday' : ''}`;
             el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>` : ''}`;
             el.onclick = () => showEdit(dStr, rec);
             grid.appendChild(el);
@@ -304,48 +259,64 @@
 
     function showEdit(date, rec) {
         document.getElementById('editPanel').style.display = 'block';
-        document.getElementById('editDateLabel').innerText = "Chỉnh sửa: " + date;
+        document.getElementById('editDateLabel').innerText = "Chỉnh sửa ngày: " + date;
         const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
         const isSun = isSunday(date);
+        
+        // Đổi nhãn nút dựa trên ngày được chọn
         document.getElementById('lunchLabelEdit').innerText = isSun ? "Có nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
-        inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; lI.checked = false;
-        const auto = () => otI.value = calculateOT(inI.value, outI.value, lI.checked, date);
-        inI.oninput = auto; outI.oninput = auto; lI.onchange = auto;
+        
+        inI.value = rec?.start_time || "07:45"; 
+        outI.value = rec?.end_time || "17:00"; 
+        otI.value = rec?.overtime || 0; 
+        lI.checked = false; // Mặc định không tích khi mở lên để tránh tính sai
+        
+        const autoCalcEdit = () => {
+            otI.value = calculateOT(inI.value, outI.value, lI.checked, date);
+        };
+        
+        inI.oninput = autoCalcEdit; 
+        outI.oninput = autoCalcEdit; 
+        lI.onchange = autoCalcEdit;
+        
         document.getElementById('saveBtn').onclick = async () => {
             await supabaseClient.from('work_logs').upsert({ 
-                work_date: date, start_time: inI.value, end_time: outI.value, 
-                overtime: parseFloat(otI.value), username: currentUsername 
+                work_date: date, 
+                start_time: inI.value, 
+                end_time: outI.value, 
+                overtime: parseFloat(otI.value) 
             });
-            showToast("Đã lưu!"); loadData(); renderCalendar();
+            showToast("Đã cập nhật!"); loadData(); renderCalendar();
         };
+        
         document.getElementById('deleteBtn').onclick = async () => {
-            if(confirm("Xóa ngày " + date + "?")) { 
-                await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUsername);
-                loadData(); renderCalendar(); document.getElementById('editPanel').style.display = 'none'; 
+            if(confirm("Xóa dữ liệu ngày " + date + "?")) { 
+                await supabaseClient.from('work_logs').delete().eq('work_date', date); 
+                loadData(); renderCalendar(); 
+                document.getElementById('editPanel').style.display = 'none'; 
             }
         };
     }
 
-    // --- LƯƠNG ---
+    // LƯƠNG & KHÁC
     function updateSalaryDisplay() {
         const y = salaryViewDate.getFullYear(), m = salaryViewDate.getMonth();
         const monthStr = `${y}-${(m+1).toString().padStart(2,'0')}`;
         document.getElementById('salaryMonthYear').innerText = `Tháng ${m + 1}/${y}`;
         const totalOT = workData.filter(r => r.work_date.startsWith(monthStr)).reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
-        const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('ot_base_' + currentUsername)) || 0;
-        localStorage.setItem('ot_base_' + currentUsername, base);
-        const money = ((base / 26) / 8) * 2 * totalOT;
+        const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('userBaseSalary')) || 0;
+        localStorage.setItem('userBaseSalary', base);
+        const money = ((base / 26) / 8) * 2 * totalOT; 
         document.getElementById('salaryOTHours').innerText = totalOT.toFixed(1) + 'h';
         document.getElementById('otMoneyDetail').innerText = new Intl.NumberFormat('vi-VN').format(Math.round(money)) + "đ";
     }
 
-    // --- PHỤ TRỢ ---
     function changeMonth(dir) { currentViewDate.setMonth(currentViewDate.getMonth() + dir); renderCalendar(); }
     function changeSalaryMonth(dir) { salaryViewDate.setMonth(salaryViewDate.getMonth() + dir); updateSalaryDisplay(); }
     function openCalendar() { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; }
     function openSalaryModal() { 
         salaryViewDate = new Date(); 
-        document.getElementById('baseSalaryInput').value = localStorage.getItem('ot_base_' + currentUsername) || "";
+        document.getElementById('baseSalaryInput').value = localStorage.getItem('userBaseSalary') || "";
         updateSalaryDisplay(); 
         document.getElementById('salaryModal').style.display = 'flex'; 
     }
@@ -357,13 +328,7 @@
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'numeric', month:'numeric'});
     }, 1000);
 
-    window.onload = () => {
-        if (currentUsername) {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('userTitle').innerText = "Chào, " + currentUsername.toUpperCase();
-            loadData();
-        }
-    };
+    window.onload = loadData;
 </script>
 </body>
 </html>
