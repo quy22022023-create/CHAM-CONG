@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>⏱️ OT Pro Full Version</title>
+    <title>⏱️ OT Pro - Quản Lý Lương</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,18 +13,19 @@
     <style>
         :root { --ios-red: #FF3B30; --ios-green: #34C759; --ios-blue: #007AFF; --ios-orange: #FF9500; --ios-bg: #F2F2F7; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: 40px; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
         
         .header { background: linear-gradient(135deg, var(--ios-red), #AF52DE); color: white; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; border-radius: 0 0 32px 32px; }
         .time-card { background: white; margin: -30px 20px 20px; padding: 24px; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: center; position: relative; z-index: 10; }
-        .clock { font-size: 46px; font-weight: 800; color: var(--ios-red); margin: 5px 0; font-variant-numeric: tabular-nums; }
+        .clock { font-size: 46px; font-weight: 800; color: var(--ios-red); margin: 5px 0; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
         
         .card { background: white; margin: 0 20px 20px; padding: 20px; border-radius: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
         .btn { flex: 1; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; cursor: pointer; }
         .btn:active { transform: scale(0.95); opacity: 0.8; }
         .btn-start { background: var(--ios-green); color: white; }
         .btn-end { background: var(--ios-orange); color: white; }
-        .btn-delete { background: #FFE5E5; color: var(--ios-red); margin-top: 12px; }
+        .btn-salary { background: #5856D6; color: white; width: 100%; margin-top: 15px; box-shadow: 0 4px 12px rgba(88, 86, 214, 0.3); }
+        .btn-delete { background: #FFE5E5; color: var(--ios-red); margin-top: 12px; width: 100%; }
         .btn-secondary { background: #F2F2F7; color: var(--ios-blue); width: 100%; margin-top: 12px; }
 
         .lunch-box { display: flex; justify-content: space-between; align-items: center; background: #FFF9F2; padding: 14px 16px; border-radius: 16px; margin-bottom: 15px; border: 1px dashed var(--ios-orange); }
@@ -35,18 +36,18 @@
         input:checked + .slider { background-color: var(--ios-green); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* Calendar Styles */
+        /* Calendar */
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .cal-head { font-size: 10px; font-weight: 700; color: #8E8E93; padding-bottom: 10px; }
-        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; background: #F9F9F9; border: 1px solid transparent; position: relative; }
-        .cal-day.has-data { background: #E8F5E9; color: var(--ios-green); font-weight: 700; border-color: #C8E6C9; }
+        .cal-head { font-size: 10px; font-weight: 700; color: #8E8E93; padding-bottom: 5px; }
+        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; background: #F9F9F9; position: relative; }
+        .cal-day.has-data { background: #E8F5E9; color: var(--ios-green); font-weight: 700; }
         .cal-day.today { border: 2px solid var(--ios-blue); }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-content { background: white; width: 94%; border-radius: 28px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; width: 92%; border-radius: 28px; padding: 20px; max-height: 85vh; overflow-y: auto; }
         
-        input[type="time"], input[type="number"] { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #E5E5EA; font-size: 16px; font-weight: 600; color: var(--ios-blue); text-align: center; background: #F2F2F7; }
+        input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #E5E5EA; font-size: 16px; font-weight: 600; color: var(--ios-blue); text-align: center; background: #F2F2F7; }
         
         #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.9); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 2000; font-weight: 600; }
@@ -64,7 +65,7 @@
 <div class="time-card">
     <div id="currentDate" style="color: #8E8E93; font-size: 14px;">--/--/----</div>
     <div class="clock" id="currentTime">00:00:00</div>
-    <div id="workStatus" style="font-size: 14px; font-weight: 600; color: #8E8E93;">Đang kết nối...</div>
+    <div id="workStatus" style="font-size: 14px; font-weight: 600; color: #8E8E93;">Kết nối...</div>
 </div>
 
 <div class="card">
@@ -73,37 +74,41 @@
         <label class="switch"><input type="checkbox" id="lunchCheckMain"><span class="slider"></span></label>
     </div>
 
-    <div style="display:flex; gap:12px; margin-bottom: 15px;">
+    <div style="display:flex; gap:12px;">
         <button class="btn btn-start" id="startBtn">Vào ca</button>
         <button class="btn btn-end" id="endBtn" disabled>Tan ca</button>
     </div>
     
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 15px;">
         <div style="background:#F2F2F7; padding:15px; border-radius:20px; text-align:center;">
-            <p style="font-size:10px; color:#888;">TỔNG OT THÁNG</p>
+            <p style="font-size:10px; color:#888; font-weight: 700;">TỔNG OT THÁNG</p>
             <b id="monthlyOT" style="font-size:22px;">0h</b>
         </div>
-        <div style="background:#F2F2F7; padding:15px; border-radius:20px; text-align:center;" onclick="openSalaryModal()">
-            <p style="font-size:10px; color:#888;">TIỀN LƯƠNG OT</p>
-            <b id="otMoneyMain" style="font-size:18px; color:var(--ios-red);">0đ</b>
+        <div style="background:#F2F2F7; padding:15px; border-radius:20px; text-align:center;">
+            <p style="font-size:10px; color:#888; font-weight: 700;">HÔM NAY</p>
+            <b id="todayOTDisp" style="font-size:22px; color:var(--ios-red);">0h</b>
         </div>
     </div>
 
-    <button class="btn btn-secondary" style="margin-top:20px;" onclick="openCalendar()"><i class="fas fa-calendar-alt"></i> Xem lịch & Chỉnh sửa</button>
+    <button class="btn btn-salary" onclick="openSalaryModal()">
+        <i class="fas fa-wallet"></i> Xem bảng tính lương tháng
+    </button>
+
+    <button class="btn btn-secondary" onclick="openCalendar()">
+        <i class="fas fa-calendar-alt"></i> Lịch sử & Chỉnh sửa
+    </button>
 </div>
 
 <div class="modal" id="calendarModal">
     <div class="modal-content">
         <div class="cal-nav">
-            <i class="fas fa-chevron-left" onclick="changeMonth(-1)" style="padding:15px;"></i>
+            <i class="fas fa-chevron-left" onclick="changeMonth(-1)" style="padding:10px;"></i>
             <h3 id="calMonthYear" style="font-weight:800;">Tháng --/----</h3>
-            <i class="fas fa-chevron-right" onclick="changeMonth(1)" style="padding:15px;"></i>
+            <i class="fas fa-chevron-right" onclick="changeMonth(1)" style="padding:10px;"></i>
         </div>
-        
         <div class="cal-grid">
             <div class="cal-head">T2</div><div class="cal-head">T3</div><div class="cal-head">T4</div>
-            <div class="cal-head">T5</div><div class="cal-head">T6</div><div class="cal-head">T7</div>
-            <div class="cal-head">CN</div>
+            <div class="cal-head">T5</div><div class="cal-head">T6</div><div class="cal-head">T7</div><div class="cal-head">CN</div>
         </div>
         <div class="cal-grid" id="calendarDays"></div>
 
@@ -114,28 +119,39 @@
                 <div><label style="font-size:10px;">Ra</label><input type="time" id="editOut"></div>
             </div>
             <div class="lunch-box" style="border-style: solid; margin-bottom:15px;">
-                <div style="font-size:14px; font-weight:600;">Làm trưa (+1h)</div>
+                <div style="font-size:14px;">Làm trưa (+1h)</div>
                 <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
             </div>
             <label style="font-size:10px; font-weight:700;">TỔNG GIỜ OT</label>
-            <input type="number" id="editOT" step="0.1" style="color:var(--ios-red);">
-            
-            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu cập nhật</button>
-            <button class="btn btn-delete" style="width:100%;" id="deleteBtn"><i class="fas fa-trash"></i> Xóa ngày này</button>
+            <input type="number" id="editOT" step="0.1" style="color:var(--ios-red); font-size:20px;">
+            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu thay đổi</button>
+            <button class="btn btn-delete" id="deleteBtn"><i class="fas fa-trash"></i> Xóa ngày này</button>
         </div>
-        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:15px;">Đóng</button>
+        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:15px;">Đóng lịch</button>
     </div>
 </div>
 
 <div class="modal" id="salaryModal">
     <div class="modal-content">
-        <h3 style="margin-bottom:15px;">Cài đặt lương</h3>
-        <input type="number" id="baseSalaryInput" placeholder="Nhập lương cơ bản..." oninput="updateSalary()">
-        <div style="background:#F2F2F7; padding:20px; border-radius:20px; margin-top:15px; text-align:center;">
-            <p style="color:#888;">Tiền OT tháng này (Hệ số 2.0):</p>
-            <b id="otMoneyDetail" style="font-size:24px; color:var(--ios-red);">0đ</b>
+        <h3 style="margin-bottom:15px; font-weight:800; text-align:center;">DỰ TÍNH THU NHẬP</h3>
+        <label style="font-size:10px; font-weight:700; color:#888;">LƯƠNG CƠ BẢN (VNĐ)</label>
+        <input type="number" id="baseSalaryInput" placeholder="Nhập lương..." oninput="updateSalary()">
+        
+        <div style="background:#F2F2F7; padding:20px; border-radius:24px; margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span style="color:#888; font-size:14px;">Số giờ OT:</span>
+                <b id="salaryOTHours" style="color:var(--ios-blue);">0h</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <span style="color:#888; font-size:14px;">Hệ số:</span>
+                <b style="color:var(--ios-green);">x 2.0</b>
+            </div>
+            <hr style="border:none; border-top:1px solid #DDD; margin-bottom:15px;">
+            <p style="color:#1C1C1E; font-size:12px; text-align:center; margin-bottom:5px;">Tiền OT tạm tính:</p>
+            <b id="otMoneyDetail" style="font-size:32px; color:var(--ios-red); display:block; text-align:center;">0đ</b>
         </div>
-        <button class="btn btn-secondary" onclick="closeModal('salaryModal')" style="margin-top:15px;">Xong</button>
+        <p style="font-size:10px; color:#888; text-align:center; margin-top:15px;">Công thức: ((Lương/26)/8) * 2 * Tổng OT</p>
+        <button class="btn btn-salary" onclick="closeModal('salaryModal')" style="margin-top:20px;">Hoàn tất</button>
     </div>
 </div>
 
@@ -148,9 +164,9 @@
 
     let workData = [];
     let currentViewDate = new Date();
+    let currentTotalOT = 0;
 
-    // HÀM TÍNH OT CHUẨN: (Sớm trước 07:45 + Trễ sau 17:00 + Trưa 1.0)
-    function calculateFullOT(inT, outT, isL) {
+    function calculateOT(inT, outT, isL) {
         if (!inT || !outT) return 0;
         const d = "2024-01-01";
         const limitS = new Date(`${d}T07:45:00`), limitE = new Date(`${d}T17:00:00`);
@@ -172,14 +188,17 @@
     function updateSummary() {
         const now = new Date();
         const thisMonthStr = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0');
-        const monthlyOT = workData
+        currentTotalOT = workData
             .filter(r => r.work_date.startsWith(thisMonthStr))
             .reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
         
-        document.getElementById('monthlyOT').innerText = monthlyOT.toFixed(1) + 'h';
+        document.getElementById('monthlyOT').innerText = currentTotalOT.toFixed(1) + 'h';
+        document.getElementById('salaryOTHours').innerText = currentTotalOT.toFixed(1) + 'h';
+
         const todayStr = now.toLocaleDateString('en-CA');
         const todayRec = workData.find(r => r.work_date === todayStr);
         
+        document.getElementById('todayOTDisp').innerText = (todayRec?.overtime || 0) + 'h';
         document.getElementById('startBtn').disabled = !!todayRec;
         document.getElementById('endBtn').disabled = !(todayRec && !todayRec.end_time);
         document.getElementById('workStatus').innerText = todayRec ? (todayRec.end_time ? "Đã tan ca ✅" : "Đang làm việc... ⏱️") : "Chưa vào ca";
@@ -190,17 +209,12 @@
     function updateSalary() {
         const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('userBaseSalary')) || 0;
         localStorage.setItem('userBaseSalary', base);
-        const otHours = parseFloat(document.getElementById('monthlyOT').innerText);
-        const money = ((base / 26) / 8) * 2 * otHours;
-        const fmt = new Intl.NumberFormat('vi-VN').format(Math.round(money)) + "đ";
-        document.getElementById('otMoneyMain').innerText = fmt;
-        if(document.getElementById('otMoneyDetail')) document.getElementById('otMoneyDetail').innerText = fmt;
+        const money = ((base / 26) / 8) * 2 * currentTotalOT;
+        document.getElementById('otMoneyDetail').innerText = new Intl.NumberFormat('vi-VN').format(Math.round(money)) + "đ";
     }
 
-    // --- LỊCH ---
     function renderCalendar() {
-        const grid = document.getElementById('calendarDays');
-        grid.innerHTML = '';
+        const grid = document.getElementById('calendarDays'); grid.innerHTML = '';
         const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
         document.getElementById('calMonthYear').innerText = `Tháng ${m + 1}/${y}`;
 
@@ -215,49 +229,31 @@
             const rec = workData.find(r => r.work_date === dStr);
             const el = document.createElement('div');
             el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''}`;
-            el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}h</small>` : ''}`;
-            el.onclick = () => showEdit(dStr, rec);
+            el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>` : ''}`;
+            el.onclick = () => {
+                document.getElementById('editPanel').style.display = 'block';
+                document.getElementById('editDateLabel').innerText = "Ngày " + dStr;
+                const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
+                inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; lI.checked = false;
+                
+                const auto = () => otI.value = calculateOT(inI.value, outI.value, lI.checked);
+                inI.oninput = auto; outI.oninput = auto; lI.onchange = auto;
+
+                document.getElementById('saveBtn').onclick = async () => {
+                    await supabaseClient.from('work_logs').upsert({ work_date: dStr, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value) });
+                    showToast("Đã lưu!"); loadData(); renderCalendar();
+                };
+                document.getElementById('deleteBtn').onclick = async () => {
+                    if(confirm("Xóa ngày này?")) {
+                        await supabaseClient.from('work_logs').delete().eq('work_date', dStr);
+                        showToast("Đã xóa!"); loadData(); renderCalendar();
+                    }
+                };
+            };
             grid.appendChild(el);
         }
     }
 
-    function showEdit(date, rec) {
-        const panel = document.getElementById('editPanel');
-        panel.style.display = 'block';
-        document.getElementById('editDateLabel').innerText = "Chỉnh sửa ngày " + date;
-        const inI = document.getElementById('editIn'), outI = document.getElementById('editOut');
-        const lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
-        
-        inI.value = rec?.start_time || "07:45";
-        outI.value = rec?.end_time || "17:00";
-        otI.value = rec?.overtime || 0;
-        lI.checked = false;
-
-        const autoCalc = () => otI.value = calculateFullOT(inI.value, outI.value, lI.checked);
-        inI.oninput = autoCalc; outI.oninput = autoCalc; lI.onchange = autoCalc;
-
-        document.getElementById('saveBtn').onclick = async () => {
-            await supabaseClient.from('work_logs').upsert({
-                work_date: date, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value)
-            });
-            showToast("Đã cập nhật!"); loadData(); renderCalendar();
-        };
-
-        document.getElementById('deleteBtn').onclick = async () => {
-            if(confirm("Xóa vĩnh viễn ngày " + date + "?")) {
-                await supabaseClient.from('work_logs').delete().eq('work_date', date);
-                showToast("Đã xóa!"); panel.style.display = 'none'; loadData(); renderCalendar();
-            }
-        };
-    }
-
-    function changeMonth(dir) { currentViewDate.setMonth(currentViewDate.getMonth() + dir); renderCalendar(); }
-    function openCalendar() { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; }
-    function openSalaryModal() { document.getElementById('salaryModal').style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
-
-    // --- NÚT CHÍNH ---
     document.getElementById('startBtn').onclick = async () => {
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
         await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t });
@@ -268,11 +264,16 @@
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
         const today = new Date().toLocaleDateString('en-CA');
         const rec = workData.find(r => r.work_date === today);
-        const isL = document.getElementById('lunchCheckMain').checked;
-        const ot = calculateFullOT(rec.start_time, t, isL);
+        const ot = calculateOT(rec.start_time, t, document.getElementById('lunchCheckMain').checked);
         await supabaseClient.from('work_logs').update({ end_time: t, overtime: ot }).eq('work_date', today);
         loadData();
     };
+
+    function changeMonth(dir) { currentViewDate.setMonth(currentViewDate.getMonth() + dir); renderCalendar(); }
+    function openCalendar() { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; }
+    function openSalaryModal() { document.getElementById('salaryModal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
 
     setInterval(() => {
         document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('vi-VN', {hour12:false});
