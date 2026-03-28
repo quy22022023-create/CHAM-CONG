@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>⏱️ OT Pro Ultimate - Full Multi-User</title>
+    <title>⏱️ OT Pro - Ultimate V3</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,26 +13,19 @@
     <style>
         :root { --ios-red: #FF3B30; --ios-green: #34C759; --ios-blue: #007AFF; --ios-orange: #FF9500; --ios-bg: #F2F2F7; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: env(safe-area-inset-bottom); }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
         
-        /* AUTH SCREEN */
-        #authOverlay { position: fixed; inset: 0; background: var(--ios-bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: white; padding: 30px; border-radius: 32px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .auth-card input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #DDD; margin-bottom: 10px; font-size: 16px; text-align: center; }
-        .auth-toggle { margin-top: 15px; font-size: 13px; color: var(--ios-blue); cursor: pointer; }
-
-        /* HEADER & APP UI */
-        .header { background: linear-gradient(135deg, var(--ios-red), #AF52DE); color: white; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; border-radius: 0 0 32px 32px; position: relative; }
-        .logout-btn { position: absolute; top: 15px; right: 15px; font-size: 11px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 15px; color: white; border: none; }
+        .header { background: linear-gradient(135deg, var(--ios-red), #AF52DE); color: white; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; border-radius: 0 0 32px 32px; }
         .time-card { background: white; margin: -30px 20px 20px; padding: 24px; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: center; position: relative; z-index: 10; }
         .clock { font-size: 46px; font-weight: 800; color: var(--ios-red); margin: 5px 0; font-variant-numeric: tabular-nums; }
         
         .card { background: white; margin: 0 20px 20px; padding: 20px; border-radius: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
-        .btn { border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; cursor: pointer; width: 100%; }
+        .btn { flex: 1; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; cursor: pointer; }
+        .btn:active { transform: scale(0.95); opacity: 0.8; }
         .btn-start { background: var(--ios-green); color: white; }
         .btn-end { background: var(--ios-orange); color: white; }
-        .btn-salary { background: #5856D6; color: white; margin-top: 15px; }
-        .btn-secondary { background: #F2F2F7; color: var(--ios-blue); margin-top: 12px; }
+        .btn-salary { background: #5856D6; color: white; width: 100%; margin-top: 15px; }
+        .btn-secondary { background: #F2F2F7; color: var(--ios-blue); width: 100%; margin-top: 12px; }
 
         .lunch-box { display: flex; justify-content: space-between; align-items: center; background: #FFF9F2; padding: 14px 16px; border-radius: 16px; margin-bottom: 15px; border: 1px dashed var(--ios-orange); }
         .switch { position: relative; width: 51px; height: 31px; }
@@ -44,16 +37,18 @@
 
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; background: #F9F9F9; position: relative; cursor: pointer; }
+        .cal-head { font-size: 10px; font-weight: 700; color: #8E8E93; }
+        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; background: #F9F9F9; position: relative; }
         .cal-day.has-data { background: #E8F5E9; color: var(--ios-green); font-weight: 700; }
         .cal-day.today { border: 2px solid var(--ios-blue); }
         .cal-day.sunday { color: var(--ios-red); }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 92%; border-radius: 28px; padding: 20px; max-height: 85vh; overflow-y: auto; }
+        input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #E5E5EA; font-size: 16px; font-weight: 600; text-align: center; background: #F2F2F7; }
         
-        #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
-        .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.9); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 20000; text-align: center; }
+        #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.9); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 2000; text-align: center; }
         .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
@@ -61,20 +56,7 @@
 
 <div id="loading"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--ios-red)"></i></div>
 
-<div id="authOverlay">
-    <div class="auth-card">
-        <h2 id="authTitle" style="margin-bottom: 20px;">Đăng Nhập</h2>
-        <input type="text" id="authUsername" placeholder="Tên tài khoản">
-        <input type="password" id="authPassword" placeholder="Mật khẩu">
-        <button class="btn btn-start" id="authBtn" onclick="processAuth()">Đăng Nhập</button>
-        <div class="auth-toggle" onclick="toggleAuthMode()" id="authToggleText">Chưa có tài khoản? Đăng ký ngay</div>
-    </div>
-</div>
-
-<div class="header">
-    <button class="logout-btn" onclick="logout()">Thoát</button>
-    <h1 id="userTitle">OT PRO</h1>
-</div>
+<div class="header"><h1>QUẢN LÝ TĂNG CA</h1></div>
 
 <div class="time-card">
     <div id="currentDate" style="color: #8E8E93; font-size: 14px;">--/--/----</div>
@@ -89,8 +71,8 @@
     </div>
 
     <div style="display:flex; gap:12px;">
-        <button class="btn btn-start" id="startBtn" style="flex:1;">Vào ca</button>
-        <button class="btn btn-end" id="endBtn" style="flex:1;" disabled>Tan ca</button>
+        <button class="btn btn-start" id="startBtn">Vào ca</button>
+        <button class="btn btn-end" id="endBtn" disabled>Tan ca</button>
     </div>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 15px;">
@@ -112,45 +94,46 @@
     <div class="modal-content">
         <div class="cal-nav">
             <i class="fas fa-chevron-left" onclick="changeMonth(-1)" style="padding:10px;"></i>
-            <h3 id="calMonthYear">Tháng --/----</h3>
+            <h3 id="calMonthYear" style="font-weight:800;">Tháng --/----</h3>
             <i class="fas fa-chevron-right" onclick="changeMonth(1)" style="padding:10px;"></i>
         </div>
-        <div class="cal-grid"><div style="color:#888;font-size:10px;">T2</div><div style="color:#888;font-size:10px;">T3</div><div style="color:#888;font-size:10px;">T4</div><div style="color:#888;font-size:10px;">T5</div><div style="color:#888;font-size:10px;">T6</div><div style="color:#888;font-size:10px;">T7</div><div style="color:red;font-size:10px;">CN</div></div>
+        <div class="cal-grid"><div class="cal-head">T2</div><div class="cal-head">T3</div><div class="cal-head">T4</div><div class="cal-head">T5</div><div class="cal-head">T6</div><div class="cal-head">T7</div><div class="cal-head" style="color:var(--ios-red)">CN</div></div>
         <div class="cal-grid" id="calendarDays" style="margin-top:10px;"></div>
         
         <div id="editPanel" style="display:none; border-top:1px solid #EEE; margin-top:20px; padding-top:15px;">
             <p id="editDateLabel" style="text-align:center; font-weight:800; color:var(--ios-blue); margin-bottom:10px;"></p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <input type="time" id="editIn" style="width:100%; padding:10px; border-radius:10px; border:1px solid #DDD;">
-                <input type="time" id="editOut" style="width:100%; padding:10px; border-radius:10px; border:1px solid #DDD;">
+                <input type="time" id="editIn"> <input type="time" id="editOut">
             </div>
             <div class="lunch-box" style="border-style: solid;">
                 <div id="lunchLabelEdit" style="font-size:14px; font-weight:700;">Tăng ca trưa (+1h)</div>
                 <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
             </div>
-            <input type="number" id="editOT" step="0.1" style="width:100%; padding:15px; font-size:24px; color:red; text-align:center; border:1px solid #DDD; border-radius:12px;">
-            <button class="btn btn-start" style="margin-top:15px;" id="saveBtn">Lưu thay đổi</button>
+            <div style="text-align:center; margin-bottom:5px;"><small style="color:#888; font-size:10px;">TỔNG GIỜ OT CỦA NGÀY</small></div>
+            <input type="number" id="editOT" step="0.1" style="color:var(--ios-red); font-size:24px;">
+            
+            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu thay đổi</button>
             <button class="btn btn-secondary" style="background:#FFE5E5; color:var(--ios-red);" id="deleteBtn">Xóa dữ liệu ngày</button>
         </div>
-        <button class="btn btn-secondary" onclick="closeModal('calendarModal')">Đóng</button>
+        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:10px;">Đóng</button>
     </div>
 </div>
 
 <div class="modal" id="salaryModal">
     <div class="modal-content">
-        <h3 style="text-align:center; margin-bottom:20px;">Tính Lương OT</h3>
         <div class="cal-nav">
-            <i class="fas fa-chevron-left" onclick="changeSalaryMonth(-1)"></i>
-            <span id="salaryMonthYear">Tháng --/----</span>
-            <i class="fas fa-chevron-right" onclick="changeSalaryMonth(1)"></i>
+            <i class="fas fa-chevron-left" onclick="changeSalaryMonth(-1)" style="padding:10px;"></i>
+            <h3 id="salaryMonthYear" style="font-weight:800;">Tháng --/----</h3>
+            <i class="fas fa-chevron-right" onclick="changeSalaryMonth(1)" style="padding:10px;"></i>
         </div>
         <label style="font-size:10px; font-weight:700; color:#888;">LƯƠNG CƠ BẢN</label>
-        <input type="number" id="baseSalaryInput" oninput="updateSalaryDisplay()" style="width:100%; padding:15px; border-radius:12px; border:1px solid #DDD; font-size:18px;">
+        <input type="number" id="baseSalaryInput" oninput="updateSalaryDisplay()">
         <div style="background:#F2F2F7; padding:20px; border-radius:24px; margin-top:20px; text-align:center;">
-            <p style="color:#888; font-size:13px;">Tổng OT: <b id="salaryOTHours" style="color:var(--ios-blue);">0h</b></p>
+            <p style="color:#888; font-size:13px;">Tổng OT tháng này: <b id="salaryOTHours" style="color:var(--ios-blue);">0h</b></p>
+            <p style="color:#888; font-size:13px; margin-bottom:10px;">Tiền OT (x2.0):</p>
             <b id="otMoneyDetail" style="font-size:32px; color:var(--ios-red);">0đ</b>
         </div>
-        <button class="btn btn-salary" onclick="closeModal('salaryModal')">Xong</button>
+        <button class="btn btn-salary" onclick="closeModal('salaryModal')" style="margin-top:20px;">Hoàn tất</button>
     </div>
 </div>
 
@@ -159,77 +142,62 @@
 <script>
     const SB_URL = 'https://dtdknettwfgilklaqeae.supabase.co', SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZGtuZXR0d2ZnaWxrbGFxZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzMTgsImV4cCI6MjA5MDI0NzMxOH0.qDvvZHNyNPh4QxpD6fDkR4Jr1xUnLSzCm79bsKI6ILk';
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-    
     let workData = [], currentViewDate = new Date(), salaryViewDate = new Date();
-    let currentUsername = localStorage.getItem('ot_username'), isLoginMode = true;
 
-    // --- AUTH LOGIC ---
-    function toggleAuthMode() {
-        isLoginMode = !isLoginMode;
-        document.getElementById('authTitle').innerText = isLoginMode ? "Đăng Nhập" : "Đăng Ký";
-        document.getElementById('authBtn').innerText = isLoginMode ? "Đăng Nhập" : "Tạo Tài Khoản";
-        document.getElementById('authToggleText').innerText = isLoginMode ? "Chưa có tài khoản? Đăng ký ngay" : "Đã có tài khoản? Đăng nhập";
+    // Kiểm tra ngày là Chủ Nhật
+    function isSunday(dateStr) {
+        return new Date(dateStr).getDay() === 0;
     }
 
-    async function processAuth() {
-        const u = document.getElementById('authUsername').value.trim().toLowerCase();
-        const p = document.getElementById('authPassword').value.trim();
-        if(!u || !p) return alert("Điền đủ thông tin!");
-        
-        document.getElementById('loading').style.display = 'flex';
-        if(isLoginMode) {
-            const { data } = await supabaseClient.from('users_account').select('*').eq('username', u).eq('password', p).single();
-            if(data) loginSuccess(u); else alert("Sai tài khoản/mật khẩu!");
-        } else {
-            const { error } = await supabaseClient.from('users_account').insert({ username: u, password: p });
-            if(error) alert("Tên tài khoản đã tồn tại!"); else { alert("Đã tạo! Hãy đăng nhập."); toggleAuthMode(); }
-        }
-        document.getElementById('loading').style.display = 'none';
-    }
-
-    function loginSuccess(u) {
-        localStorage.setItem('ot_username', u);
-        currentUsername = u;
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('userTitle').innerText = "CHÀO, " + u.toUpperCase();
-        loadData();
-    }
-
-    function logout() { localStorage.removeItem('ot_username'); location.reload(); }
-
-    // --- CORE LOGIC ---
-    function isSunday(d) { return new Date(d).getDay() === 0; }
-
+    // LOGIC TÍNH OT CỐT LÕI
     function calculateOT(inT, outT, isL, dateStr) {
         if (!inT || !outT) return 0;
-        const d = "2024-01-01", actS = new Date(`${d}T${inT}:00`), actE = new Date(`${d}T${outT}:00`);
+        const d = "2024-01-01";
+        const actS = new Date(`${d}T${inT}:00`), actE = new Date(`${d}T${outT}:00`);
+        
         if (!isSunday(dateStr)) {
+            // NGÀY THƯỜNG: OT tính ngoài khung 07:45 - 17:00
             const limitS = new Date(`${d}T07:45:00`), limitE = new Date(`${d}T17:00:00`);
             let mins = 0;
             if (actS < limitS) mins += (limitS - actS) / 60000;
             if (actE > limitE) mins += (actE - limitE) / 60000;
             return parseFloat((mins / 60 + (isL ? 1 : 0)).toFixed(2));
         } else {
-            let netMins = ((actE - actS) / 60000) - (isL ? 60 : 0);
+            // CHỦ NHẬT: Toàn bộ thời gian làm việc là OT
+            let totalMins = (actE - actS) / 60000;
+            let netMins = totalMins - (isL ? 60 : 0); // isL ở đây đóng vai trò trừ 1h nghỉ trưa
             return parseFloat((Math.max(0, netMins) / 60).toFixed(2));
         }
     }
 
+    // TỰ ĐỘNG CHẤM CÔNG (Chỉ ngày thường)
     async function handleAutoCheck() {
-        if(!currentUsername) return;
-        const now = new Date(), todayStr = now.toLocaleDateString('en-CA');
-        if(now.getDay() === 0) return;
+        const now = new Date();
+        const todayStr = now.toLocaleDateString('en-CA');
+        if (now.getDay() === 0) return; // Không tự động điền Chủ Nhật
+
         const todayRec = workData.find(r => r.work_date === todayStr);
-        if(!todayRec && now.getHours() >= 8) {
-            await supabaseClient.from('work_logs').insert({ work_date: todayStr, start_time: "07:45", username: currentUsername });
+        const currentHour = now.getHours();
+
+        if (!todayRec && currentHour >= 8) {
+            await supabaseClient.from('work_logs').insert({ work_date: todayStr, start_time: "07:45", note: "Auto" });
+            showToast("Hệ thống tự động Vào ca (07:45)");
+            await loadData();
+        }
+
+        const updatedRec = workData.find(r => r.work_date === todayStr);
+        if (updatedRec && updatedRec.start_time && !updatedRec.end_time && currentHour >= 18) {
+            const outT = "17:00";
+            const ot = calculateOT(updatedRec.start_time, outT, document.getElementById('lunchCheckMain').checked, todayStr);
+            await supabaseClient.from('work_logs').update({ end_time: outT, overtime: ot, note: "Auto" }).eq('work_date', todayStr);
+            showToast("Hệ thống tự động Tan ca (17:00)");
             await loadData();
         }
     }
 
     async function loadData() {
-        if(!currentUsername) return;
         document.getElementById('loading').style.display = 'flex';
-        const { data } = await supabaseClient.from('work_logs').select('*').eq('username', currentUsername).order('work_date', {ascending:false});
+        const { data } = await supabaseClient.from('work_logs').select('*').order('work_date', { ascending: false });
         workData = data || [];
         await handleAutoCheck();
         updateSummary();
@@ -237,44 +205,53 @@
     }
 
     function updateSummary() {
-        const now = new Date(), todayStr = now.toLocaleDateString('en-CA'), thisMonth = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2,'0');
-        const mOT = workData.filter(r => r.work_date.startsWith(thisMonth)).reduce((s, r) => s + (parseFloat(r.overtime) || 0), 0);
-        document.getElementById('monthlyOT').innerText = mOT.toFixed(1) + 'h';
+        const now = new Date(), todayStr = now.toLocaleDateString('en-CA'), thisMonthStr = now.getFullYear() + '-' + (now.getMonth() + 1).toString().padStart(2, '0');
+        const monthlyOT = workData.filter(r => r.work_date.startsWith(thisMonthStr)).reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
+        document.getElementById('monthlyOT').innerText = monthlyOT.toFixed(1) + 'h';
+        
         const todayRec = workData.find(r => r.work_date === todayStr);
         document.getElementById('todayOTDisp').innerText = (todayRec?.overtime || 0) + 'h';
         document.getElementById('startBtn').disabled = !!todayRec;
-        document.getElementById('endBtn').disabled = !todayRec || !!todayRec.end_time;
-        document.getElementById('workStatus').innerText = todayRec ? (todayRec.end_time ? "Đã tan ca ✅" : "Đang làm việc...") : "Chưa vào ca";
-        document.getElementById('lunchLabelMain').innerHTML = isSunday(todayStr) ? '<i class="fas fa-coffee"></i> Có nghỉ trưa 1h (Trừ OT)' : '<i class="fas fa-utensils"></i> Tăng ca trưa (+1h)';
+        document.getElementById('endBtn').disabled = !todayRec;
+        document.getElementById('workStatus').innerText = todayRec ? (todayRec.end_time ? "Đã tan ca ✅" : "Đang làm việc... ⏱️") : "Chưa vào ca";
+        
+        // Cập nhật giao diện nút nghỉ trưa chính
+        const label = document.getElementById('lunchLabelMain');
+        if (now.getDay() === 0) label.innerHTML = '<i class="fas fa-coffee"></i> Có nghỉ trưa 1h (Trừ vào OT)';
+        else label.innerHTML = '<i class="fas fa-utensils"></i> Tăng ca trưa (+1h)';
     }
 
-    // --- BUTTON EVENTS ---
+    // SỰ KIỆN NÚT CHÍNH
     document.getElementById('startBtn').onclick = async () => {
-        const t = new Date().toLocaleTimeString('vi-VN',{hour12:false}).slice(0,5);
-        await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t, username: currentUsername });
-        loadData(); showToast("Vào ca: " + t);
+        const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
+        await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t });
+        loadData(); showToast("Đã vào ca lúc " + t);
     };
 
     document.getElementById('endBtn').onclick = async () => {
-        const t = new Date().toLocaleTimeString('vi-VN',{hour12:false}).slice(0,5), d = new Date().toLocaleDateString('en-CA');
-        const rec = workData.find(r => r.work_date === d);
-        const ot = calculateOT(rec.start_time, t, document.getElementById('lunchCheckMain').checked, d);
-        await supabaseClient.from('work_logs').update({ end_time: t, overtime: ot }).eq('work_date', d).eq('username', currentUsername);
-        loadData(); showToast("Tan ca: " + t);
+        const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        const rec = workData.find(r => r.work_date === todayStr);
+        const ot = calculateOT(rec.start_time, t, document.getElementById('lunchCheckMain').checked, todayStr);
+        await supabaseClient.from('work_logs').update({ end_time: t, overtime: ot }).eq('work_date', todayStr);
+        loadData(); showToast("Đã tan ca lúc " + t);
     };
 
-    // --- CALENDAR & EDIT ---
+    // LOGIC LỊCH & CHỈNH SỬA
     function renderCalendar() {
         const grid = document.getElementById('calendarDays'); grid.innerHTML = '';
         const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
-        document.getElementById('calMonthYear').innerText = `Tháng ${m+1}/${y}`;
-        const first = new Date(y, m, 1).getDay(), start = first === 0 ? 6 : first - 1, days = new Date(y, m+1, 0).getDate();
-        for(let i=0; i<start; i++) grid.appendChild(document.createElement('div'));
-        for(let d=1; d<=days; d++){
+        document.getElementById('calMonthYear').innerText = `Tháng ${m + 1}/${y}`;
+        const firstDay = new Date(y, m, 1).getDay(), emptySlots = firstDay === 0 ? 6 : firstDay - 1, daysInMonth = new Date(y, m + 1, 0).getDate();
+        
+        for (let i = 0; i < emptySlots; i++) grid.appendChild(document.createElement('div'));
+        
+        for (let d = 1; d <= daysInMonth; d++) {
             const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
+            const isSun = isSunday(dStr);
             const el = document.createElement('div');
-            el.className = `cal-day ${rec?'has-data':''} ${isSunday(dStr)?'sunday':''}`;
-            el.innerHTML = `<span>${d}</span>${rec?`<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>`:''}`;
+            el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSun ? 'sunday' : ''}`;
+            el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>` : ''}`;
             el.onclick = () => showEdit(dStr, rec);
             grid.appendChild(el);
         }
@@ -282,45 +259,76 @@
 
     function showEdit(date, rec) {
         document.getElementById('editPanel').style.display = 'block';
-        document.getElementById('editDateLabel').innerText = "Sửa ngày: " + date;
-        const iI = document.getElementById('editIn'), oI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
-        document.getElementById('lunchLabelEdit').innerText = isSunday(date) ? "Có nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
-        iI.value = rec?.start_time || "07:45"; oI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; lI.checked = false;
-        const auto = () => otI.value = calculateOT(iI.value, oI.value, lI.checked, date);
-        iI.oninput = auto; oI.oninput = auto; lI.onchange = auto;
-        document.getElementById('saveBtn').onclick = async () => {
-            await supabaseClient.from('work_logs').upsert({ work_date: date, start_time: iI.value, end_time: oI.value, overtime: parseFloat(otI.value), username: currentUsername });
-            showToast("Đã lưu!"); loadData(); renderCalendar();
+        document.getElementById('editDateLabel').innerText = "Chỉnh sửa ngày: " + date;
+        const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
+        const isSun = isSunday(date);
+        
+        // Đổi nhãn nút dựa trên ngày được chọn
+        document.getElementById('lunchLabelEdit').innerText = isSun ? "Có nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
+        
+        inI.value = rec?.start_time || "07:45"; 
+        outI.value = rec?.end_time || "17:00"; 
+        otI.value = rec?.overtime || 0; 
+        lI.checked = false; // Mặc định không tích khi mở lên để tránh tính sai
+        
+        const autoCalcEdit = () => {
+            otI.value = calculateOT(inI.value, outI.value, lI.checked, date);
         };
+        
+        inI.oninput = autoCalcEdit; 
+        outI.oninput = autoCalcEdit; 
+        lI.onchange = autoCalcEdit;
+        
+        document.getElementById('saveBtn').onclick = async () => {
+            await supabaseClient.from('work_logs').upsert({ 
+                work_date: date, 
+                start_time: inI.value, 
+                end_time: outI.value, 
+                overtime: parseFloat(otI.value) 
+            });
+            showToast("Đã cập nhật!"); loadData(); renderCalendar();
+        };
+        
         document.getElementById('deleteBtn').onclick = async () => {
-            if(confirm("Xóa ngày này?")) { await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUsername); loadData(); renderCalendar(); document.getElementById('editPanel').style.display='none'; }
+            if(confirm("Xóa dữ liệu ngày " + date + "?")) { 
+                await supabaseClient.from('work_logs').delete().eq('work_date', date); 
+                loadData(); renderCalendar(); 
+                document.getElementById('editPanel').style.display = 'none'; 
+            }
         };
     }
 
-    // --- SALARY ---
+    // LƯƠNG & KHÁC
     function updateSalaryDisplay() {
-        const y = salaryViewDate.getFullYear(), m = salaryViewDate.getMonth(), mStr = `${y}-${(m+1).toString().padStart(2,'0')}`;
-        document.getElementById('salaryMonthYear').innerText = `Tháng ${m+1}/${y}`;
-        const tOT = workData.filter(r => r.work_date.startsWith(mStr)).reduce((s, r) => s + (parseFloat(r.overtime) || 0), 0);
-        const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('ot_base_'+currentUsername)) || 0;
-        localStorage.setItem('ot_base_'+currentUsername, base);
-        const money = ((base / 26) / 8) * 2 * tOT;
-        document.getElementById('salaryOTHours').innerText = tOT.toFixed(1) + 'h';
+        const y = salaryViewDate.getFullYear(), m = salaryViewDate.getMonth();
+        const monthStr = `${y}-${(m+1).toString().padStart(2,'0')}`;
+        document.getElementById('salaryMonthYear').innerText = `Tháng ${m + 1}/${y}`;
+        const totalOT = workData.filter(r => r.work_date.startsWith(monthStr)).reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
+        const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('userBaseSalary')) || 0;
+        localStorage.setItem('userBaseSalary', base);
+        const money = ((base / 26) / 8) * 2 * totalOT; 
+        document.getElementById('salaryOTHours').innerText = totalOT.toFixed(1) + 'h';
         document.getElementById('otMoneyDetail').innerText = new Intl.NumberFormat('vi-VN').format(Math.round(money)) + "đ";
     }
 
-    function changeMonth(dir) { currentViewDate.setMonth(currentViewDate.getMonth()+dir); renderCalendar(); }
-    function changeSalaryMonth(dir) { salaryViewDate.setMonth(salaryViewDate.getMonth()+dir); updateSalaryDisplay(); }
+    function changeMonth(dir) { currentViewDate.setMonth(currentViewDate.getMonth() + dir); renderCalendar(); }
+    function changeSalaryMonth(dir) { salaryViewDate.setMonth(salaryViewDate.getMonth() + dir); updateSalaryDisplay(); }
     function openCalendar() { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; }
-    function openSalaryModal() { salaryViewDate = new Date(); document.getElementById('baseSalaryInput').value = localStorage.getItem('ot_base_'+currentUsername) || ""; updateSalaryDisplay(); document.getElementById('salaryModal').style.display = 'flex'; }
+    function openSalaryModal() { 
+        salaryViewDate = new Date(); 
+        document.getElementById('baseSalaryInput').value = localStorage.getItem('userBaseSalary') || "";
+        updateSalaryDisplay(); 
+        document.getElementById('salaryModal').style.display = 'flex'; 
+    }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
-    window.onload = () => { if(currentUsername) loginSuccess(currentUsername); };
     setInterval(() => {
-        document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('vi-VN',{hour12:false});
-        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN',{weekday:'long', day:'numeric', month:'numeric'});
+        document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('vi-VN', {hour12:false});
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('vi-VN', {weekday:'long', day:'numeric', month:'numeric'});
     }, 1000);
+
+    window.onload = loadData;
 </script>
 </body>
 </html>
