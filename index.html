@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>⏱️ Chấm Công OT Pro</title>
+    <title>⏱️ Quản Lý Tăng Ca Pro</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -31,19 +31,25 @@
         .stat-label { font-size: 10px; color: #8E8E93; text-transform: uppercase; margin-bottom: 4px; }
         .stat-value { font-size: 18px; font-weight: 700; }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: white; border-radius: 28px; width: 100%; max-width: 400px; padding: 24px; max-height: 90vh; overflow-y: auto; }
+        /* MODAL & LỊCH */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
+        .modal-content { background: white; border-radius: 28px; width: 100%; max-width: 450px; padding: 20px; max-height: 95vh; overflow-y: auto; }
         
-        .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; margin-top: 15px; }
-        .calendar-day { padding: 10px 0; border-radius: 12px; background: #F2F2F7; cursor: pointer; font-size: 14px; min-height: 60px; display: flex; flex-direction: column; justify-content: center; border: 1px solid transparent; }
+        .calendar-header-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 10px; border-bottom: 1px solid #EEE; padding-bottom: 5px; }
+        .calendar-header-grid span { font-size: 11px; font-weight: 700; color: #8E8E93; }
+
+        .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .calendar-day { padding: 8px 0; border-radius: 12px; background: #F9F9F9; cursor: pointer; font-size: 13px; min-height: 55px; display: flex; flex-direction: column; justify-content: center; border: 1px solid transparent; transition: 0.2s; }
+        .calendar-day.empty { background: transparent; cursor: default; }
         .calendar-day.has-data { background: #FFF; border: 1px solid #34C759; color: #34C759; font-weight: 600; }
-        .ot-badge { font-size: 10px; color: #FF3B30; font-weight: 800; margin-top: 2px; }
+        .calendar-day.today { border: 2px solid #007AFF; }
+        .ot-badge { font-size: 9px; color: #FF3B30; font-weight: 800; margin-top: 2px; }
 
         .salary-input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #E5E5EA; font-size: 18px; font-weight: 600; color: #007AFF; outline: none; margin-bottom: 20px; text-align: center; }
         .result-box { background: #F2F2F7; padding: 20px; border-radius: 18px; text-align: center; border: 1px solid #FF3B30; }
         .result-val { font-size: 24px; font-weight: 800; color: #FF3B30; display: block; margin-top: 5px; }
 
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #34C759; color: white; padding: 12px 24px; border-radius: 30px; transition: 0.4s; z-index: 1000; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #34C759; color: white; padding: 12px 24px; border-radius: 30px; transition: 0.4s; z-index: 1000; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .toast.show { transform: translateX(-50%) translateY(0); }
         #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
 
@@ -51,7 +57,7 @@
             body { background: #000; color: white; }
             .time-card, .card, .modal-content, .stat-box { background: #1C1C1E; color: white; }
             .stat-box, .calendar-day, .btn-secondary, .salary-input, .result-box, .btn-salary { background: #2C2C2E; color: white; border-color: #3A3A3C; }
-            .calendar-day.has-data { background: #1C1C1E; }
+            .calendar-day:not(.empty) { background: #2C2C2E; }
         }
     </style>
 </head>
@@ -61,11 +67,11 @@
 
 <div class="header">
     <h2 style="font-weight: 800;">QUẢN LÝ TĂNG CA</h2>
-    <p style="font-size: 12px; opacity: 0.9;">Ca làm việc: 07:45 - 17:00</p>
+    <p style="font-size: 11px; opacity: 0.9;">Hành chính: 07:45 - 17:00 | OT: Trước & Sau</p>
 </div>
 
 <div class="time-card">
-    <div id="currentDate" style="color: #8E8E93; font-size: 14px;">--/--/----</div>
+    <div id="currentDate" style="color: #8E8E93; font-size: 13px;">--/--/----</div>
     <div class="clock" id="currentTime">00:00:00</div>
     <div id="workStatus" style="font-size: 13px; font-weight: 600;">Đang kết nối...</div>
 </div>
@@ -81,35 +87,34 @@
         <div class="stat-box"><div class="stat-label">OT Hôm nay</div><div class="stat-value" id="otToday" style="color: #FF3B30">0h</div></div>
     </div>
 
-    <button class="btn btn-salary" onclick="openSalaryModal()"><i class="fas fa-calculator"></i> Bảng Lương Dự Tính</button>
-    <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-history"></i> Lịch Sử Làm Việc</button>
+    <button class="btn btn-salary" onclick="openSalaryModal()"><i class="fas fa-calculator"></i> Xem Bảng Lương Dự Tính</button>
+    <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-calendar-alt"></i> Lịch Sử (Thứ 2 - CN)</button>
 </div>
 
 <div class="modal" id="calendarModal">
     <div class="modal-content">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="monthYearTitle">Tháng --/----</h3>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 id="monthYearTitle" style="font-size: 18px;">Tháng --/----</h3>
             <button onclick="closeModal('calendarModal')" style="border:none; background:none; font-size:28px; color:#888;">&times;</button>
         </div>
+        
+        <div class="calendar-header-grid">
+            <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span style="color:#FF3B30">CN</span>
+        </div>
+        
         <div class="calendar-days" id="calendarGrid"></div>
         
-        <div id="editPanel" style="display:none; margin-top: 20px; border-top: 2px solid #F2F2F7; padding-top: 20px;">
-            <p id="editDateLabel" style="font-weight: 700; color: #FF3B30; margin-bottom: 15px; text-align: center;"></p>
+        <div id="editPanel" style="display:none; margin-top: 20px; border-top: 2px solid #F2F2F7; padding-top: 15px;">
+            <p id="editDateLabel" style="font-weight: 700; color: #FF3B30; margin-bottom: 12px; text-align: center;"></p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <div>
-                    <label style="font-size: 10px; color: #888; display: block; margin-bottom: 5px;">GIỜ VÀO</label>
-                    <input type="time" id="editIn" class="salary-input" style="padding: 10px; font-size: 16px;">
-                </div>
-                <div>
-                    <label style="font-size: 10px; color: #888; display: block; margin-bottom: 5px;">GIỜ RA</label>
-                    <input type="time" id="editOut" class="salary-input" style="padding: 10px; font-size: 16px;">
-                </div>
+                <div><label style="font-size: 10px; color: #888;">GIỜ VÀO</label><input type="time" id="editIn" class="salary-input" style="padding: 10px; font-size: 15px;"></div>
+                <div><label style="font-size: 10px; color: #888;">GIỜ RA</label><input type="time" id="editOut" class="salary-input" style="padding: 10px; font-size: 15px;"></div>
             </div>
-            <label style="font-size: 10px; color: #888; display: block; margin-bottom: 5px;">GIỜ TĂNG CA (TỰ ĐỘNG)</label>
+            <label style="font-size: 10px; color: #888;">TỔNG GIỜ OT (TỰ ĐỘNG)</label>
             <input type="number" id="editOT" class="salary-input" step="0.01" style="background: #FFF9F9; border-color: #FFCDD2; color: #FF3B30;">
             
-            <button class="btn btn-start" style="width:100%;" id="saveBtn">Lưu Dữ Liệu</button>
-            <button class="btn" style="color:#FF3B30; width:100%; margin-top: 10px; font-size: 13px;" id="delBtn">Xóa ngày làm việc này</button>
+            <button class="btn btn-start" style="width:100%;" id="saveBtn">Lưu Thay Đổi</button>
+            <button class="btn" style="color:#888; width:100%; margin-top: 10px; font-size: 12px;" id="delBtn">Xóa ngày này</button>
         </div>
     </div>
 </div>
@@ -117,17 +122,16 @@
 <div class="modal" id="salaryModal">
     <div class="modal-content">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3>Tính Lương OT</h3>
+            <h3>Tính Lương Dự Tính</h3>
             <button onclick="closeModal('salaryModal')" style="border:none; background:none; font-size:28px; color:#888;">&times;</button>
         </div>
-        <label style="font-size: 12px; color: #8E8E93; font-weight: 600;">LƯƠNG CƠ BẢN (VNĐ)</label>
-        <input type="number" id="baseSalaryInput" class="salary-input" placeholder="0" oninput="updateSalaryUI()">
+        <label style="font-size: 12px; color: #8E8E93; font-weight: 600;">LƯƠNG CƠ BẢN (26 NGÀY CÔNG)</label>
+        <input type="number" id="baseSalaryInput" class="salary-input" placeholder="Nhập lương..." oninput="updateSalaryUI()">
         
         <div class="result-box">
-            <span style="font-size: 14px; color: #8E8E93;">Tổng tiền OT (Hệ số x2.0):</span>
+            <span style="font-size: 14px; color: #8E8E93;">Tiền OT tháng này (Hệ số x2.0):</span>
             <span class="result-val" id="otMoneyDisplay">0đ</span>
         </div>
-        <p style="font-size: 10px; color: #888; margin-top: 15px; text-align: center;">Dựa trên 26 ngày công/tháng và 8 giờ hành chính.</p>
     </div>
 </div>
 
@@ -147,38 +151,24 @@
         setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    // HÀM TÍNH OT CHUẨN: VÀO SỚM HƠN 07:45 HOẶC RA TRỄ HƠN 17:00
-    function calculateOTValue(startTimeStr, endTimeStr) {
-        if (!startTimeStr || !endTimeStr) return 0;
-        
-        const dummyDate = "2024-01-01"; // Chỉ dùng để so sánh giờ
-        const startLimit = new Date(`${dummyDate}T07:45:00`);
-        const endLimit = new Date(`${dummyDate}T17:00:00`);
-        
-        const actualStart = new Date(`${dummyDate}T${startTimeStr}:00`);
-        const actualEnd = new Date(`${dummyDate}T${endTimeStr}:00`);
-        
-        let otMinutes = 0;
-
-        // 1. Nếu vào sớm hơn 07:45
-        if (actualStart < startLimit) {
-            otMinutes += (startLimit - actualStart) / (1000 * 60);
-        }
-        
-        // 2. Nếu tan trễ hơn 17:00
-        if (actualEnd > endLimit) {
-            otMinutes += (actualEnd - endLimit) / (1000 * 60);
-        }
-
-        return parseFloat((otMinutes / 60).toFixed(2));
+    // Logic tính OT (Hành chính 07:45 - 17:00)
+    function calculateOTValue(inTime, outTime) {
+        if (!inTime || !outTime) return 0;
+        const d = "2024-01-01";
+        const limitS = new Date(`${d}T07:45:00`);
+        const limitE = new Date(`${d}T17:00:00`);
+        const actS = new Date(`${d}T${inTime}:00`);
+        const actE = new Date(`${d}T${outTime}:00`);
+        let mins = 0;
+        if (actS < limitS) mins += (limitS - actS) / 60000;
+        if (actE > limitE) mins += (actE - limitE) / 60000;
+        return parseFloat((mins / 60).toFixed(2));
     }
 
-    // TỰ ĐỘNG CẬP NHẬT Ô OT KHI THAY ĐỔI GIỜ TRONG MODAL
     function autoUpdateEditOT() {
-        const inTime = document.getElementById('editIn').value;
-        const outTime = document.getElementById('editOut').value;
-        const otResult = calculateOTValue(inTime, outTime);
-        document.getElementById('editOT').value = otResult;
+        const i = document.getElementById('editIn').value;
+        const o = document.getElementById('editOut').value;
+        document.getElementById('editOT').value = calculateOTValue(i, o);
     }
 
     async function loadData() {
@@ -192,17 +182,16 @@
             .reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
         
         document.getElementById('monthlyOT').textContent = currentTotalOT.toFixed(1) + 'h';
-        
         const todayStr = new Date().toLocaleDateString('en-CA');
-        const todayRecord = workData.find(r => r.work_date === todayStr);
+        const todayRec = workData.find(r => r.work_date === todayStr);
         
-        if (todayRecord) {
-            document.getElementById('otToday').textContent = todayRecord.overtime + 'h';
-            document.getElementById('workStatus').textContent = todayRecord.end_time ? "Đã xong ca làm việc" : "Đang tính giờ làm việc...";
+        if (todayRec) {
+            document.getElementById('otToday').textContent = todayRec.overtime + 'h';
+            document.getElementById('workStatus').textContent = todayRec.end_time ? "Đã tan ca" : "Đang làm việc...";
             document.getElementById('startBtn').disabled = true;
-            document.getElementById('endBtn').disabled = !!todayRecord.end_time;
+            document.getElementById('endBtn').disabled = !!todayRec.end_time;
         } else {
-            document.getElementById('workStatus').textContent = "Chưa chấm công vào";
+            document.getElementById('workStatus').textContent = "Chưa vào ca";
             document.getElementById('startBtn').disabled = false;
             document.getElementById('endBtn').disabled = true;
         }
@@ -218,53 +207,68 @@
     }
 
     async function startWork() {
-        const time = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
-        await supabaseClient.from('work_logs').upsert({
-            work_date: new Date().toLocaleDateString('en-CA'),
-            start_time: time
-        });
-        showToast("Đã vào ca lúc " + time); loadData();
+        const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
+        await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t });
+        showToast("Đã vào ca: " + t); loadData();
     }
 
     async function endWork() {
-        const time = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
-        const todayStr = new Date().toLocaleDateString('en-CA');
-        const record = workData.find(r => r.work_date === todayStr);
-        
-        const ot = calculateOTValue(record.start_time, time);
-
-        await supabaseClient.from('work_logs').update({
-            end_time: time,
-            overtime: ot
-        }).eq('work_date', todayStr);
-        showToast("Đã tan ca. OT: " + ot + "h"); loadData();
+        const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
+        const today = new Date().toLocaleDateString('en-CA');
+        const rec = workData.find(r => r.work_date === today);
+        const ot = calculateOTValue(rec.start_time, t);
+        await supabaseClient.from('work_logs').update({ end_time: t, overtime: ot }).eq('work_date', today);
+        showToast("Tan ca. OT: " + ot + "h"); loadData();
     }
 
     function openCalendar() {
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
         const now = new Date();
-        document.getElementById('monthYearTitle').textContent = `Tháng ${now.getMonth()+1}/${now.getFullYear()}`;
-        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        document.getElementById('monthYearTitle').textContent = `Tháng ${month + 1}/${year}`;
 
+        // Xác định ngày bắt đầu tháng và số ngày trong tháng
+        const firstDayDate = new Date(year, month, 1);
+        let firstDayIdx = firstDayDate.getDay(); // 0 (CN) -> 6 (T7)
+        // Chuyển đổi sang: T2 là 0, ..., CN là 6
+        firstDayIdx = (firstDayIdx === 0) ? 6 : firstDayIdx - 1;
+        
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Thêm các ô trống trước ngày 1
+        for (let i = 0; i < firstDayIdx; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day empty';
+            grid.appendChild(empty);
+        }
+
+        // Thêm các ngày trong tháng
+        const todayStr = now.toLocaleDateString('en-CA');
         for (let d = 1; d <= daysInMonth; d++) {
-            const dStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+            const dStr = `${year}-${(month+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
             const record = workData.find(r => r.work_date === dStr);
             const el = document.createElement('div');
-            el.className = `calendar-day ${record ? 'has-data' : ''}`;
-            el.innerHTML = `<span>${d}</span>${(record && record.overtime > 0) ? `<span class="ot-badge">+${record.overtime}h</span>` : ''}`;
+            el.className = `calendar-day ${record ? 'has-data' : ''} ${dStr === todayStr ? 'today' : ''}`;
+            
+            let badge = "";
+            if (record && record.overtime > 0) badge = `<span class="ot-badge">+${record.overtime}h</span>`;
+            else if (record) badge = `<i class="fas fa-check" style="font-size:8px; margin-top:2px;"></i>`;
+
+            el.innerHTML = `<span>${d}</span>${badge}`;
             el.onclick = () => showEdit(dStr, record);
             grid.appendChild(el);
         }
         document.getElementById('calendarModal').style.display = 'flex';
     }
 
-    function showEdit(date, record) {
+    function showEdit(date, rec) {
         document.getElementById('editPanel').style.display = 'block';
-        document.getElementById('editDateLabel').textContent = "Chỉnh sửa: " + date;
-        document.getElementById('editIn').value = record?.start_time || "07:45";
-        document.getElementById('editOut').value = record?.end_time || "17:00";
-        document.getElementById('editOT').value = record?.overtime || 0;
+        document.getElementById('editDateLabel').textContent = "Ngày: " + date;
+        document.getElementById('editIn').value = rec?.start_time || "07:45";
+        document.getElementById('editOut').value = rec?.end_time || "17:00";
+        document.getElementById('editOT').value = rec?.overtime || 0;
         
         document.getElementById('saveBtn').onclick = async () => {
             await supabaseClient.from('work_logs').upsert({
@@ -276,7 +280,7 @@
             closeModal('calendarModal'); loadData();
         };
         document.getElementById('delBtn').onclick = async () => {
-            if(confirm("Xóa dữ liệu ngày này?")) {
+            if(confirm("Xóa dữ liệu ngày " + date + "?")) {
                 await supabaseClient.from('work_logs').delete().eq('work_date', date);
                 closeModal('calendarModal'); loadData();
             }
@@ -292,19 +296,16 @@
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     setInterval(() => {
-        const now = new Date();
-        document.getElementById('currentTime').textContent = now.toLocaleTimeString('vi-VN', {hour12:false});
-        document.getElementById('currentDate').textContent = now.toLocaleDateString('vi-VN', {weekday:'long', day:'numeric', month:'long'});
+        const n = new Date();
+        document.getElementById('currentTime').textContent = n.toLocaleTimeString('vi-VN', {hour12:false});
+        document.getElementById('currentDate').textContent = n.toLocaleDateString('vi-VN', {weekday:'long', day:'numeric', month:'long'});
     }, 1000);
 
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('startBtn').onclick = startWork;
         document.getElementById('endBtn').onclick = endWork;
-        
-        // Gán sự kiện tự tính giờ OT khi thay đổi trong Modal chỉnh sửa
         document.getElementById('editIn').oninput = autoUpdateEditOT;
         document.getElementById('editOut').oninput = autoUpdateEditOT;
-        
         loadData();
     });
 </script>
