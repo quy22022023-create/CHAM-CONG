@@ -4,234 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>⏱️ OT Pro</title>
+    <title>⏱️ OT Pro Fixed</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        :root {
-            --ios-red: #FF3B30;
-            --ios-green: #34C759;
-            --ios-blue: #007AFF;
-            --ios-orange: #FF9500;
-            --ios-bg: #F2F2F7;
-            --safe-area-top: env(safe-area-inset-top);
-            --safe-area-bottom: env(safe-area-inset-bottom);
-        }
-
-        * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; /* Tắt khung xanh khi chạm trên iPhone */
-        }
-
-        body { 
-            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
-            background: var(--ios-bg); 
-            color: #1C1C1E;
-            padding-bottom: calc(30px + var(--safe-area-bottom));
-            line-height: 1.4;
-        }
-
-        /* Tối ưu Header cho Notch/Tai thỏ */
-        .header { 
-            background: linear-gradient(135deg, var(--ios-red), #AF52DE); 
-            color: white; 
-            padding: calc(40px + var(--safe-area-top)) 20px 40px; 
-            text-align: center; 
-            border-radius: 0 0 32px 32px;
-        }
-
-        /* Hiệu ứng kính mờ cho các khung */
-        .time-card { 
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            margin: -30px 20px 20px; 
-            padding: 24px; 
-            border-radius: 24px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
-            text-align: center; 
-            z-index: 10;
-        }
-
-        .clock { 
-            font-size: 46px; 
-            font-weight: 800; 
-            letter-spacing: -1px;
-            color: var(--ios-red); 
-            margin: 5px 0;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .card { 
-            background: white; 
-            margin: 0 20px 20px; 
-            padding: 20px; 
-            border-radius: 24px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04); 
-        }
-
-        /* Nút bấm kiểu iOS */
-        .btn { 
-            flex: 1; border: none; border-radius: 14px; 
-            padding: 16px; font-size: 16px; font-weight: 600; 
-            display: flex; align-items: center; justify-content: center; gap: 8px; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
+        :root { --ios-red: #FF3B30; --ios-green: #34C759; --ios-blue: #007AFF; --ios-orange: #FF9500; --ios-bg: #F2F2F7; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: 40px; }
+        
+        .header { background: linear-gradient(135deg, var(--ios-red), #AF52DE); color: white; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; border-radius: 0 0 32px 32px; }
+        .time-card { background: white; margin: -30px 20px 20px; padding: 24px; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: center; }
+        .clock { font-size: 46px; font-weight: 800; color: var(--ios-red); margin: 5px 0; font-variant-numeric: tabular-nums; }
+        
+        .card { background: white; margin: 0 20px 20px; padding: 20px; border-radius: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+        .btn { flex: 1; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         .btn:active { transform: scale(0.95); opacity: 0.8; }
-
         .btn-start { background: var(--ios-green); color: white; }
         .btn-end { background: var(--ios-orange); color: white; }
+        .btn-end:disabled { background: #E9E9EB; color: #8E8E93; }
         .btn-delete { background: #FFE5E5; color: var(--ios-red); margin-top: 12px; }
         .btn-secondary { background: #E9E9EB; color: var(--ios-blue); width: 100%; margin-top: 12px; }
 
-        /* Toggle Switch iOS Style */
-        .lunch-box { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #F2F2F7; padding: 14px 16px; border-radius: 16px; margin-bottom: 20px; 
-        }
-
+        .lunch-box { display: flex; justify-content: space-between; align-items: center; background: #F2F2F7; padding: 14px 16px; border-radius: 16px; margin-bottom: 15px; }
         .switch { position: relative; width: 51px; height: 31px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { 
-            position: absolute; cursor: pointer; inset: 0; background-color: #E9E9EB; 
-            transition: .3s; border-radius: 34px; 
-        }
-        .slider:before { 
-            position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; 
-            background-color: white; transition: .3s; border-radius: 50%;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-        }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #CCC; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--ios-green); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* Calendar Grid */
-        .calendar-day { 
-            aspect-ratio: 1/1; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 12px; font-size: 14px; transition: 0.2s;
-        }
-        .calendar-day.has-data { background: #E8F5E9; color: var(--ios-green); font-weight: 700; border: 1px solid #C8E6C9; }
-        .calendar-day.selected { border: 2px solid var(--ios-blue) !important; }
+        .calendar-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 14px; background: #F9F9F9; }
+        .calendar-day.has-data { background: #E8F5E9; color: var(--ios-green); font-weight: 700; }
+        .calendar-day.selected { border: 2px solid var(--ios-blue); }
 
-        /* Modal cho iPhone */
-        .modal-content { 
-            width: 92%; border-radius: 30px; padding: 25px; 
-            max-height: 85vh;
-        }
-
-        /* Dark Mode */
-        @media (prefers-color-scheme: dark) {
-            :root { --ios-bg: #000000; }
-            .time-card, .card, .modal-content { background: #1C1C1E; color: white; }
-            .lunch-box, .btn-secondary { background: #2C2C2E; }
-            .calendar-day { background: #1C1C1E; color: #8E8E93; }
-        }
-
-        /* Chỉnh input type="time" trên iPhone không bị mờ */
-        input[type="time"], input[type="number"] {
-            -webkit-appearance: none;
-            background: #F2F2F7;
-            border: none;
-            font-size: 17px; /* iOS không zoom nếu font >= 16px */
-            padding: 12px;
-            border-radius: 10px;
-            width: 100%;
-            color: var(--ios-blue);
-            font-weight: 600;
-        }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: white; width: 90%; border-radius: 28px; padding: 25px; max-height: 90vh; overflow-y: auto; }
+        
+        input[type="time"], input[type="number"] { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #E5E5EA; font-size: 16px; font-weight: 600; color: var(--ios-blue); text-align: center; margin-top: 5px; }
+        
+        #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 2000; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-<div id="loading"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: white"></i></div>
+<div id="loading"><i class="fas fa-spinner fa-spin fa-2x" style="color: var(--ios-red)"></i></div>
 
 <div class="header">
-    <h1 style="font-weight: 800; font-size: 24px;">OT MANAGER</h1>
-    <p style="font-size: 13px; opacity: 0.8; margin-top: 4px;">Ca hành chính: 07:45 - 17:00</p>
+    <h1 style="font-weight: 800;">OT MANAGER</h1>
+    <p>Ca hành chính: 07:45 - 17:00</p>
 </div>
 
 <div class="time-card">
-    <div id="currentDate" style="color: #8E8E93; font-size: 14px; font-weight: 500;">--/--/----</div>
+    <div id="currentDate" style="color: #8E8E93; font-size: 14px;">--/--/----</div>
     <div class="clock" id="currentTime">00:00:00</div>
-    <div id="workStatus" style="font-size: 14px; font-weight: 600; color: #8E8E93;">Đang kết nối...</div>
+    <div id="workStatus" style="font-size: 14px; font-weight: 600; color: #8E8E93;">Đang tải...</div>
 </div>
 
 <div class="card">
     <div class="lunch-box">
-        <div style="font-weight: 600;"><i class="fas fa-utensils" style="color: var(--ios-orange); margin-right: 8px;"></i>Tăng ca trưa (+1.0h)</div>
+        <div style="font-weight: 600;"><i class="fas fa-utensils" style="color: var(--ios-orange);"></i> Tăng ca trưa (+1h)</div>
         <label class="switch"><input type="checkbox" id="lunchCheckMain"><span class="slider"></span></label>
     </div>
 
-    <div class="btn-group" style="display:flex; gap:12px;">
-        <button class="btn btn-start" id="startBtn"><i class="fas fa-play"></i> Vào ca</button>
-        <button class="btn btn-end" id="endBtn" disabled><i class="fas fa-stop"></i> Tan ca</button>
+    <div style="display:flex; gap:12px;">
+        <button class="btn btn-start" id="startBtn">Vào ca</button>
+        <button class="btn btn-end" id="endBtn" disabled>Tan ca</button>
     </div>
     
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 20px;">
-        <div style="background:#F2F2F7; padding:15px; border-radius:18px; text-align:center;">
-            <div style="font-size:10px; color:#8E8E93; text-transform:uppercase;">Tháng này</div>
-            <div id="monthlyOT" style="font-size:20px; font-weight:800;">0h</div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 15px;">
+        <div style="background:#F2F2F7; padding:12px; border-radius:18px; text-align:center;">
+            <p style="font-size:10px; color:#888;">OT THÁNG</p>
+            <b id="monthlyOT" style="font-size:18px;">0h</b>
         </div>
-        <div style="background:#F2F2F7; padding:15px; border-radius:18px; text-align:center;">
-            <div style="font-size:10px; color:#8E8E93; text-transform:uppercase;">Hôm nay</div>
-            <div id="otToday" style="font-size:20px; font-weight:800; color:var(--ios-red);">0h</div>
+        <div style="background:#F2F2F7; padding:12px; border-radius:18px; text-align:center;">
+            <p style="font-size:10px; color:#888;">OT HÔM NAY</p>
+            <b id="otToday" style="font-size:18px; color:var(--ios-red);">0h</b>
         </div>
     </div>
 
-    <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-history"></i> Lịch sử & Chỉnh sửa</button>
-    <button class="btn btn-secondary" style="background:transparent;" onclick="openSalaryModal()"><i class="fas fa-wallet"></i> Tính lương dự tính</button>
+    <button class="btn btn-secondary" id="btnOpenCalendar"><i class="fas fa-history"></i> Lịch sử làm việc</button>
 </div>
 
-<div class="modal" id="calendarModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:100; display:none; align-items:center; justify-content:center;">
-    <div class="modal-content" style="background:white; margin:20px; width:100%;">
+<div class="modal" id="calendarModal">
+    <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 id="monthYearTitle" style="font-weight:800;">Lịch sử OT</h3>
-            <i class="fas fa-times-circle" onclick="closeModal('calendarModal')" style="font-size:24px; color:#CCC;"></i>
+            <h3 id="monthYearTitle" style="font-weight:800;">Lịch sử</h3>
+            <i class="fas fa-times-circle" style="font-size:24px; color:#CCC;" id="btnCloseModal"></i>
         </div>
         
-        <div id="calendarGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:8px;"></div>
+        <div id="calendarGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:8px; margin-bottom: 20px;"></div>
 
-        <div id="editPanel" style="display:none; margin-top:25px; border-top:1px solid #EEE; padding-top:20px;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-                <div><label style="font-size:11px; font-weight:700; color:#888;">GIỜ VÀO</label><input type="time" id="editIn"></div>
-                <div><label style="font-size:11px; font-weight:700; color:#888;">GIỜ RA</label><input type="time" id="editOut"></div>
+        <div id="editPanel" style="display:none; border-top:1px solid #EEE; padding-top:20px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div><label style="font-size:10px; font-weight:700;">VÀO</label><input type="time" id="editIn"></div>
+                <div><label style="font-size:10px; font-weight:700;">RA</label><input type="time" id="editOut"></div>
             </div>
+            <div class="lunch-box" style="margin-top:15px;">
+                <div style="font-size:14px; font-weight:600;">Làm trưa (+1h)</div>
+                <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
+            </div>
+            <label style="font-size:10px; font-weight:700;">TỔNG GIỜ OT</label>
+            <input type="number" id="editOT" step="0.1">
             
-            <div class="lunch-box">
-                <div style="font-size:14px; font-weight:600;">Làm thông trưa (+1h)</div>
-                <label class="switch"><input type="checkbox" id="lunchCheckEdit" onchange="triggerAutoEditOT()"><span class="slider"></span></label>
-            </div>
-
-            <label style="font-size:11px; font-weight:700; color:#888;">TỔNG GIỜ OT CỦA NGÀY</label>
-            <input type="number" id="editOT" step="0.1" style="margin-top:5px; background:#FFF0F0; color:var(--ios-red); border:1px solid var(--ios-red);">
-
-            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu thay đổi</button>
-            <button class="btn btn-delete" style="width:100%;" id="deleteBtn"><i class="fas fa-trash"></i> Xoá ngày này</button>
+            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Cập nhật</button>
+            <button class="btn btn-delete" style="width:100%;" id="deleteBtn">Xoá dữ liệu</button>
         </div>
     </div>
 </div>
 
-<div id="toast" style="position:fixed; bottom:50px; left:50%; transform:translateX(-50%) translateY(100px); background:rgba(0,0,0,0.8); color:white; padding:12px 25px; border-radius:25px; font-weight:600; transition:0.3s; z-index:9999;"></div>
+<div id="toast" class="toast"></div>
 
 <script>
-    // --- KHAI BÁO SUPABASE (Giữ nguyên từ code cũ) ---
     const SB_URL = 'https://dtdknettwfgilklaqeae.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZGtuZXR0d2ZnaWxrbGFxZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzMTgsImV4cCI6MjA5MDI0NzMxOH0.qDvvZHNyNPh4QxpD6fDkR4Jr1xUnLSzCm79bsKI6ILk';
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
     let workData = [];
-    let currentTotalOT = 0;
+    const todayStr = new Date().toLocaleDateString('en-CA');
 
     function showToast(msg) {
         const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.transform = "translateX(-50%) translateY(0)";
-        setTimeout(() => t.style.transform = "translateX(-50%) translateY(100px)", 2500);
+        t.innerText = msg; t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
     }
 
     function calculateOT(inT, outT, isL) {
@@ -242,133 +141,123 @@
         let mins = 0;
         if (actS < limitS) mins += (limitS - actS) / 60000;
         if (actE > limitE) mins += (actE - limitE) / 60000;
-        let ot = mins / 60 + (isL ? 1 : 0);
-        return parseFloat(ot.toFixed(2));
+        return parseFloat((mins / 60 + (isL ? 1 : 0)).toFixed(2));
     }
 
     async function loadData() {
         document.getElementById('loading').style.display = 'flex';
-        const { data } = await supabaseClient.from('work_logs').select('*').order('work_date', { ascending: false });
+        const { data, error } = await supabaseClient.from('work_logs').select('*').order('work_date', { ascending: false });
+        if (error) console.error(error);
         workData = data || [];
         
         const now = new Date();
-        currentTotalOT = workData
+        const monthlyOT = workData
             .filter(r => new Date(r.work_date).getMonth() === now.getMonth())
             .reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
         
-        document.getElementById('monthlyOT').innerText = currentTotalOT.toFixed(1) + 'h';
-        const todayStr = new Date().toLocaleDateString('en-CA');
+        document.getElementById('monthlyOT').innerText = monthlyOT.toFixed(1) + 'h';
         const todayRec = workData.find(r => r.work_date === todayStr);
         
-        const endBtn = document.getElementById('endBtn');
         const startBtn = document.getElementById('startBtn');
+        const endBtn = document.getElementById('endBtn');
         const status = document.getElementById('workStatus');
 
         if (todayRec) {
-            document.getElementById('otToday').innerText = todayRec.overtime + 'h';
-            status.innerText = todayRec.end_time ? "Đã tan ca ✅" : "Đang tính giờ làm... ⏱️";
-            status.style.color = todayRec.end_time ? "var(--ios-green)" : "var(--ios-orange)";
+            document.getElementById('otToday').innerText = (todayRec.overtime || 0) + 'h';
+            status.innerText = todayRec.end_time ? "Đã tan ca ✅" : "Đang làm việc... ⏱️";
             startBtn.disabled = true;
             endBtn.disabled = false;
         } else {
-            status.innerText = "Hôm nay bạn chưa vào ca";
+            document.getElementById('otToday').innerText = '0h';
+            status.innerText = "Chưa vào ca";
             startBtn.disabled = false;
             endBtn.disabled = true;
         }
         document.getElementById('loading').style.display = 'none';
     }
 
-    // Tự động tính OT khi sửa trong modal
-    function triggerAutoEditOT() {
-        const inT = document.getElementById('editIn').value;
-        const outT = document.getElementById('editOut').value;
-        const isL = document.getElementById('lunchCheckEdit').checked;
-        document.getElementById('editOT').value = calculateOT(inT, outT, isL);
-    }
-
-    // Sự kiện nút Vào ca
+    // Nút Vào ca
     document.getElementById('startBtn').onclick = async () => {
-        const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
-        await supabaseClient.from('work_logs').upsert({ 
-            work_date: new Date().toLocaleDateString('en-CA'), 
-            start_time: t 
-        });
-        showToast("Vào ca thành công!"); loadData();
+        const time = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
+        await supabaseClient.from('work_logs').upsert({ work_date: todayStr, start_time: time });
+        showToast("Vào ca lúc: " + time); loadData();
     };
 
-    // Sự kiện nút Tan ca
+    // Nút Tan ca
     document.getElementById('endBtn').onclick = async () => {
-        const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
-        const today = new Date().toLocaleDateString('en-CA');
-        const rec = workData.find(r => r.work_date === today);
-        const isL = document.getElementById('lunchCheckMain').checked;
-        const ot = calculateOT(rec.start_time, t, isL);
-        await supabaseClient.from('work_logs').update({ end_time: t, overtime: ot }).eq('work_date', today);
-        showToast("Đã lưu giờ tan ca!"); loadData();
+        const time = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
+        const rec = workData.find(r => r.work_date === todayStr);
+        const isLunch = document.getElementById('lunchCheckMain').checked;
+        const ot = calculateOT(rec.start_time, time, isLunch);
+        await supabaseClient.from('work_logs').update({ end_time: time, overtime: ot }).eq('work_date', todayStr);
+        showToast("Tan ca. OT: " + ot + "h"); loadData();
     };
 
-    function openCalendar() {
+    // Mở lịch sử
+    document.getElementById('btnOpenCalendar').onclick = () => {
         const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
         const now = new Date();
-        const year = now.getFullYear(); const month = now.getMonth();
-        document.getElementById('monthYearTitle').innerText = `Lịch sử T${month + 1}`;
-
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dStr = `${year}-${(month+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+        const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        
+        document.getElementById('monthYearTitle').innerText = `Tháng ${now.getMonth() + 1}`;
+        
+        for (let d = 1; d <= days; d++) {
+            const dStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
             const rec = workData.find(r => r.work_date === dStr);
             const el = document.createElement('div');
             el.className = `calendar-day ${rec ? 'has-data' : ''}`;
-            el.innerHTML = `<div>${d}</div>${rec ? `<div style="font-size:9px">+${rec.overtime}h</div>` : ''}`;
+            el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px">+${rec.overtime}</small>` : ''}`;
             el.onclick = () => {
-                // Xử lý chọn ngày
-                document.querySelectorAll('.calendar-day').forEach(day => day.classList.remove('selected'));
+                document.querySelectorAll('.calendar-day').forEach(i => i.classList.remove('selected'));
                 el.classList.add('selected');
                 showEdit(dStr, rec);
             };
             grid.appendChild(el);
         }
         document.getElementById('calendarModal').style.display = 'flex';
-    }
+    };
 
     function showEdit(date, rec) {
-        const panel = document.getElementById('editPanel');
-        panel.style.display = 'block';
-        document.getElementById('editIn').value = rec?.start_time || "07:45";
-        document.getElementById('editOut').value = rec?.end_time || "17:00";
-        document.getElementById('editOT').value = rec?.overtime || 0;
-        
+        document.getElementById('editPanel').style.display = 'block';
+        const inInput = document.getElementById('editIn');
+        const outInput = document.getElementById('editOut');
+        const lunchToggle = document.getElementById('lunchCheckEdit');
+        const otInput = document.getElementById('editOT');
+
+        inInput.value = rec?.start_time || "07:45";
+        outInput.value = rec?.end_time || "17:00";
+        otInput.value = rec?.overtime || 0;
+        lunchToggle.checked = false;
+
+        const autoOT = () => {
+            otInput.value = calculateOT(inInput.value, outInput.value, lunchToggle.checked);
+        };
+        inInput.oninput = autoOT; outInput.oninput = autoOT; lunchToggle.onchange = autoOT;
+
         document.getElementById('saveBtn').onclick = async () => {
             await supabaseClient.from('work_logs').upsert({
-                work_date: date,
-                start_time: document.getElementById('editIn').value,
-                end_time: document.getElementById('editOut').value,
-                overtime: parseFloat(document.getElementById('editOT').value)
+                work_date: date, start_time: inInput.value, end_time: outInput.value, overtime: parseFloat(otInput.value)
             });
-            showToast("Đã cập nhật!"); closeModal('calendarModal'); loadData();
+            showToast("Đã lưu!"); document.getElementById('calendarModal').style.display = 'none'; loadData();
         };
 
         document.getElementById('deleteBtn').onclick = async () => {
-            if(confirm("Bạn muốn xoá dữ liệu ngày " + date + "?")) {
+            if(confirm("Xoá ngày " + date + "?")) {
                 await supabaseClient.from('work_logs').delete().eq('work_date', date);
-                showToast("Đã xoá!"); closeModal('calendarModal'); loadData();
+                showToast("Đã xoá!"); document.getElementById('calendarModal').style.display = 'none'; loadData();
             }
         };
     }
 
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    document.getElementById('btnCloseModal').onclick = () => document.getElementById('calendarModal').style.display = 'none';
 
-    // Đồng hồ thời gian thực
     setInterval(() => {
         const n = new Date();
         document.getElementById('currentTime').innerText = n.toLocaleTimeString('vi-VN', {hour12:false});
         document.getElementById('currentDate').innerText = n.toLocaleDateString('vi-VN', {weekday:'long', day:'numeric', month:'numeric'});
     }, 1000);
 
-    // Khởi chạy
-    document.addEventListener('DOMContentLoaded', loadData);
-    document.getElementById('editIn').oninput = triggerAutoEditOT;
-    document.getElementById('editOut').oninput = triggerAutoEditOT;
+    window.onload = loadData;
 </script>
 </body>
 </html>
