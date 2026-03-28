@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>⏱️ OT Pro - Ultimate</title>
+    <title>⏱️ OT Pro - Ultimate V3</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -106,14 +106,16 @@
                 <input type="time" id="editIn"> <input type="time" id="editOut">
             </div>
             <div class="lunch-box" style="border-style: solid;">
-                <div id="lunchLabelEdit" style="font-size:14px;">Ăn trưa (+1h)</div>
+                <div id="lunchLabelEdit" style="font-size:14px; font-weight:700;">Tăng ca trưa (+1h)</div>
                 <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
             </div>
-            <input type="number" id="editOT" step="0.1" style="color:var(--ios-red);">
-            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu</button>
-            <button class="btn btn-secondary" style="background:#FFE5E5; color:var(--ios-red);" id="deleteBtn">Xóa ngày</button>
+            <div style="text-align:center; margin-bottom:5px;"><small style="color:#888; font-size:10px;">TỔNG GIỜ OT CỦA NGÀY</small></div>
+            <input type="number" id="editOT" step="0.1" style="color:var(--ios-red); font-size:24px;">
+            
+            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu thay đổi</button>
+            <button class="btn btn-secondary" style="background:#FFE5E5; color:var(--ios-red);" id="deleteBtn">Xóa dữ liệu ngày</button>
         </div>
-        <button class="btn btn-secondary" onclick="closeModal('calendarModal')">Đóng</button>
+        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:10px;">Đóng</button>
     </div>
 </div>
 
@@ -142,58 +144,52 @@
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
     let workData = [], currentViewDate = new Date(), salaryViewDate = new Date();
 
-    // Hàm kiểm tra Chủ Nhật của một chuỗi ngày yyyy-mm-dd
-    function isSundayStr(dateStr) {
+    // Kiểm tra ngày là Chủ Nhật
+    function isSunday(dateStr) {
         return new Date(dateStr).getDay() === 0;
     }
 
-    // Logic tính OT linh hoạt
+    // LOGIC TÍNH OT CỐT LÕI
     function calculateOT(inT, outT, isL, dateStr) {
         if (!inT || !outT) return 0;
         const d = "2024-01-01";
         const actS = new Date(`${d}T${inT}:00`), actE = new Date(`${d}T${outT}:00`);
         
-        if (!isSundayStr(dateStr)) {
-            // Ngày thường: Tính ngoài giờ 07:45 - 17:00
+        if (!isSunday(dateStr)) {
+            // NGÀY THƯỜNG: OT tính ngoài khung 07:45 - 17:00
             const limitS = new Date(`${d}T07:45:00`), limitE = new Date(`${d}T17:00:00`);
             let mins = 0;
             if (actS < limitS) mins += (limitS - actS) / 60000;
             if (actE > limitE) mins += (actE - limitE) / 60000;
             return parseFloat((mins / 60 + (isL ? 1 : 0)).toFixed(2));
         } else {
-            // Chủ Nhật: OT = (Giờ ra - Giờ vào) - (1h nếu có nghỉ trưa)
+            // CHỦ NHẬT: Toàn bộ thời gian làm việc là OT
             let totalMins = (actE - actS) / 60000;
-            let netMins = totalMins - (isL ? 60 : 0); // isL ở CN đóng vai trò là "Có nghỉ trưa 1h"
+            let netMins = totalMins - (isL ? 60 : 0); // isL ở đây đóng vai trò trừ 1h nghỉ trưa
             return parseFloat((Math.max(0, netMins) / 60).toFixed(2));
         }
     }
 
-    // Tự động chấm công (Chỉ T2-T7)
+    // TỰ ĐỘNG CHẤM CÔNG (Chỉ ngày thường)
     async function handleAutoCheck() {
         const now = new Date();
         const todayStr = now.toLocaleDateString('en-CA');
-        if (now.getDay() === 0) return; // Bỏ qua Chủ Nhật hoàn toàn
+        if (now.getDay() === 0) return; // Không tự động điền Chủ Nhật
 
         const todayRec = workData.find(r => r.work_date === todayStr);
         const currentHour = now.getHours();
 
-        // Tự động vào ca lúc 07:45 nếu đã sau 8h sáng
         if (!todayRec && currentHour >= 8) {
-            await supabaseClient.from('work_logs').insert({ 
-                work_date: todayStr, start_time: "07:45", note: "Auto" 
-            });
+            await supabaseClient.from('work_logs').insert({ work_date: todayStr, start_time: "07:45", note: "Auto" });
             showToast("Hệ thống tự động Vào ca (07:45)");
             await loadData();
         }
 
-        // Tự động tan ca lúc 17:00 nếu đã sau 18h tối
         const updatedRec = workData.find(r => r.work_date === todayStr);
         if (updatedRec && updatedRec.start_time && !updatedRec.end_time && currentHour >= 18) {
             const outT = "17:00";
             const ot = calculateOT(updatedRec.start_time, outT, document.getElementById('lunchCheckMain').checked, todayStr);
-            await supabaseClient.from('work_logs').update({ 
-                end_time: outT, overtime: ot, note: "Auto" 
-            }).eq('work_date', todayStr);
+            await supabaseClient.from('work_logs').update({ end_time: outT, overtime: ot, note: "Auto" }).eq('work_date', todayStr);
             showToast("Hệ thống tự động Tan ca (17:00)");
             await loadData();
         }
@@ -219,17 +215,16 @@
         document.getElementById('endBtn').disabled = !todayRec;
         document.getElementById('workStatus').innerText = todayRec ? (todayRec.end_time ? "Đã tan ca ✅" : "Đang làm việc... ⏱️") : "Chưa vào ca";
         
-        // Cập nhật nhãn nút nghỉ trưa theo ngày
+        // Cập nhật giao diện nút nghỉ trưa chính
         const label = document.getElementById('lunchLabelMain');
-        if (now.getDay() === 0) label.innerHTML = '<i class="fas fa-coffee"></i> Trừ 1h nghỉ trưa';
+        if (now.getDay() === 0) label.innerHTML = '<i class="fas fa-coffee"></i> Có nghỉ trưa 1h (Trừ vào OT)';
         else label.innerHTML = '<i class="fas fa-utensils"></i> Tăng ca trưa (+1h)';
     }
 
-    // Sự kiện nút Vào/Tan ca
+    // SỰ KIỆN NÚT CHÍNH
     document.getElementById('startBtn').onclick = async () => {
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
-        const todayStr = new Date().toLocaleDateString('en-CA');
-        await supabaseClient.from('work_logs').upsert({ work_date: todayStr, start_time: t });
+        await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t });
         loadData(); showToast("Đã vào ca lúc " + t);
     };
 
@@ -242,7 +237,7 @@
         loadData(); showToast("Đã tan ca lúc " + t);
     };
 
-    // Quản lý Lịch
+    // LOGIC LỊCH & CHỈNH SỬA
     function renderCalendar() {
         const grid = document.getElementById('calendarDays'); grid.innerHTML = '';
         const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
@@ -253,7 +248,7 @@
         
         for (let d = 1; d <= daysInMonth; d++) {
             const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
-            const isSun = new Date(dStr).getDay() === 0;
+            const isSun = isSunday(dStr);
             const el = document.createElement('div');
             el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSun ? 'sunday' : ''}`;
             el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>` : ''}`;
@@ -264,26 +259,46 @@
 
     function showEdit(date, rec) {
         document.getElementById('editPanel').style.display = 'block';
-        document.getElementById('editDateLabel').innerText = "Ngày " + date;
+        document.getElementById('editDateLabel').innerText = "Chỉnh sửa ngày: " + date;
         const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
-        const isSun = isSundayStr(date);
+        const isSun = isSunday(date);
         
-        document.getElementById('lunchLabelEdit').innerText = isSun ? "Trừ 1h nghỉ trưa" : "Tăng ca trưa (+1h)";
-        inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; lI.checked = false;
+        // Đổi nhãn nút dựa trên ngày được chọn
+        document.getElementById('lunchLabelEdit').innerText = isSun ? "Có nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
         
-        const auto = () => otI.value = calculateOT(inI.value, outI.value, lI.checked, date);
-        inI.oninput = auto; outI.oninput = auto; lI.onchange = auto;
+        inI.value = rec?.start_time || "07:45"; 
+        outI.value = rec?.end_time || "17:00"; 
+        otI.value = rec?.overtime || 0; 
+        lI.checked = false; // Mặc định không tích khi mở lên để tránh tính sai
+        
+        const autoCalcEdit = () => {
+            otI.value = calculateOT(inI.value, outI.value, lI.checked, date);
+        };
+        
+        inI.oninput = autoCalcEdit; 
+        outI.oninput = autoCalcEdit; 
+        lI.onchange = autoCalcEdit;
         
         document.getElementById('saveBtn').onclick = async () => {
-            await supabaseClient.from('work_logs').upsert({ work_date: date, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value) });
-            showToast("Đã lưu!"); loadData(); renderCalendar();
+            await supabaseClient.from('work_logs').upsert({ 
+                work_date: date, 
+                start_time: inI.value, 
+                end_time: outI.value, 
+                overtime: parseFloat(otI.value) 
+            });
+            showToast("Đã cập nhật!"); loadData(); renderCalendar();
         };
+        
         document.getElementById('deleteBtn').onclick = async () => {
-            if(confirm("Xóa ngày này?")) { await supabaseClient.from('work_logs').delete().eq('work_date', date); loadData(); renderCalendar(); document.getElementById('editPanel').style.display = 'none'; }
+            if(confirm("Xóa dữ liệu ngày " + date + "?")) { 
+                await supabaseClient.from('work_logs').delete().eq('work_date', date); 
+                loadData(); renderCalendar(); 
+                document.getElementById('editPanel').style.display = 'none'; 
+            }
         };
     }
 
-    // Quản lý lương
+    // LƯƠNG & KHÁC
     function updateSalaryDisplay() {
         const y = salaryViewDate.getFullYear(), m = salaryViewDate.getMonth();
         const monthStr = `${y}-${(m+1).toString().padStart(2,'0')}`;
@@ -291,12 +306,11 @@
         const totalOT = workData.filter(r => r.work_date.startsWith(monthStr)).reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
         const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('userBaseSalary')) || 0;
         localStorage.setItem('userBaseSalary', base);
-        const money = ((base / 26) / 8) * 2 * totalOT; // Hệ số OT mặc định x2.0
+        const money = ((base / 26) / 8) * 2 * totalOT; 
         document.getElementById('salaryOTHours').innerText = totalOT.toFixed(1) + 'h';
         document.getElementById('otMoneyDetail').innerText = new Intl.NumberFormat('vi-VN').format(Math.round(money)) + "đ";
     }
 
-    // Phụ trợ
     function changeMonth(dir) { currentViewDate.setMonth(currentViewDate.getMonth() + dir); renderCalendar(); }
     function changeSalaryMonth(dir) { salaryViewDate.setMonth(salaryViewDate.getMonth() + dir); updateSalaryDisplay(); }
     function openCalendar() { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; }
