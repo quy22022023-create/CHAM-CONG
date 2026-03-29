@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>⏱️ OT Pro - Ultimate V3</title>
+    <title>⏱️ OT Pro - Ultimate V3.1</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,14 +13,15 @@
     <style>
         :root { --ios-red: #FF3B30; --ios-green: #34C759; --ios-blue: #007AFF; --ios-orange: #FF9500; --ios-bg: #F2F2F7; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: #1C1C1E; padding-bottom: calc(60px + env(safe-area-inset-bottom)); min-height: 100vh; position: relative; }
         
+        /* Auth Screen */
         #authScreen { position: fixed; inset: 0; background: var(--ios-bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { background: white; width: 100%; max-width: 400px; padding: 30px; border-radius: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
         .auth-input { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; border: 1px solid #E5E5EA; background: #F2F2F7; font-size: 16px; outline: none; }
         
         .header { background: linear-gradient(135deg, var(--ios-red), #AF52DE); color: white; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; border-radius: 0 0 32px 32px; position: relative; }
-        .logout-btn { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 20px; color: white; font-size: 18px; }
+        .logout-btn { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 20px; color: white; font-size: 18px; padding: 10px; }
         
         .time-card { background: white; margin: -30px 20px 20px; padding: 24px; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: center; position: relative; z-index: 10; }
         .clock { font-size: 46px; font-weight: 800; color: var(--ios-red); margin: 5px 0; font-variant-numeric: tabular-nums; }
@@ -41,6 +42,7 @@
         input:checked + .slider { background-color: var(--ios-green); }
         input:checked + .slider:before { transform: translateX(20px); }
 
+        /* Calendar */
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-head { font-size: 10px; font-weight: 700; color: #8E8E93; }
@@ -49,11 +51,15 @@
         .cal-day.today { border: 2px solid var(--ios-blue); }
         .cal-day.sunday { color: var(--ios-red); }
 
+        /* Modals */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 92%; border-radius: 28px; padding: 20px; max-height: 85vh; overflow-y: auto; }
         
+        /* Footer Info */
+        .footer-info { position: absolute; bottom: 15px; width: 100%; text-align: center; color: #8E8E93; font-size: 11px; font-weight: 500; }
+
         #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
-        .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.9); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 20000; text-align: center; }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(150px); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 20000; text-align: center; font-size: 14px; min-width: 200px; }
         .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
@@ -111,6 +117,10 @@
     <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-calendar-alt"></i> Lịch sử & Chỉnh sửa</button>
 </div>
 
+<div class="footer-info">
+    <span id="displayUser">User: ...</span> | <span>Phiên bản: OT Pro V3.1</span>
+</div>
+
 <div class="modal" id="calendarModal">
     <div class="modal-content">
         <div class="cal-nav">
@@ -124,8 +134,8 @@
         <div id="editPanel" style="display:none; border-top:1px solid #EEE; margin-top:20px; padding-top:15px;">
             <p id="editDateLabel" style="text-align:center; font-weight:800; color:var(--ios-blue); margin-bottom:10px;"></p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <input type="time" id="editIn" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E5E5EA; background:#F2F2F7;"> 
-                <input type="time" id="editOut" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E5E5EA; background:#F2F2F7;">
+                <input type="time" id="editIn"> 
+                <input type="time" id="editOut">
             </div>
             <div class="lunch-box" style="border-style: solid;">
                 <div id="lunchLabelEdit" style="font-size:14px; font-weight:700;">Tăng ca trưa (+1h)</div>
@@ -170,6 +180,7 @@
 
     if (currentUser) {
         document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('displayUser').innerText = "User: " + currentUser;
         loadData();
     }
 
@@ -183,13 +194,14 @@
         if (type === 'register') {
             const { error } = await supabaseClient.from('users').insert({ username: user, password: pass });
             if (error) showToast("Tên này đã tồn tại!");
-            else showToast("Đăng ký thành công! Hãy đăng nhập.");
+            else showToast("Đăng ký thành công!");
         } else {
             const { data } = await supabaseClient.from('users').select('*').eq('username', user).eq('password', pass).single();
             if (data) {
                 currentUser = user;
                 localStorage.setItem('ot_user', user);
                 document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('displayUser').innerText = "User: " + user;
                 loadData();
             } else {
                 showToast("Sai tài khoản hoặc mật khẩu!");
@@ -226,14 +238,12 @@
 
     async function loadData() {
         if (!currentUser) return;
-        document.getElementById('loading').style.display = 'flex';
         const { data } = await supabaseClient.from('work_logs')
             .select('*')
-            .eq('username', currentUser) // Chỉ lấy của user hiện tại
+            .eq('username', currentUser)
             .order('work_date', { ascending: false });
         workData = data || [];
         updateSummary();
-        document.getElementById('loading').style.display = 'none';
     }
 
     function updateSummary() {
@@ -255,26 +265,24 @@
     document.getElementById('startBtn').onclick = async () => {
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
         const todayStr = new Date().toLocaleDateString('en-CA');
+        // Sử dụng upsert với cả 2 điều kiện để không đè tài khoản khác
         await supabaseClient.from('work_logs').upsert({ 
             work_date: todayStr, 
             username: currentUser,
             start_time: t
-        }, { onConflict: 'work_date, username' });
-        loadData(); showToast("Đã vào ca lúc " + t);
+        });
+        loadData(); showToast("Vào ca lúc " + t);
     };
 
     document.getElementById('endBtn').onclick = async () => {
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
         const todayStr = new Date().toLocaleDateString('en-CA');
-        const rec = workData.find(r => r.work_date === todayStr && r.username === currentUser);
+        const rec = workData.find(r => r.work_date === todayStr);
         const ot = calculateOT(rec.start_time, t, document.getElementById('lunchCheckMain').checked, todayStr);
-        
         await supabaseClient.from('work_logs').update({ 
-            end_time: t, 
-            overtime: ot 
+            end_time: t, overtime: ot 
         }).eq('work_date', todayStr).eq('username', currentUser);
-        
-        loadData(); showToast("Đã tan ca lúc " + t);
+        loadData(); showToast("Tan ca lúc " + t);
     };
 
     function renderCalendar() {
@@ -285,7 +293,7 @@
         for (let i = 0; i < emptySlots; i++) grid.appendChild(document.createElement('div'));
         for (let d = 1; d <= daysInMonth; d++) {
             const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, 
-                  rec = workData.find(r => r.work_date === dStr && r.username === currentUser);
+                  rec = workData.find(r => r.work_date === dStr);
             const el = document.createElement('div');
             el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSunday(dStr) ? 'sunday' : ''}`;
             el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>` : ''}`;
@@ -302,17 +310,14 @@
         inI.value = rec?.start_time || "07:45"; 
         outI.value = rec?.end_time || "17:00"; 
         otI.value = rec?.overtime || 0; 
-        
         const autoCalcEdit = () => { otI.value = calculateOT(inI.value, outI.value, lI.checked, date); };
         inI.oninput = autoCalcEdit; outI.oninput = autoCalcEdit; lI.onchange = autoCalcEdit;
-        
         document.getElementById('saveBtn').onclick = async () => {
             await supabaseClient.from('work_logs').upsert({ 
                 work_date: date, username: currentUser, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value)
-            }, { onConflict: 'work_date, username' });
+            });
             showToast("Đã lưu!"); loadData(); renderCalendar();
         };
-        
         document.getElementById('deleteBtn').onclick = async () => {
             if(confirm("Xóa ngày " + date + "?")) { 
                 await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUser); 
