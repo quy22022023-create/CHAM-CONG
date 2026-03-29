@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>⏱️ OT Pro - Premium V3.3</title>
+    <title>⏱️ OT Pro - Premium V3.3.1</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,14 +17,12 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* CHỐNG CUỘN NGANG TUYỆT ĐỐI */
         html, body { overflow-x: hidden; width: 100%; position: relative; -webkit-overflow-scrolling: touch; }
         
         body { 
             font-family: 'Inter', -apple-system, sans-serif; 
             background: var(--ios-bg); color: #1C1C1E; 
-            padding-bottom: calc(70px + env(safe-area-inset-bottom)); 
-            letter-spacing: -0.01em;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom)); 
         }
         
         /* Đăng nhập */
@@ -48,16 +46,16 @@
         }
         .clock { font-size: 52px; font-weight: 800; color: #1c1c1e; margin: 5px 0; font-variant-numeric: tabular-nums; letter-spacing: -2px; }
         
-        /* Content */
+        /* Buttons & Cards */
         .card { background: white; margin: 0 20px 20px; padding: 24px; border-radius: 28px; box-shadow: var(--card-shadow); }
-        .btn { border: none; border-radius: 18px; padding: 18px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; cursor: pointer; }
+        .btn { border: none; border-radius: 18px; padding: 18px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: 0.2s; }
         .btn:active { transform: scale(0.96); opacity: 0.8; }
-        .btn-start { background: linear-gradient(135deg, #34C759, #28a745); color: white; }
-        .btn-end { background: linear-gradient(135deg, #FF9500, #ff7b00); color: white; }
-        .btn-salary { background: linear-gradient(135deg, #5856D6, #007AFF); color: white; width: 100%; margin-top: 15px; }
+        .btn-start { background: #34C759; color: white; }
+        .btn-end { background: #FF9500; color: white; }
+        .btn-salary { background: #007AFF; color: white; width: 100%; margin-top: 15px; }
         .btn-secondary { background: #F2F2F7; color: var(--ios-blue); width: 100%; margin-top: 12px; }
 
-        .lunch-box { display: flex; justify-content: space-between; align-items: center; background: #FFF9F2; padding: 16px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,149,0,0.2); }
+        .lunch-box { display: flex; justify-content: space-between; align-items: center; background: #FFF9F2; padding: 16px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,149,0,0.1); }
         .switch { position: relative; width: 51px; height: 31px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; inset: 0; background-color: #E5E5EA; transition: .3s; border-radius: 34px; }
@@ -65,35 +63,50 @@
         input:checked + .slider { background-color: var(--ios-green); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* CALENDAR */
+        /* Calendar & Modals */
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; width: 100%; }
-        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 13px; background: #F2F2F7; position: relative; font-weight: 500; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 13px; background: #F2F2F7; position: relative; }
         .cal-day.has-data { background: #E8F5E9; color: var(--ios-green); font-weight: 800; }
         .cal-day.today { background: var(--ios-blue); color: white; }
-        .cal-day.sunday { color: var(--ios-red); }
+        
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); overflow: hidden; }
+        .modal-content { background: white; width: 92%; max-width: 450px; border-radius: 32px; padding: 25px; max-height: 85vh; overflow-y: auto; overflow-x: hidden; }
 
-        /* FOOTER */
+        /* FOOTER INFO */
         .footer-info { 
             position: fixed; bottom: 0; left: 0; right: 0; 
-            background: rgba(255,255,255,0.8); backdrop-filter: blur(15px);
-            padding: calc(10px + env(safe-area-inset-bottom)) 20px env(safe-area-inset-bottom);
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+            padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
             display: flex; justify-content: space-between; align-items: center;
             font-size: 11px; color: #8E8E93; border-top: 0.5px solid #D1D1D6; z-index: 50;
         }
-        .user-tag { display: flex; align-items: center; gap: 5px; color: var(--ios-blue); font-weight: 700; text-transform: uppercase; }
 
-        /* MODAL - CHỈ CUỘN DỌC */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); overflow: hidden; }
-        .modal-content { 
-            background: white; width: 92%; max-width: 450px; border-radius: 32px; padding: 25px; 
-            max-height: 85vh; overflow-y: auto; overflow-x: hidden; 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.2); 
+        /* FIX TOAST: ĐẢM BẢO NHẢY RA KHỎI MÀN HÌNH */
+        .toast { 
+            position: fixed; 
+            bottom: calc(80px + env(safe-area-inset-bottom)); 
+            left: 50%; 
+            /* Trạng thái ẩn: Đẩy xuống dưới 150% chiều cao của chính nó */
+            transform: translate(-50%, 250%); 
+            background: rgba(0,0,0,0.85); 
+            color: white; 
+            padding: 14px 24px; 
+            border-radius: 25px; 
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); 
+            z-index: 20000; 
+            text-align: center; 
+            font-weight: 600; 
+            width: max-content; 
+            max-width: 90%;
+            pointer-events: none; /* Không cản trở việc bấm nút bên dưới */
         }
-        
+        .toast.show { 
+            /* Trạng thái hiện: Nhảy lên vị trí chuẩn */
+            transform: translate(-50%, 0); 
+        }
+
         #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 10000; }
-        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px); background: rgba(0,0,0,0.85); color: white; padding: 14px 28px; border-radius: 30px; transition: 0.4s; z-index: 20000; text-align: center; font-weight: 600; width: max-content; pointer-events: none; }
-        .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
@@ -102,13 +115,13 @@
 
 <div id="authScreen">
     <div class="auth-card">
-        <div style="background: var(--ios-red); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-            <i class="fas fa-bolt-lightning fa-2x" style="color: white;"></i>
+        <div style="background: var(--ios-red); width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+            <i class="fas fa-user-clock fa-2x" style="color: white;"></i>
         </div>
-        <h2 style="font-weight: 800; margin-bottom: 25px;">OT PRO v3.3</h2>
+        <h2 style="font-weight: 800; margin-bottom: 20px;">HỆ THỐNG OT</h2>
         <input type="text" id="username" class="auth-input" placeholder="Tên đăng nhập">
         <input type="password" id="password" class="auth-input" placeholder="Mật khẩu">
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
             <button class="btn btn-start" style="flex: 2" onclick="handleAuth('login')">Đăng nhập</button>
             <button class="btn btn-secondary" style="flex: 1; margin:0" onclick="handleAuth('register')">Đăng ký</button>
         </div>
@@ -116,14 +129,14 @@
 </div>
 
 <div class="header">
-    <h1 style="font-weight: 800; font-size: 22px;">CHẤM CÔNG TĂNG CA</h1>
+    <h1 style="font-weight: 800; font-size: 20px;">LỊCH TRÌNH CÔNG VIỆC</h1>
     <i class="fas fa-power-off logout-btn" onclick="logout()"></i>
 </div>
 
 <div class="time-card">
-    <div id="currentDate" style="color: #8E8E93; font-size: 14px; font-weight: 600;">--/--/----</div>
+    <div id="currentDate" style="color: #8E8E93; font-size: 13px; font-weight: 700;">--/--/----</div>
     <div class="clock" id="currentTime">00:00:00</div>
-    <div id="workStatus" style="font-size: 12px; font-weight: 700; color: var(--ios-blue); background: #F2F2F7; display: inline-block; padding: 5px 12px; border-radius: 15px;">Đang đồng bộ...</div>
+    <div id="workStatus" style="font-size: 11px; font-weight: 700; color: var(--ios-blue); background: #F2F2F7; display: inline-block; padding: 4px 10px; border-radius: 12px;">Đang tải dữ liệu...</div>
 </div>
 
 <div class="card">
@@ -148,60 +161,50 @@
         </div>
     </div>
 
-    <button class="btn btn-salary" onclick="openSalaryModal()"><i class="fas fa-wallet"></i> Ước tính lương</button>
-    <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-calendar-alt"></i> Xem lịch sử chi tiết</button>
+    <button class="btn btn-salary" onclick="openSalaryModal()"><i class="fas fa-coins"></i> Tính lương dự kiến</button>
+    <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-history"></i> Xem lịch sử chi tiết</button>
 </div>
 
 <div class="footer-info">
-    <div class="user-tag" id="footerUser"><i class="fas fa-circle-user"></i> <span>GUEST</span></div>
-    <div style="font-weight: 600;">VERSION v3.3.0 - OVERRIDE MODE</div>
+    <div style="color: var(--ios-blue); font-weight: 800;"><i class="fas fa-user-circle"></i> <span id="footerUser">GUEST</span></div>
+    <div style="font-weight: 600; opacity: 0.6;">VERSION 3.3.1</div>
 </div>
 
 <div class="modal" id="calendarModal">
     <div class="modal-content">
         <div class="cal-nav">
-            <i class="fas fa-chevron-left" onclick="changeMonth(-1)" style="padding:15px; color: var(--ios-blue);"></i>
-            <h3 id="calMonthYear" style="font-weight:800; font-size: 17px;">Tháng --/----</h3>
-            <i class="fas fa-chevron-right" onclick="changeMonth(1)" style="padding:15px; color: var(--ios-blue);"></i>
-        </div>
-        <div class="cal-grid" style="margin-bottom: 5px;">
-            <div style="font-size: 10px; font-weight: 800; color: #8E8E93;">T2</div><div style="font-size: 10px; font-weight: 800; color: #8E8E93;">T3</div><div style="font-size: 10px; font-weight: 800; color: #8E8E93;">T4</div><div style="font-size: 10px; font-weight: 800; color: #8E8E93;">T5</div><div style="font-size: 10px; font-weight: 800; color: #8E8E93;">T6</div><div style="font-size: 10px; font-weight: 800; color: #8E8E93;">T7</div><div style="font-size: 10px; font-weight: 800; color: var(--ios-red);">CN</div>
+            <i class="fas fa-chevron-left" onclick="changeMonth(-1)" style="padding:15px;"></i>
+            <h3 id="calMonthYear" style="font-weight:800;">Tháng --/----</h3>
+            <i class="fas fa-chevron-right" onclick="changeMonth(1)" style="padding:15px;"></i>
         </div>
         <div class="cal-grid" id="calendarDays"></div>
-        
-        <div id="editPanel" style="display:none; border-top:1px solid #F2F2F7; margin-top:20px; padding-top:20px;">
+        <div id="editPanel" style="display:none; border-top:1px solid #EEE; margin-top:20px; padding-top:20px;">
             <p id="editDateLabel" style="text-align:center; font-weight:800; color:var(--ios-blue); margin-bottom:15px;"></p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <input type="time" id="editIn" style="width:100%; padding:12px; border-radius:12px; border:1px solid #DDD; font-weight: 800; text-align: center;"> 
-                <input type="time" id="editOut" style="width:100%; padding:12px; border-radius:12px; border:1px solid #DDD; font-weight: 800; text-align: center;">
-            </div>
-            <div class="lunch-box" style="border-style: solid; margin-bottom: 10px;">
-                <div id="lunchLabelEdit" style="font-size:12px; font-weight:700;">Tăng ca trưa (+1h)</div>
-                <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
+                <input type="time" id="editIn" style="width:100%; padding:12px; border-radius:12px; border:1px solid #DDD; text-align: center;"> 
+                <input type="time" id="editOut" style="width:100%; padding:12px; border-radius:12px; border:1px solid #DDD; text-align: center;">
             </div>
             <input type="number" id="editOT" step="0.1" style="width:100%; padding:12px; border-radius:15px; border:none; background:#FFF1F0; color:var(--ios-red); font-size:24px; font-weight:800; text-align:center;">
-            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu cập nhật</button>
-            <button class="btn btn-secondary" style="background:#FFE5E5; color:var(--ios-red);" id="deleteBtn">Xóa ngày này</button>
+            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Cập nhật</button>
+            <button class="btn btn-secondary" style="background:#FFE5E5; color:var(--ios-red);" id="deleteBtn">Xóa dữ liệu</button>
         </div>
-        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:15px; background: none;">Đóng</button>
+        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:15px; background: none;">Đóng lại</button>
     </div>
 </div>
 
 <div class="modal" id="salaryModal">
     <div class="modal-content">
         <div class="cal-nav">
-            <i class="fas fa-chevron-left" onclick="changeSalaryMonth(-1)" style="padding:15px; color: var(--ios-blue);"></i>
+            <i class="fas fa-chevron-left" onclick="changeSalaryMonth(-1)" style="padding:15px;"></i>
             <h3 id="salaryMonthYear" style="font-weight:800;">Tháng --/----</h3>
-            <i class="fas fa-chevron-right" onclick="changeSalaryMonth(1)" style="padding:15px; color: var(--ios-blue);"></i>
+            <i class="fas fa-chevron-right" onclick="changeSalaryMonth(1)" style="padding:15px;"></i>
         </div>
-        <input type="number" id="baseSalaryInput" oninput="updateSalaryDisplay()" placeholder="Nhập lương cơ bản" style="width:100%; padding:15px; border-radius:15px; border:1px solid #EEE; background:#F9F9F9; font-weight:800; text-align:center; font-size: 18px; margin-bottom: 15px;">
-        <div style="background:linear-gradient(135deg, #F2F2F7, #FFF); padding:20px; border-radius:24px; text-align:center; border: 1px solid #EEE;">
-            <p style="color:#8E8E93; font-size:13px;">Tổng OT: <b id="salaryOTHours" style="color:var(--ios-blue);">0h</b></p>
-            <div style="height: 1px; background: #EEE; margin: 12px 0;"></div>
-            <p style="color:#8E8E93; font-size:11px; font-weight: 700;">TIỀN OT DỰ KIẾN (x2.0)</p>
+        <input type="number" id="baseSalaryInput" oninput="updateSalaryDisplay()" placeholder="Lương cơ bản..." style="width:100%; padding:15px; border-radius:15px; border:1px solid #EEE; text-align:center; font-size: 18px; margin-bottom: 15px;">
+        <div style="background:#F2F2F7; padding:20px; border-radius:24px; text-align:center;">
+            <p style="font-size:11px; font-weight: 700; color: #888;">TIỀN OT (X2.0)</p>
             <b id="otMoneyDetail" style="font-size:30px; color:var(--ios-red);">0đ</b>
         </div>
-        <button class="btn btn-salary" onclick="closeModal('salaryModal')" style="margin-top:20px;">Xong</button>
+        <button class="btn btn-salary" onclick="closeModal('salaryModal')" style="margin-top:20px;">Hoàn thành</button>
     </div>
 </div>
 
@@ -216,28 +219,28 @@
 
     if (currentUser) {
         document.getElementById('authScreen').style.display = 'none';
-        document.querySelector('#footerUser span').innerText = currentUser;
+        document.getElementById('footerUser').innerText = currentUser.toUpperCase();
         loadData();
     }
 
     async function handleAuth(type) {
         const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value.trim();
-        if (!user || !pass) return showToast("Điền đủ thông tin!");
+        if (!user || !pass) return showToast("⚠️ Nhập đủ thông tin!");
         document.getElementById('loading').style.display = 'flex';
         if (type === 'register') {
             const { error } = await supabaseClient.from('users').insert({ username: user, password: pass });
-            if (error) showToast("Tên đã tồn tại!");
-            else showToast("Đăng ký xong! Hãy đăng nhập.");
+            if (error) showToast("❌ Tên đã tồn tại!");
+            else showToast("✅ Đăng ký thành công!");
         } else {
             const { data } = await supabaseClient.from('users').select('*').eq('username', user).eq('password', pass).single();
             if (data) {
                 currentUser = user;
                 localStorage.setItem('ot_user', user);
                 document.getElementById('authScreen').style.display = 'none';
-                document.querySelector('#footerUser span').innerText = currentUser;
+                document.getElementById('footerUser').innerText = currentUser.toUpperCase();
                 loadData();
-            } else { showToast("Sai tài khoản!"); }
+            } else { showToast("❌ Sai tài khoản!"); }
         }
         document.getElementById('loading').style.display = 'none';
     }
@@ -276,48 +279,29 @@
         document.getElementById('monthlyOT').innerText = monthlyOT.toFixed(1) + 'h';
         const todayRec = workData.find(r => r.work_date === todayStr);
         document.getElementById('todayOTDisp').innerText = (todayRec?.overtime || 0) + 'h';
-        
-        // Vào ca chỉ bấm 1 lần
         document.getElementById('startBtn').disabled = !!todayRec;
-        
-        document.getElementById('workStatus').innerText = todayRec ? (todayRec.end_time ? "ĐÃ TAN CA (Có thể bấm lại để cập nhật)" : "ĐANG LÀM VIỆC...") : "CHƯA VÀO CA";
-        const label = document.getElementById('lunchLabelMain');
-        label.innerText = (now.getDay() === 0) ? "Nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
+        document.getElementById('workStatus').innerText = todayRec ? (todayRec.end_time ? "ĐÃ TAN CA ✅" : "ĐANG LÀM VIỆC...") : "CHƯA VÀO CA";
+        document.getElementById('lunchLabelMain').innerText = (now.getDay() === 0) ? "Nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
     }
 
-    // VÀO CA
     document.getElementById('startBtn').onclick = async () => {
         const t = new Date().toLocaleTimeString('vi-VN', { hour12: false, hour: '2-digit', minute: '2-digit' });
         document.getElementById('loading').style.display = 'flex';
         await supabaseClient.from('work_logs').upsert({ work_date: new Date().toLocaleDateString('en-CA'), start_time: t, username: currentUser });
         await loadData(); 
-        showToast("Vào ca lúc: " + t);
+        showToast("🚩 Đã vào ca: " + t);
         document.getElementById('loading').style.display = 'none';
     };
 
-    // TAN CA (GHI ĐÈ)
     document.getElementById('endBtn').onclick = async () => {
-        const now = new Date();
-        const tOut = now.toLocaleTimeString('vi-VN', { hour12: false, hour: '2-digit', minute: '2-digit' });
-        const todayStr = now.toLocaleDateString('en-CA');
-        
+        const now = new Date(), tOut = now.toLocaleTimeString('vi-VN', { hour12: false, hour: '2-digit', minute: '2-digit' }), todayStr = now.toLocaleDateString('en-CA');
         let rec = workData.find(r => r.work_date === todayStr);
-        let tIn = rec?.start_time || "07:45"; // Nếu quên vào ca, mặc định 07:45
-        
+        let tIn = rec?.start_time || "07:45"; 
         const ot = calculateOT(tIn, tOut, document.getElementById('lunchCheckMain').checked, todayStr);
-        
         document.getElementById('loading').style.display = 'flex';
-        // Sử dụng Upsert để ghi đè dữ liệu cũ của ngày hôm nay
-        await supabaseClient.from('work_logs').upsert({ 
-            work_date: todayStr, 
-            start_time: tIn, 
-            end_time: tOut, 
-            overtime: ot, 
-            username: currentUser 
-        });
-        
+        await supabaseClient.from('work_logs').upsert({ work_date: todayStr, start_time: tIn, end_time: tOut, overtime: ot, username: currentUser });
         await loadData(); 
-        showToast(`Cập nhật tan ca: ${tOut}`);
+        showToast(`🏁 Tan ca: ${tOut} (Đã ghi đè)`);
         document.getElementById('loading').style.display = 'none';
     };
 
@@ -330,7 +314,7 @@
         for (let d = 1; d <= daysInMonth; d++) {
             const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
             const el = document.createElement('div');
-            el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSunday(dStr) ? 'sunday' : ''}`;
+            el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''}`;
             el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;font-weight:700;">${rec.overtime}</small>` : ''}`;
             el.onclick = () => showEdit(dStr, rec);
             grid.appendChild(el);
@@ -340,14 +324,11 @@
     function showEdit(date, rec) {
         document.getElementById('editPanel').style.display = 'block';
         document.getElementById('editDateLabel').innerText = date.split('-').reverse().join('/');
-        const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
-        document.getElementById('lunchLabelEdit').innerText = isSunday(date) ? "Nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
+        const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), otI = document.getElementById('editOT');
         inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; 
-        const autoCalcEdit = () => { otI.value = calculateOT(inI.value, outI.value, lI.checked, date); };
-        inI.oninput = autoCalcEdit; outI.oninput = autoCalcEdit; lI.onchange = autoCalcEdit;
         document.getElementById('saveBtn').onclick = async () => {
             await supabaseClient.from('work_logs').upsert({ work_date: date, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value), username: currentUser });
-            showToast("Đã lưu!"); loadData(); renderCalendar();
+            showToast("💾 Đã cập nhật!"); loadData(); renderCalendar();
         };
         document.getElementById('deleteBtn').onclick = async () => {
             if(confirm("Xóa ngày này?")) { await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUser); loadData(); renderCalendar(); document.getElementById('editPanel').style.display = 'none'; }
@@ -361,7 +342,6 @@
         const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('salary_' + currentUser)) || 0;
         localStorage.setItem('salary_' + currentUser, base);
         const money = ((base / 26) / 8) * 2 * totalOT; 
-        document.getElementById('salaryOTHours').innerText = totalOT.toFixed(1) + 'h';
         document.getElementById('otMoneyDetail').innerText = new Intl.NumberFormat('vi-VN').format(Math.round(money)) + "đ";
     }
 
@@ -370,7 +350,18 @@
     function openCalendar() { renderCalendar(); document.getElementById('calendarModal').style.display = 'flex'; }
     function openSalaryModal() { salaryViewDate = new Date(); document.getElementById('baseSalaryInput').value = localStorage.getItem('salary_' + currentUser) || ""; updateSalaryDisplay(); document.getElementById('salaryModal').style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+    
+    // FIX TOAST FUNCTION
+    function showToast(message) { 
+        const toast = document.getElementById('toast'); 
+        toast.innerText = message; 
+        toast.classList.add('show'); 
+        
+        // Sau 3 giây thì ẩn đi
+        setTimeout(() => { 
+            toast.classList.remove('show'); 
+        }, 3000); 
+    }
 
     setInterval(() => {
         const now = new Date();
