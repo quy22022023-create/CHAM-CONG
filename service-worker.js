@@ -1,47 +1,48 @@
-
-const CACHE_NAME = 'ot-pro-v3.2-cache';
-const urlsToCache = [
+const CACHE_NAME = 'ot-pro-v3.3-cache';
+const assetsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap'
 ];
 
-// Cài đặt Service Worker và lưu cache các file tĩnh
+// Cài đặt SW và lưu trữ tài nguyên vào cache
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(assetsToCache);
+    })
   );
+  self.skipWaiting();
 });
 
-// Lấy dữ liệu (Fetch): Ưu tiên mạng, nếu mất mạng thì lấy từ cache
+// Kích hoạt SW và xóa bỏ cache cũ nếu có phiên bản mới
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Xử lý yêu cầu mạng (Fetch)
 self.addEventListener('fetch', event => {
-  // Bỏ qua các request gọi tới Supabase (database) vì nó cần dữ liệu thực tế
+  // Không lưu cache các yêu cầu từ Supabase để đảm bảo dữ liệu luôn mới nhất
   if (event.request.url.includes('supabase.co')) {
     return;
   }
 
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
-  );
-});
-
-// Xóa cache cũ khi có phiên bản mới
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
     })
   );
 });
