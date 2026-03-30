@@ -1,7 +1,7 @@
 {
-  "name": "OT Pro - Ultimate V3.3",
+  "name": "OT Pro - Ultimate V3.4",
   "short_name": "OT Pro",
-  "description": "Quản lý tăng ca và tính lương chuyên nghiệp",
+  "description": "Quản lý tăng ca, ghi chú lý do và tính lương chuyên nghiệp",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F2F2F7",
@@ -9,13 +9,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192.png?text=OT+Pro+3.3",
+      "src": "https://via.placeholder.com/192.png?text=OT+Pro+3.4",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://via.placeholder.com/512.png?text=OT+Pro+3.3",
+      "src": "https://via.placeholder.com/512.png?text=OT+Pro+3.4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
