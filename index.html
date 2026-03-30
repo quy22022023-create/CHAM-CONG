@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>⏱️ OT Pro - Ultimate V3.3</title>
+    <title>⏱️ OT Pro - Ultimate V3.4</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="https://via.placeholder.com/512.png?text=OTPro">
@@ -78,20 +78,24 @@
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .cal-head { font-size: 10px; font-weight: 700; color: #8E8E93; }
-        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; background: var(--cal-day-bg); position: relative; border: 1px solid var(--border-color); cursor: pointer; }
+        .cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; background: var(--cal-day-bg); position: relative; border: 1px solid var(--border-color); cursor: pointer; color: var(--text-main); transition: 0.2s; }
         .cal-day.has-data { background: rgba(52, 199, 89, 0.15); color: var(--ios-green); font-weight: 700; border: 1px solid rgba(52, 199, 89, 0.3); }
         .cal-day.today { border: 2px solid var(--ios-blue); }
         .cal-day.sunday { color: var(--ios-red); }
+        /* --- HIGHIGHT NỔI BẬT NGÀY CHỌN --- */
+        .cal-day.selected { background: rgba(0, 122, 255, 0.1) !important; border: 2px solid var(--ios-blue) !important; color: var(--ios-blue); font-weight: 700; }
 
-        /* --- TOGGLE VIEW & EXCEL TABLE --- */
         .view-toggle { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border-color); }
         .view-toggle button { flex: 1; border: none; background: transparent; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #8E8E93; transition: 0.2s; cursor: pointer; }
         .view-toggle button.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
         .excel-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
         .excel-table th { background: var(--input-bg); padding: 10px 5px; position: sticky; top: 0; z-index: 2; font-size: 11px; font-weight: 700; color: #8E8E93; border-bottom: 1px solid var(--border-color); }
-        .excel-table td { padding: 12px 5px; border-bottom: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; }
+        .excel-table td { padding: 12px 5px; border-bottom: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; transition: 0.2s; }
         .excel-table tr:active td { background: rgba(0, 122, 255, 0.05); }
+        /* --- HIGHIGHT NỔI BẬT DÒNG CHỌN TRONG DANH SÁCH --- */
+        .excel-table tr.selected td { background: rgba(0, 122, 255, 0.05) !important; font-weight: 700; }
+        
         .excel-table .t-sunday { color: var(--ios-red); }
         .table-container { max-height: 400px; overflow-y: auto; display: none; margin-top: 10px; border-radius: 10px; border: 1px solid var(--border-color); }
 
@@ -171,7 +175,7 @@
 </div>
 
 <div class="footer-info">
-    <span id="displayUser">User: ...</span> | <span>Phiên bản: OT Pro V3.3</span>
+    <span id="displayUser">User: ...</span> | <span>Phiên bản: OT Pro V3.4</span>
 </div>
 
 <div class="modal" id="calendarModal">
@@ -210,9 +214,14 @@
                 <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
             </div>
             <div style="text-align:center; margin-bottom:5px;"><small style="color:#888; font-size:10px;">TỔNG GIỜ OT CỦA NGÀY</small></div>
-            <input type="number" id="editOT" step="0.1" inputmode="decimal" pattern="[0-9]*" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--ios-red); font-size:24px; font-weight:800; text-align:center;">
+            <input type="number" id="editOT" step="0.1" inputmode="decimal" pattern="[0-9]*" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--ios-red); font-size:24px; font-weight:800; text-align:center; margin-bottom: 15px;">
             
-            <button class="btn btn-start" style="width:100%; margin-top:15px;" id="saveBtn">Lưu thay đổi</button>
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:10px; font-weight:700; color:#888;">LÝ DO TĂNG CA (GHI CHÚ)</label>
+                <textarea id="editNote" rows="2" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size: 13px;"></textarea>
+            </div>
+            
+            <button class="btn btn-start" style="width:100%;" id="saveBtn">Lưu thay đổi</button>
             <button class="btn btn-secondary" style="background:rgba(255, 59, 48, 0.1); color:var(--ios-red); border:none;" id="deleteBtn">Xóa dữ liệu ngày</button>
         </div>
         <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:10px;">Đóng</button>
@@ -246,6 +255,7 @@
     let currentUser = localStorage.getItem('ot_user') || null;
     let workData = [], currentViewDate = new Date(), salaryViewDate = new Date();
     let isTableView = false;
+    let selectedEditDate = null; // Biến theo dõi ngày đang được chỉnh sửa
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -376,7 +386,8 @@
         for (let d = 1; d <= daysInMonth; d++) {
             const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
             const el = document.createElement('div');
-            el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSunday(dStr) ? 'sunday' : ''}`;
+            // --- THÊM CLASS SELECTED NẾU NGÀY ĐANG ĐƯỢC CHỈNH SỬA ---
+            el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSunday(dStr) ? 'sunday' : ''} ${dStr === selectedEditDate ? 'selected' : ''}`;
             el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>` : ''}`;
             el.onclick = () => showEdit(dStr, rec);
             grid.appendChild(el);
@@ -396,6 +407,8 @@
             if (rec) {
                 hasData = true;
                 const tr = document.createElement('tr');
+                // --- THÊM CLASS SELECTED NẾU DÒNG ĐANG ĐƯỢC CHỈNH SỬA ---
+                if (dStr === selectedEditDate) tr.className = 'selected';
                 tr.innerHTML = `<td class="${isSunday(dStr) ? 't-sunday' : ''}">${dStr.slice(-2)}/${dStr.slice(5,7)}</td>
                                 <td>${rec.start_time || '-'}</td>
                                 <td>${rec.end_time || '-'}</td>
@@ -408,26 +421,36 @@
     }
 
     function showEdit(date, rec) {
+        // --- CẬP NHẬT NGÀY ĐANG ĐƯỢC CHỌN VÀ VẼ LẠI GIAO DIỆN ĐỂ HIGHLIGHT ---
+        selectedEditDate = date; 
+        if(isTableView) renderTableView(); else renderCalendar();
+
         document.getElementById('editPanel').style.display = 'block';
         document.getElementById('editPanel').scrollIntoView({ behavior: 'smooth' });
         document.getElementById('editDateLabel').innerText = "Ngày: " + date;
-        const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT');
+        const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT'), noteI = document.getElementById('editNote');
         document.getElementById('lunchLabelEdit').innerText = isSunday(date) ? "Có nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
         inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; 
+        // --- ĐIỀN DỮ LIỆU GHI CHÚ CŨ ---
+        noteI.value = rec?.note || ""; 
+        
         const autoCalcEdit = () => { otI.value = calculateOT(inI.value, outI.value, lI.checked, date); };
         inI.oninput = autoCalcEdit; outI.oninput = autoCalcEdit; lI.onchange = autoCalcEdit;
         
         document.getElementById('saveBtn').onclick = async () => {
-            await supabaseClient.from('work_logs').upsert({ work_date: date, username: currentUser, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value) });
+            // --- LƯU KÈM THEO GHI CHÚ ---
+            await supabaseClient.from('work_logs').upsert({ work_date: date, username: currentUser, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value), note: noteI.value });
             showToast("Đã lưu!"); 
             await loadData(); 
             if(isTableView) renderTableView(); else renderCalendar();
+            // --- TỰ ĐỘNG ĐÓNG PANEL CHỈNH SỬA KHI LƯU XONG (GIỮ NGUYÊN SELECTED) ---
             document.getElementById('editPanel').style.display = 'none'; 
         };
         
         document.getElementById('deleteBtn').onclick = async () => {
             if(confirm("Xóa ngày " + date + "?")) { 
                 await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUser); 
+                selectedEditDate = null; // Xóa ngày chọn khi xóa dữ liệu
                 await loadData(); 
                 if(isTableView) renderTableView(); else renderCalendar();
                 document.getElementById('editPanel').style.display = 'none'; 
@@ -449,6 +472,8 @@
 
     function changeMonth(dir) { 
         currentViewDate.setMonth(currentViewDate.getMonth() + dir); 
+        selectedEditDate = null; // Xóa ngày chọn khi chuyển tháng
+        document.getElementById('editPanel').style.display = 'none'; // Đóng panel
         if(isTableView) renderTableView(); else renderCalendar(); 
     }
     function changeSalaryMonth(dir) { salaryViewDate.setMonth(salaryViewDate.getMonth() + dir); updateSalaryDisplay(); }
@@ -464,7 +489,14 @@
         updateSalaryDisplay(); document.getElementById('salaryModal').style.display = 'flex'; 
     }
     
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; document.getElementById('editPanel').style.display = 'none'; }
+    function closeModal(id) { 
+        document.getElementById(id).style.display = 'none'; 
+        // --- TỰ ĐỘNG XÓA HIGHIGHT VÀ GHI CHÚ KHI ĐÓNG MODAL ---
+        selectedEditDate = null; 
+        document.getElementById('editPanel').style.display = 'none'; 
+        document.getElementById('editNote').value = "";
+    }
+    
     function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
     setInterval(() => {
