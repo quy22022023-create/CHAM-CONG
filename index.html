@@ -213,14 +213,12 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    // GIỮ NGUYÊN 100% KEY GỐC CỦA BẠN
     const SB_URL = 'https://dtdknettwfgilklaqeae.supabase.co', SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZGtuZXR0d2ZnaWxrbGFxZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzMTgsImV4cCI6MjA5MDI0NzMxOH0.qDvvZHNyNPh4QxpD6fDkR4Jr1xUnLSzCm79bsKI6ILk';
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
     
     let currentUser = localStorage.getItem('ot_user') || null;
     let workData = [], currentViewDate = new Date(), salaryViewDate = new Date();
 
-    // PWA Service Worker Registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('service-worker.js').catch(() => {});
@@ -277,7 +275,6 @@
     async function loadData() {
         if (!currentUser) return;
         
-        // Thêm Skeleton Loading
         document.getElementById('boxMonthlyOT').classList.add('loading-skeleton');
         document.getElementById('boxTodayOT').classList.add('loading-skeleton');
         
@@ -285,7 +282,6 @@
         workData = data || [];
         updateSummary();
         
-        // Xóa Skeleton Loading
         document.getElementById('boxMonthlyOT').classList.remove('loading-skeleton');
         document.getElementById('boxTodayOT').classList.remove('loading-skeleton');
     }
@@ -316,10 +312,9 @@
         let rec = workData.find(r => r.work_date === todayStr);
         
         let startTime = rec?.start_time;
-        // Nếu chưa ấn vào ca
         if (!startTime) {
             if (isSunday(todayStr)) return showToast("Chủ nhật: Vui lòng ấn 'Vào ca' trước!");
-            startTime = "07:45"; // Tự động lấy giờ chuẩn ngày thường
+            startTime = "07:45"; 
         }
 
         const ot = calculateOT(startTime, t, document.getElementById('lunchCheckMain').checked, todayStr);
@@ -359,14 +354,21 @@
         inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; 
         const autoCalcEdit = () => { otI.value = calculateOT(inI.value, outI.value, lI.checked, date); };
         inI.oninput = autoCalcEdit; outI.oninput = autoCalcEdit; lI.onchange = autoCalcEdit;
+        
         document.getElementById('saveBtn').onclick = async () => {
             await supabaseClient.from('work_logs').upsert({ work_date: date, username: currentUser, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value) });
-            showToast("Đã lưu!"); loadData(); renderCalendar();
+            showToast("Đã lưu!"); 
+            await loadData(); 
+            renderCalendar(); 
+            document.getElementById('editPanel').style.display = 'none'; 
         };
+        
         document.getElementById('deleteBtn').onclick = async () => {
             if(confirm("Xóa ngày " + date + "?")) { 
                 await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUser); 
-                loadData(); renderCalendar(); document.getElementById('editPanel').style.display = 'none'; 
+                await loadData(); 
+                renderCalendar(); 
+                document.getElementById('editPanel').style.display = 'none'; 
             }
         };
     }
