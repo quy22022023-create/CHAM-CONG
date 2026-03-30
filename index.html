@@ -82,7 +82,6 @@
         .cal-day.has-data { background: rgba(52, 199, 89, 0.15); color: var(--ios-green); font-weight: 700; border: 1px solid rgba(52, 199, 89, 0.3); }
         .cal-day.today { border: 2px solid var(--ios-blue); }
         .cal-day.sunday { color: var(--ios-red); }
-        /* --- HIGHIGHT NỔI BẬT NGÀY CHỌN --- */
         .cal-day.selected { background: rgba(0, 122, 255, 0.1) !important; border: 2px solid var(--ios-blue) !important; color: var(--ios-blue); font-weight: 700; }
 
         .view-toggle { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border-color); }
@@ -93,9 +92,7 @@
         .excel-table th { background: var(--input-bg); padding: 10px 5px; position: sticky; top: 0; z-index: 2; font-size: 11px; font-weight: 700; color: #8E8E93; border-bottom: 1px solid var(--border-color); }
         .excel-table td { padding: 12px 5px; border-bottom: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; transition: 0.2s; }
         .excel-table tr:active td { background: rgba(0, 122, 255, 0.05); }
-        /* --- HIGHIGHT NỔI BẬT DÒNG CHỌN TRONG DANH SÁCH --- */
         .excel-table tr.selected td { background: rgba(0, 122, 255, 0.05) !important; font-weight: 700; }
-        
         .excel-table .t-sunday { color: var(--ios-red); }
         .table-container { max-height: 400px; overflow-y: auto; display: none; margin-top: 10px; border-radius: 10px; border: 1px solid var(--border-color); }
 
@@ -108,8 +105,10 @@
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(4px); }
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(150px); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 20000; text-align: center; font-size: 14px; min-width: 200px; }
         .toast.show { transform: translateX(-50%) translateY(0); }
+        
+        /* Hiệu ứng báo lỗi Supabase */
+        .toast.error { background: rgba(255, 59, 48, 0.95); font-weight: 600; }
 
-        /* --- SKELETON LOADING --- */
         .loading-skeleton { position: relative; overflow: hidden; color: transparent !important; }
         .loading-skeleton * { visibility: hidden; }
         .loading-skeleton::after {
@@ -175,7 +174,7 @@
 </div>
 
 <div class="footer-info">
-    <span id="displayUser">User: ...</span> | <span>Phiên bản: OT Pro V3.4</span>
+    <span id="displayUser">User: ...</span> | <span>Phiên bản: OT Pro V3.4 (Fix Sync)</span>
 </div>
 
 <div class="modal" id="calendarModal">
@@ -254,19 +253,25 @@
     
     let currentUser = localStorage.getItem('ot_user') || null;
     let workData = [], currentViewDate = new Date(), salaryViewDate = new Date();
-    let isTableView = false;
-    let selectedEditDate = null; // Biến theo dõi ngày đang được chỉnh sửa
+    let isTableView = false, selectedEditDate = null;
 
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('service-worker.js').catch(() => {});
-        });
+        window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(() => {}); });
     }
 
     if (currentUser) {
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('displayUser').innerText = "User: " + currentUser;
         loadData();
+    }
+
+    // --- HÀM THÔNG BÁO THÔNG MINH ---
+    function showToast(msg, isError = false) { 
+        const t = document.getElementById('toast'); 
+        t.innerText = msg; 
+        if(isError) t.classList.add('error'); else t.classList.remove('error');
+        t.classList.add('show'); 
+        setTimeout(() => t.classList.remove('show'), isError ? 5000 : 3000); 
     }
 
     async function handleAuth(type) {
@@ -276,7 +281,7 @@
         document.getElementById('loading').style.display = 'flex';
         if (type === 'register') {
             const { error } = await supabaseClient.from('users').insert({ username: user, password: pass });
-            if (error) showToast("Tên này đã tồn tại!"); else showToast("Đăng ký thành công!");
+            if (error) showToast("Tên này đã tồn tại!", true); else showToast("Đăng ký thành công!");
         } else {
             const { data } = await supabaseClient.from('users').select('*').eq('username', user).eq('password', pass).single();
             if (data) {
@@ -284,7 +289,7 @@
                 document.getElementById('authScreen').style.display = 'none';
                 document.getElementById('displayUser').innerText = "User: " + user;
                 loadData();
-            } else showToast("Sai tài khoản hoặc mật khẩu!");
+            } else showToast("Sai tài khoản hoặc mật khẩu!", true);
         }
         document.getElementById('loading').style.display = 'none';
     }
@@ -312,13 +317,16 @@
 
     async function loadData() {
         if (!currentUser) return;
-        
         document.getElementById('boxMonthlyOT').classList.add('loading-skeleton');
         document.getElementById('boxTodayOT').classList.add('loading-skeleton');
         
-        const { data } = await supabaseClient.from('work_logs').select('*').eq('username', currentUser).order('work_date', { ascending: false });
-        workData = data || [];
-        updateSummary();
+        const { data, error } = await supabaseClient.from('work_logs').select('*').eq('username', currentUser).order('work_date', { ascending: false });
+        if (error) {
+            showToast("Lỗi tải dữ liệu: " + error.message, true);
+        } else {
+            workData = data || [];
+            updateSummary();
+        }
         
         document.getElementById('boxMonthlyOT').classList.remove('loading-skeleton');
         document.getElementById('boxTodayOT').classList.remove('loading-skeleton');
@@ -340,7 +348,10 @@
     document.getElementById('startBtn').onclick = async () => {
         const t = new Date().toLocaleTimeString('vi-VN', {hour12:false}).slice(0,5);
         const todayStr = new Date().toLocaleDateString('en-CA');
-        await supabaseClient.from('work_logs').upsert({ work_date: todayStr, username: currentUser, start_time: t });
+        
+        const { error } = await supabaseClient.from('work_logs').upsert({ work_date: todayStr, username: currentUser, start_time: t });
+        if (error) return showToast("Lỗi Database: " + error.message, true);
+        
         loadData(); showToast("Vào ca lúc " + t);
     };
 
@@ -356,13 +367,10 @@
         }
 
         const ot = calculateOT(startTime, t, document.getElementById('lunchCheckMain').checked, todayStr);
-        await supabaseClient.from('work_logs').upsert({ 
-            work_date: todayStr, 
-            username: currentUser, 
-            start_time: startTime,
-            end_time: t, 
-            overtime: ot 
+        const { error } = await supabaseClient.from('work_logs').upsert({ 
+            work_date: todayStr, username: currentUser, start_time: startTime, end_time: t, overtime: ot 
         });
+        if (error) return showToast("Lỗi Database: " + error.message, true);
         
         loadData(); 
         showToast(`Tan ca lúc ${t}. (Vào: ${startTime})`);
@@ -386,7 +394,6 @@
         for (let d = 1; d <= daysInMonth; d++) {
             const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
             const el = document.createElement('div');
-            // --- THÊM CLASS SELECTED NẾU NGÀY ĐANG ĐƯỢC CHỈNH SỬA ---
             el.className = `cal-day ${rec ? 'has-data' : ''} ${dStr === new Date().toLocaleDateString('en-CA') ? 'today' : ''} ${isSunday(dStr) ? 'sunday' : ''} ${dStr === selectedEditDate ? 'selected' : ''}`;
             el.innerHTML = `<span>${d}</span>${rec ? `<small style="font-size:8px;position:absolute;bottom:2px;">+${rec.overtime}</small>` : ''}`;
             el.onclick = () => showEdit(dStr, rec);
@@ -407,7 +414,6 @@
             if (rec) {
                 hasData = true;
                 const tr = document.createElement('tr');
-                // --- THÊM CLASS SELECTED NẾU DÒNG ĐANG ĐƯỢC CHỈNH SỬA ---
                 if (dStr === selectedEditDate) tr.className = 'selected';
                 tr.innerHTML = `<td class="${isSunday(dStr) ? 't-sunday' : ''}">${dStr.slice(-2)}/${dStr.slice(5,7)}</td>
                                 <td>${rec.start_time || '-'}</td>
@@ -421,7 +427,6 @@
     }
 
     function showEdit(date, rec) {
-        // --- CẬP NHẬT NGÀY ĐANG ĐƯỢC CHỌN VÀ VẼ LẠI GIAO DIỆN ĐỂ HIGHLIGHT ---
         selectedEditDate = date; 
         if(isTableView) renderTableView(); else renderCalendar();
 
@@ -431,26 +436,34 @@
         const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT'), noteI = document.getElementById('editNote');
         document.getElementById('lunchLabelEdit').innerText = isSunday(date) ? "Có nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
         inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; 
-        // --- ĐIỀN DỮ LIỆU GHI CHÚ CŨ ---
         noteI.value = rec?.note || ""; 
         
         const autoCalcEdit = () => { otI.value = calculateOT(inI.value, outI.value, lI.checked, date); };
         inI.oninput = autoCalcEdit; outI.oninput = autoCalcEdit; lI.onchange = autoCalcEdit;
         
         document.getElementById('saveBtn').onclick = async () => {
-            // --- LƯU KÈM THEO GHI CHÚ ---
-            await supabaseClient.from('work_logs').upsert({ work_date: date, username: currentUser, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value), note: noteI.value });
+            // Nếu Supabase chưa có cột 'note', nó sẽ ném lỗi ở đây
+            const { error } = await supabaseClient.from('work_logs').upsert({ 
+                work_date: date, username: currentUser, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value), note: noteI.value 
+            });
+            
+            if (error) {
+                alert("Lỗi lưu dữ liệu: Bạn CHƯA tạo cột 'note' trong bảng work_logs trên Supabase!\n\nChi tiết lỗi: " + error.message);
+                return;
+            }
+
             showToast("Đã lưu!"); 
             await loadData(); 
             if(isTableView) renderTableView(); else renderCalendar();
-            // --- TỰ ĐỘNG ĐÓNG PANEL CHỈNH SỬA KHI LƯU XONG (GIỮ NGUYÊN SELECTED) ---
             document.getElementById('editPanel').style.display = 'none'; 
         };
         
         document.getElementById('deleteBtn').onclick = async () => {
             if(confirm("Xóa ngày " + date + "?")) { 
-                await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUser); 
-                selectedEditDate = null; // Xóa ngày chọn khi xóa dữ liệu
+                const { error } = await supabaseClient.from('work_logs').delete().eq('work_date', date).eq('username', currentUser); 
+                if (error) return showToast("Lỗi xóa: " + error.message, true);
+
+                selectedEditDate = null; 
                 await loadData(); 
                 if(isTableView) renderTableView(); else renderCalendar();
                 document.getElementById('editPanel').style.display = 'none'; 
@@ -461,7 +474,6 @@
     function updateSalaryDisplay() {
         const y = salaryViewDate.getFullYear(), m = salaryViewDate.getMonth();
         const monthStr = `${y}-${(m+1).toString().padStart(2,'0')}`;
-        document.getElementById('salaryMonthYear').innerText = `Tháng ${m + 1}/${y}`;
         const totalOT = workData.filter(r => r.work_date.startsWith(monthStr)).reduce((sum, r) => sum + (parseFloat(r.overtime) || 0), 0);
         const base = parseFloat(document.getElementById('baseSalaryInput').value) || parseFloat(localStorage.getItem('salary_' + currentUser)) || 0;
         localStorage.setItem('salary_' + currentUser, base);
@@ -472,8 +484,8 @@
 
     function changeMonth(dir) { 
         currentViewDate.setMonth(currentViewDate.getMonth() + dir); 
-        selectedEditDate = null; // Xóa ngày chọn khi chuyển tháng
-        document.getElementById('editPanel').style.display = 'none'; // Đóng panel
+        selectedEditDate = null; 
+        document.getElementById('editPanel').style.display = 'none'; 
         if(isTableView) renderTableView(); else renderCalendar(); 
     }
     function changeSalaryMonth(dir) { salaryViewDate.setMonth(salaryViewDate.getMonth() + dir); updateSalaryDisplay(); }
@@ -491,13 +503,10 @@
     
     function closeModal(id) { 
         document.getElementById(id).style.display = 'none'; 
-        // --- TỰ ĐỘNG XÓA HIGHIGHT VÀ GHI CHÚ KHI ĐÓNG MODAL ---
         selectedEditDate = null; 
         document.getElementById('editPanel').style.display = 'none'; 
         document.getElementById('editNote').value = "";
     }
-    
-    function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
     setInterval(() => {
         document.getElementById('currentTime').innerText = new Date().toLocaleTimeString('vi-VN', {hour12:false});
