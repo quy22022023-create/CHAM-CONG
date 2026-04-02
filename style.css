@@ -1,0 +1,103 @@
+:root { 
+    --ios-red: #FF3B30; 
+    --ios-green: #34C759; 
+    --ios-blue: #007AFF; 
+    --ios-orange: #FF9500; 
+    --ios-bg: #F2F2F7; 
+    --text-main: #1C1C1E;
+    --card-bg: #FFFFFF;
+    --input-bg: #F2F2F7;
+    --border-color: #E5E5EA;
+    --lunch-bg: #FFF9F2;
+    --cal-day-bg: #F9F9F9;
+}
+
+/* --- DARK MODE --- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ios-bg: #000000;
+        --text-main: #FFFFFF;
+        --card-bg: #1C1C1E;
+        --input-bg: #2C2C2E;
+        --border-color: #38383A;
+        --lunch-bg: rgba(255, 149, 0, 0.1);
+        --cal-day-bg: #2C2C2E;
+        --ios-red: #FF453A;
+        --ios-green: #32D74B;
+        --ios-blue: #0A84FF;
+        --ios-orange: #FF9F0A;
+    }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--ios-bg); color: var(--text-main); padding-bottom: calc(80px + env(safe-area-inset-bottom)); min-height: 100vh; position: relative; transition: background 0.3s, color 0.3s; }
+
+#authScreen { position: fixed; inset: 0; background: var(--ios-bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.auth-card { background: var(--card-bg); width: 100%; max-width: 400px; padding: 30px; border-radius: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border-color); }
+.auth-input { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--input-bg); font-size: 16px; outline: none; color: var(--text-main); }
+
+.header { background: linear-gradient(135deg, var(--ios-red), #AF52DE); color: white; padding: calc(40px + env(safe-area-inset-top)) 20px 40px; text-align: center; border-radius: 0 0 32px 32px; position: relative; }
+.logout-btn { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 20px; color: white; font-size: 18px; padding: 10px; cursor: pointer; }
+
+.time-card { background: var(--card-bg); margin: -30px 20px 20px; padding: 24px; border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: center; position: relative; z-index: 10; border: 1px solid var(--border-color); }
+.clock { font-size: 46px; font-weight: 800; color: var(--ios-red); margin: 5px 0; font-variant-numeric: tabular-nums; }
+
+.card { background: var(--card-bg); margin: 0 20px 20px; padding: 20px; border-radius: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border: 1px solid var(--border-color); }
+.btn { flex: 1; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; cursor: pointer; }
+.btn:active { transform: scale(0.95); opacity: 0.8; }
+.btn:disabled { background: var(--border-color); color: #8E8E93; cursor: not-allowed; opacity: 0.6; }
+.btn-start { background: var(--ios-green); color: white; }
+.btn-end { background: var(--ios-orange); color: white; }
+.btn-salary { background: #5856D6; color: white; width: 100%; margin-top: 15px; }
+.btn-secondary { background: var(--input-bg); color: var(--ios-blue); width: 100%; margin-top: 12px; border: 1px solid var(--border-color); }
+
+.lunch-box { display: flex; justify-content: space-between; align-items: center; background: var(--lunch-bg); padding: 14px 16px; border-radius: 16px; margin-bottom: 15px; border: 1px dashed var(--ios-orange); }
+.switch { position: relative; width: 51px; height: 31px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #CCC; transition: .3s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--ios-green); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+.cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+.cal-head { font-size: 10px; font-weight: 700; color: #8E8E93; }
+.cal-day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; background: var(--cal-day-bg); position: relative; border: 1px solid var(--border-color); cursor: pointer; color: var(--text-main); transition: 0.2s; }
+.cal-day.has-data { background: rgba(52, 199, 89, 0.15); color: var(--ios-green); font-weight: 700; border: 1px solid rgba(52, 199, 89, 0.3); }
+.cal-day.today { border: 2px solid var(--ios-blue); }
+.cal-day.sunday { color: var(--ios-red); }
+.cal-day.selected { background: rgba(0, 122, 255, 0.1) !important; border: 2px solid var(--ios-blue) !important; color: var(--ios-blue); font-weight: 700; }
+
+.view-toggle { display: flex; background: var(--input-bg); border-radius: 10px; padding: 3px; margin-bottom: 15px; border: 1px solid var(--border-color); }
+.view-toggle button { flex: 1; border: none; background: transparent; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #8E8E93; transition: 0.2s; cursor: pointer; }
+.view-toggle button.active { background: var(--card-bg); color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+.excel-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
+.excel-table th { background: var(--input-bg); padding: 10px 5px; position: sticky; top: 0; z-index: 2; font-size: 11px; font-weight: 700; color: #8E8E93; border-bottom: 1px solid var(--border-color); }
+.excel-table td { padding: 12px 5px; border-bottom: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; transition: 0.2s; }
+.excel-table tr:active td { background: rgba(0, 122, 255, 0.05); }
+.excel-table tr.selected td { background: rgba(0, 122, 255, 0.05) !important; font-weight: 700; }
+.excel-table .t-sunday { color: var(--ios-red); }
+.table-container { max-height: 400px; overflow-y: auto; display: none; margin-top: 10px; border-radius: 10px; border: 1px solid var(--border-color); }
+
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+.modal-content { background: var(--card-bg); width: 92%; border-radius: 28px; padding: 20px; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border-color); }
+
+.footer-info { position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; padding: 15px; color: #8E8E93; font-size: 11px; background: rgba(242, 242, 247, 0.1); backdrop-filter: blur(10px); }
+@media (prefers-color-scheme: dark) { .footer-info { background: rgba(28, 28, 30, 0.8); } }
+
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(4px); }
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(150px); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 25px; transition: 0.3s; z-index: 20000; text-align: center; font-size: 14px; min-width: 200px; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Hiệu ứng báo lỗi Supabase */
+.toast.error { background: rgba(255, 59, 48, 0.95); font-weight: 600; }
+
+.loading-skeleton { position: relative; overflow: hidden; color: transparent !important; }
+.loading-skeleton * { visibility: hidden; }
+.loading-skeleton::after {
+    position: absolute; inset: 0; content: '';
+    background: linear-gradient(90deg, transparent, rgba(150,150,150,0.2), transparent);
+    transform: translateX(-100%); animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }

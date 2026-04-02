@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>OT Pro - Loading...</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="./image.PNG">
+    <link rel="apple-touch-icon" href="./image.PNG">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loading"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--ios-red)"></i></div>
+
+<div id="authScreen">
+    <div class="auth-card">
+        <i class="fas fa-user-clock fa-3x" style="color: var(--ios-red); margin-bottom: 15px;"></i>
+        <h2 id="authTitle">OT Pro Login</h2>
+        <input type="text" id="username" class="auth-input" placeholder="Tên đăng nhập">
+        <input type="password" id="password" class="auth-input" placeholder="Mật khẩu">
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-start" onclick="handleAuth('login')">Đăng nhập</button>
+            <button class="btn btn-secondary" style="margin-top:0" onclick="handleAuth('register')">Đăng ký</button>
+        </div>
+    </div>
+</div>
+
+<div class="header">
+    <h1 id="mainTitle">QUẢN LÝ TĂNG CA</h1>
+    <i class="fas fa-sign-out-alt logout-btn" onclick="logout()"></i>
+</div>
+
+<div class="time-card">
+    <div id="currentDate" style="color: #8E8E93; font-size: 14px;">--/--/----</div>
+    <div class="clock" id="currentTime">00:00:00</div>
+    <div id="workStatus" style="font-size: 14px; font-weight: 600; color: #8E8E93;">Đang tải...</div>
+</div>
+
+<div class="card">
+    <div class="lunch-box">
+        <div id="lunchLabelMain" style="font-weight: 700; color: var(--ios-orange); font-size: 14px;"><i class="fas fa-utensils"></i> Tăng ca trưa (+1h)</div>
+        <label class="switch"><input type="checkbox" id="lunchCheckMain"><span class="slider"></span></label>
+    </div>
+
+    <div style="display:flex; gap:12px;">
+        <button class="btn btn-start" id="startBtn">Vào ca</button>
+        <button class="btn btn-end" id="endBtn">Tan ca</button>
+    </div>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 15px;">
+        <div id="boxMonthlyOT" style="background:var(--input-bg); padding:15px; border-radius:20px; text-align:center;">
+            <p style="font-size:10px; color:#888;">OT THÁNG NÀY</p>
+            <b id="monthlyOT" style="font-size:22px;">0h</b>
+        </div>
+        <div id="boxTodayOT" style="background:var(--input-bg); padding:15px; border-radius:20px; text-align:center;">
+            <p style="font-size:10px; color:#888;">OT HÔM NAY</p>
+            <b id="todayOTDisp" style="font-size:22px; color:var(--ios-red);">0h</b>
+        </div>
+    </div>
+
+    <button class="btn btn-salary" onclick="openSalaryModal()"><i class="fas fa-wallet"></i> Tính lương theo tháng</button>
+    <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-calendar-alt"></i> Lịch sử & Chỉnh sửa</button>
+</div>
+
+<div class="footer-info">
+    <span id="displayUser">User: ...</span> | <span id="appVersionDisplay">Phiên bản: ...</span>
+</div>
+
+<div class="modal" id="calendarModal">
+    <div class="modal-content" style="padding: 20px 15px;">
+        <div class="cal-nav">
+            <i class="fas fa-chevron-left" onclick="changeMonth(-1)" style="padding:10px; cursor:pointer;"></i>
+            <h3 id="calMonthYear" style="font-weight:800;">Tháng --/----</h3>
+            <i class="fas fa-chevron-right" onclick="changeMonth(1)" style="padding:10px; cursor:pointer;"></i>
+        </div>
+        
+        <div class="view-toggle">
+            <button id="btnCalView" class="active" onclick="switchView('cal')">Lịch</button>
+            <button id="btnTableView" onclick="switchView('table')">Danh sách</button>
+        </div>
+
+        <div id="calendarContainer">
+            <div class="cal-grid"><div class="cal-head">T2</div><div class="cal-head">T3</div><div class="cal-head">T4</div><div class="cal-head">T5</div><div class="cal-head">T6</div><div class="cal-head">T7</div><div class="cal-head" style="color:var(--ios-red)">CN</div></div>
+            <div class="cal-grid" id="calendarDays" style="margin-top:10px;"></div>
+        </div>
+
+        <div id="tableContainer" class="table-container">
+            <table class="excel-table">
+                <thead><tr><th>Ngày</th><th>Vào</th><th>Ra</th><th>OT</th></tr></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="editPanel" style="display:none; border-top:1px solid var(--border-color); margin-top:20px; padding-top:15px;">
+            <p id="editDateLabel" style="text-align:center; font-weight:800; color:var(--ios-blue); margin-bottom:10px;"></p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                <input type="time" id="editIn" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main);"> 
+                <input type="time" id="editOut" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main);">
+            </div>
+            <div class="lunch-box" style="border-style: solid;">
+                <div id="lunchLabelEdit" style="font-size:14px; font-weight:700;">Tăng ca trưa (+1h)</div>
+                <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
+            </div>
+            <div style="text-align:center; margin-bottom:5px;"><small style="color:#888; font-size:10px;">TỔNG GIỜ OT CỦA NGÀY</small></div>
+            <input type="number" id="editOT" step="0.1" inputmode="decimal" pattern="[0-9]*" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--ios-red); font-size:24px; font-weight:800; text-align:center; margin-bottom: 15px;">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:10px; font-weight:700; color:#888;">LÝ DO TĂNG CA (GHI CHÚ)</label>
+                <textarea id="editNote" rows="2" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size: 13px;"></textarea>
+            </div>
+            
+            <button class="btn btn-start" style="width:100%;" id="saveBtn">Lưu thay đổi</button>
+            <button class="btn btn-secondary" style="background:rgba(255, 59, 48, 0.1); color:var(--ios-red); border:none;" id="deleteBtn">Xóa dữ liệu ngày</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:10px;">Đóng</button>
+    </div>
+</div>
+
+<div class="modal" id="salaryModal">
+    <div class="modal-content">
+        <div class="cal-nav">
+            <i class="fas fa-chevron-left" onclick="changeSalaryMonth(-1)" style="padding:10px; cursor:pointer;"></i>
+            <h3 id="salaryMonthYear" style="font-weight:800;">Tháng --/----</h3>
+            <i class="fas fa-chevron-right" onclick="changeSalaryMonth(1)" style="padding:10px; cursor:pointer;"></i>
+        </div>
+        <label style="font-size:10px; font-weight:700; color:#888;">LƯƠNG CƠ BẢN</label>
+        <input type="number" id="baseSalaryInput" inputmode="numeric" pattern="[0-9]*" oninput="updateSalaryDisplay()" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); font-weight:800; text-align:center; color:var(--text-main);">
+        <div style="background:var(--input-bg); padding:20px; border-radius:24px; margin-top:20px; text-align:center; overflow:hidden;">
+            <p style="color:#888; font-size:13px;">Tổng OT tháng này: <b id="salaryOTHours" style="color:var(--ios-blue);">0h</b></p>
+            <p style="color:#888; font-size:13px; margin-bottom:10px;">Tiền OT (x2.0):</p>
+            <b id="otMoneyDetail" style="font-size:32px; color:var(--ios-red); display:block; overflow-x:auto; white-space:nowrap; padding-bottom:5px;">0đ</b>
+        </div>
+        <button class="btn btn-salary" onclick="closeModal('salaryModal')" style="margin-top:20px;">Hoàn tất</button>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
