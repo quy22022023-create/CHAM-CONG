@@ -1,11 +1,11 @@
 // --- CẤU HÌNH HỆ THỐNG ---
-const APP_VERSION = "OT Pro V4.3(Delta-Tracking)";
+const APP_VERSION = "OT Pro V4.6(Table-Colors)";
 const SB_URL = 'https://dtdknettwfgilklaqeae.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0ZGtuZXR0d2ZnaWxrbGFxZWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzEzMTgsImV4cCI6MjA5MDI0NzMxOH0.qDvvZHNyNPh4QxpD6fDkR4Jr1xUnLSzCm79bsKI6ILk';
 const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
 let currentUser = localStorage.getItem('ot_user') || null;
-let workData = [], currentViewDate = new Date(), salaryViewDate = new Date();
+let workData = [], currentViewDate = new Date(), salaryViewDate = new Date(), mealViewDate = new Date();
 let isTableView = false, selectedEditDate = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -153,9 +153,26 @@ document.getElementById('endBtn').onclick = async () => {
     if (!startTime) { if (isSunday(targetDate)) return showToast("Hãy ấn 'Vào ca' trước!"); startTime = "07:45"; }
 
     const ot = calculateOT(startTime, t, document.getElementById('lunchCheckMain').checked, targetDate);
-    const { error } = await supabaseClient.from('work_logs').upsert({ work_date: targetDate, username: currentUser, start_time: startTime, end_time: t, overtime: ot });
+    
+    // TỰ ĐỘNG TÍNH TOÁN PHẦN CƠM THEO MỐC GIỜ RA
+    let autoMealCount = 0;
+    if (t >= "20:30") {
+        autoMealCount = 2;
+    } else if (t >= "18:30") {
+        autoMealCount = 1;
+    }
+
+    const { error } = await supabaseClient.from('work_logs').upsert({ 
+        work_date: targetDate, 
+        username: currentUser, 
+        start_time: startTime, 
+        end_time: t, 
+        overtime: ot,
+        meal_count: autoMealCount 
+    });
+    
     if (error) return showToast("Lỗi: " + error.message, true);
-    loadData(); showToast(`Tan ca: ${t}. (Vào: ${startTime})`);
+    loadData(); showToast(`Tan ca: ${t}. Cơm tự động: ${autoMealCount}. (Vào: ${startTime})`);
 };
 
 // --- QUẢN LÝ LỊCH VÀ CHỈNH SỬA ---
@@ -173,6 +190,8 @@ function renderCalendar() {
     const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
     document.getElementById('calMonthYear').innerText = `Tháng ${m + 1}/${y}`;
     const firstDay = new Date(y, m, 1).getDay(), emptySlots = firstDay === 0 ? 6 : firstDay - 1, daysInMonth = new Date(y, m + 1, 0).getDate();
+    
+    // Trả lại nguyên bản Lịch cũ, không tô màu tuần
     for (let i = 0; i < emptySlots; i++) grid.appendChild(document.createElement('div'));
     for (let d = 1; d <= daysInMonth; d++) {
         const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
@@ -189,11 +208,22 @@ function renderTableView() {
     const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
     document.getElementById('calMonthYear').innerText = `Tháng ${m + 1}/${y}`;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
+    
+    // Tính toán mốc tuần để đồng bộ với lịch lưới
+    const firstDay = new Date(y, m, 1).getDay();
+    const emptySlots = firstDay === 0 ? 6 : firstDay - 1;
+
     let hasData = false;
     for (let d = daysInMonth; d >= 1; d--) {
         const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`, rec = workData.find(r => r.work_date === dStr);
         if (rec) {
-            hasData = true; const tr = document.createElement('tr'); if (dStr === selectedEditDate) tr.className = 'selected';
+            hasData = true; const tr = document.createElement('tr'); 
+            
+            // Logic gắn class màu tuần cho từng dòng (Row)
+            let cellIndex = emptySlots + d - 1;
+            let weekNum = Math.floor(cellIndex / 7) + 1;
+            tr.className = `week-${weekNum} ${dStr === selectedEditDate ? 'selected' : ''}`;
+            
             tr.innerHTML = `<td class="${isSunday(dStr) ? 't-sunday' : ''}">${dStr.slice(-2)}/${dStr.slice(5,7)}</td><td>${rec.start_time || '-'}</td><td>${rec.end_time || '-'}</td><td style="color:var(--ios-red); font-weight:700;">${rec.overtime}h</td>`;
             tr.onclick = () => showEdit(dStr, rec); tbody.appendChild(tr);
         }
@@ -207,25 +237,27 @@ function showEdit(date, rec) {
     panel.style.display = 'block'; panel.scrollIntoView({ behavior: 'smooth' });
     document.getElementById('editDateLabel').innerText = "Ngày: " + date;
     
-    const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT'), noteI = document.getElementById('editNote');
+    const inI = document.getElementById('editIn'), outI = document.getElementById('editOut'), lI = document.getElementById('lunchCheckEdit'), otI = document.getElementById('editOT'), noteI = document.getElementById('editNote'), mealI = document.getElementById('editMealCount');
     document.getElementById('lunchLabelEdit').innerText = isSunday(date) ? "Nghỉ trưa 1h (Trừ OT)" : "Tăng ca trưa (+1h)";
     
     inI.value = rec?.start_time || "07:45"; outI.value = rec?.end_time || "17:00"; otI.value = rec?.overtime || 0; noteI.value = rec?.note || ""; 
+    mealI.value = rec?.meal_count || 0;
     
     // --- BẢN VÁ: THUẬT TOÁN DELTA TRACKING ---
-    // Lưu lại mốc tính toán cơ bản ban đầu khi vừa mở modal
     let lastBaseOT = calculateOT(inI.value, outI.value, lI.checked, date);
 
     const autoCalc = () => {
-        // Tính ra mức OT cơ bản mới sau khi có tương tác (gạt nút, đổi giờ gốc)
         let newBaseOT = calculateOT(inI.value, outI.value, lI.checked, date);
-        // Tìm ra độ chênh lệch (delta) so với mốc cũ
         let delta = newBaseOT - lastBaseOT;
-        // Cộng dồn độ chênh lệch vào tổng giờ OT hiện tại (bảo toàn được giờ nhập tay/ca lẻ)
         let currentTotalOT = parseFloat(otI.value) || 0;
         otI.value = (currentTotalOT + delta).toFixed(2);
         
-        // Cập nhật lại mốc để chuẩn bị cho lần tương tác tiếp theo
+        // Tự động gợi ý số phần cơm khi đổi giờ Ra trực tiếp trong lịch
+        let currentOut = outI.value;
+        if (currentOut >= "20:30") mealI.value = 2;
+        else if (currentOut >= "18:30") mealI.value = 1;
+        else mealI.value = 0;
+
         lastBaseOT = newBaseOT;
     };
     
@@ -251,7 +283,15 @@ function showEdit(date, rec) {
     };
 
     document.getElementById('saveBtn').onclick = async () => {
-        const { error } = await supabaseClient.from('work_logs').upsert({ work_date: date, username: currentUser, start_time: inI.value, end_time: outI.value, overtime: parseFloat(otI.value), note: noteI.value });
+        const { error } = await supabaseClient.from('work_logs').upsert({ 
+            work_date: date, 
+            username: currentUser, 
+            start_time: inI.value, 
+            end_time: outI.value, 
+            overtime: parseFloat(otI.value), 
+            note: noteI.value,
+            meal_count: parseInt(mealI.value) || 0 
+        });
         if (error) return alert("Lỗi: " + error.message);
         showToast("Đã lưu!"); await loadData(); if(isTableView) renderTableView(); else renderCalendar();
         panel.style.display = 'none'; 
@@ -277,6 +317,78 @@ function updateSalaryDisplay() {
     const money = ((base / 26) / 8) * 2 * totalOT; 
     document.getElementById('salaryOTHours').innerText = totalOT.toFixed(1) + 'h';
     document.getElementById('otMoneyDetail').innerText = new Intl.NumberFormat('vi-VN').format(Math.round(money)) + "đ";
+}
+
+// --- QUẢN LÝ TÍNH TIỀN CƠM RIÊNG BIỆT (THEO TUẦN) ---
+function openMealModal() {
+    mealViewDate = new Date();
+    document.getElementById('mealPriceInput').value = localStorage.getItem('meal_price_' + currentUser) || "30000";
+    updateMealDisplay();
+    document.getElementById('mealModal').style.display = 'flex';
+}
+
+function changeMealMonth(dir) {
+    mealViewDate.setMonth(mealViewDate.getMonth() + dir);
+    updateMealDisplay();
+}
+
+function updateMealDisplay() {
+    const y = mealViewDate.getFullYear(), m = mealViewDate.getMonth();
+    document.getElementById('mealMonthYear').innerText = `Tháng ${m + 1}/${y}`;
+    
+    const price = parseFloat(document.getElementById('mealPriceInput').value) || 0;
+    localStorage.setItem('meal_price_' + currentUser, price);
+
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const tbody = document.getElementById('mealTableBody');
+    tbody.innerHTML = '';
+
+    let weeks = [];
+    let currentWeek = { start: 1, end: 1, meals: 0 };
+    let totalMealsMonth = 0;
+
+    // Phân rã mảng ngày trong tháng thành các block tuần từ Thứ 2 -> Chủ Nhật
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+        const rec = workData.find(r => r.work_date === dStr);
+        const dayMeals = rec ? (parseInt(rec.meal_count) || 0) : 0;
+        
+        currentWeek.meals += dayMeals;
+        totalMealsMonth += dayMeals;
+        currentWeek.end = d;
+
+        const dayOfWeek = new Date(y, m, d).getDay(); // 0 là Chủ Nhật, 1 là Thứ 2
+
+        // Nếu là Chủ Nhật hoặc ngày cuối cùng của tháng -> Đóng block tuần
+        if (dayOfWeek === 0 || d === daysInMonth) {
+            weeks.push({ ...currentWeek });
+            if (d < daysInMonth) {
+                currentWeek = { start: d + 1, end: d + 1, meals: 0 };
+            }
+        }
+    }
+
+    // Render danh sách tuần lên bảng Excel-UI
+    if (weeks.length === 0 || totalMealsMonth === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="color:#8E8E93; padding: 15px;">Không có dữ liệu cơm</td></tr>`;
+    } else {
+        weeks.forEach((wk, index) => {
+            const tr = document.createElement('tr');
+            const weekLabel = `Tuần ${index + 1} (${wk.start.toString().padStart(2,'0')}/${(m+1).toString().padStart(2,'0')} - ${wk.end.toString().padStart(2,'0')}/${(m+1).toString().padStart(2,'0')})`;
+            const weekMoney = wk.meals * price;
+            
+            tr.innerHTML = `
+                <td style="text-align:left; padding-left:10px; font-weight:600;">${weekLabel}</td>
+                <td style="color:var(--ios-orange); font-weight:700;">${wk.meals} phần</td>
+                <td style="color:var(--ios-green); font-weight:700;">${new Intl.NumberFormat('vi-VN').format(weekMoney)}đ</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Cập nhật thẻ tổng kết tháng
+    document.getElementById('totalMealCountDisplay').innerText = totalMealsMonth + " phần";
+    document.getElementById('totalMealMoneyDisplay').innerText = new Intl.NumberFormat('vi-VN').format(totalMealsMonth * price) + "đ";
 }
 
 function changeMonth(dir) { currentViewDate.setMonth(currentViewDate.getMonth() + dir); selectedEditDate = null; document.getElementById('editPanel').style.display = 'none'; if(isTableView) renderTableView(); else renderCalendar(); }
