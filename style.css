@@ -4569,3 +4569,137 @@ html[data-theme="dark"] .history-item.week-6 {
     transition-duration:.01ms !important;
   }
 }
+/* =========================================================
+   BẢN VÁ THẺ TỔNG OT THÁNG
+   Dán vào cuối file style.css
+========================================================= */
+
+.home-secondary-section {
+    min-height: 68px;
+    padding: 11px 13px;
+
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    overflow: hidden;
+}
+
+/* Nhãn Tổng OT tháng này */
+.home-secondary-section::before {
+    position: static;
+
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 44px;
+
+    padding: 0 12px 0 46px;
+
+    display: flex;
+    align-items: center;
+
+    content: "TỔNG OT THÁNG NÀY";
+
+    border-radius: 14px;
+
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233478f6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3v18h18'/%3E%3Cpath d='m7 16 4-5 4 3 5-7'/%3E%3C/svg%3E")
+        13px center / 21px 21px no-repeat,
+        var(--blue-soft);
+
+    color: var(--sub);
+
+    font-size: calc(9px * var(--scale));
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.7px;
+
+    white-space: nowrap;
+}
+
+/* Tắt icon cũ đang bị lệch ra ngoài */
+.home-secondary-section::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Chỉ hiển thị tổng OT tháng */
+.home-secondary-section > span {
+    display: none !important;
+}
+
+.home-secondary-section #monthlyOT {
+    flex: 0 0 auto;
+
+    display: block !important;
+
+    max-width: 44%;
+
+    overflow: hidden;
+
+    color: var(--blue);
+
+    font-size: clamp(
+        24px,
+        calc(7.5vw * var(--scale)),
+        32px
+    );
+
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.9px;
+
+    text-align: right;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    font-variant-numeric: tabular-nums;
+}
+
+/* Màn hình iPhone nhỏ */
+@media (max-width: 390px) {
+    .home-secondary-section {
+        min-height: 64px;
+        padding: 10px 11px;
+        gap: 9px;
+    }
+
+    .home-secondary-section::before {
+        min-height: 42px;
+
+        padding-right: 9px;
+        padding-left: 42px;
+
+        background-position: 11px center;
+        background-size: 19px 19px;
+
+        font-size: calc(8px * var(--scale));
+        letter-spacing: 0.45px;
+    }
+
+    .home-secondary-section #monthlyOT {
+        max-width: 42%;
+
+        font-size: clamp(
+            22px,
+            calc(7vw * var(--scale)),
+            28px
+        );
+    }
+}
+
+/* Màn hình rất nhỏ hoặc đang dùng font lớn */
+@media (max-width: 340px) {
+    .home-secondary-section::before {
+        content: "OT THÁNG";
+
+        padding-left: 40px;
+    }
+
+    .home-secondary-section #monthlyOT {
+        max-width: 48%;
+        font-size: 23px;
+    }
+}
