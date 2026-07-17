@@ -2,220 +2,1579 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    >
+
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>OT Pro - Manager</title>
-    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#111827">
+
+    <title>OT Pro</title>
+
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/svg+xml" href="./image.PNG">
+    <link rel="icon" type="image/png" href="./image.PNG">
     <link rel="apple-touch-icon" href="./image.PNG">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div id="loading"><i class="fas fa-circle-notch fa-spin fa-2x" style="color: var(--ios-red)"></i></div>
-
-<div id="authScreen">
-    <div class="auth-card">
-   
-     <i class="fas fa-user-clock fa-3x" style="color: var(--ios-red); margin-bottom: 15px;"></i>
-        <h2 id="authTitle">OT Pro Login</h2>
-        <input type="text" id="username" class="auth-input" placeholder="Tên đăng nhập">
-        <input type="password" id="password" class="auth-input" placeholder="Mật khẩu">
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="btn btn-start" onclick="handleAuth('login')">Đăng nhập</button>
-            <button class="btn btn-secondary" style="margin-top:0" onclick="handleAuth('register')">Đăng ký</button>
-        </div>
-    </div>
-</div>
-
-<div class="header">
-    <h1 id="mainTitle">QUẢN LÝ TĂNG CA</h1>
-    <i class="fas fa-sign-out-alt logout-btn" onclick="logout()"></i>
-</div>
-
-<div class="time-card">
-    <div id="currentDate" style="color: #8E8E93; font-size: 14px;">--/--/----</div>
-    <div class="clock" id="currentTime">00:00:00</div>
-    <div id="workStatus" style="font-size: 14px; font-weight: 600; color: #8E8E93;">Đang tải...</div>
-</div>
-
-<div class="card">
-    <div class="lunch-box">
-        <div id="lunchLabelMain" style="font-weight: 700; color: var(--ios-orange); font-size: 14px;"><i class="fas fa-utensils"></i> Tăng ca trưa (+1h)</div>
-        <label class="switch"><input type="checkbox" id="lunchCheckMain"><span class="slider"></span></label>
-    </div>
-
-    <div style="display:flex; gap:12px;">
-        <button class="btn btn-start" id="startBtn">Vào ca</button>
-        <button class="btn btn-end" id="endBtn">Tan ca</button>
-    </div>
-    
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 15px;">
-        <div id="boxMonthlyOT" style="background:var(--input-bg); padding:15px; border-radius:20px; text-align:center;">
-            <p style="font-size:10px; color:#888;">OT THÁNG NÀY</p>
-            <b id="monthlyOT" style="font-size:22px;">0h</b>
-        </div>
-        <div id="boxTodayOT" style="background:var(--input-bg); padding:15px; border-radius:20px; text-align:center;">
-            <p style="font-size:10px; color:#888;">OT HÔM NAY</p>
-            <b id="todayOTDisp" style="font-size:22px; color:var(--ios-red);">0h</b>
+    <!-- LOADING -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-box">
+            <div class="loading-spinner"></div>
+            <span>Đang xử lý...</span>
         </div>
     </div>
 
-    <button class="btn btn-salary" onclick="openSalaryModal()"><i class="fas fa-wallet"></i> Tính lương theo tháng</button>
-    <button class="btn" onclick="openMealModal()" style="background: var(--ios-orange); color: white; width: 100%; margin-top: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px; border-radius: 14px; border: none; cursor: pointer;"><i class="fas fa-utensils"></i> Tính tiền cơm theo tuần</button>
-    <button class="btn btn-secondary" onclick="openCalendar()"><i class="fas fa-calendar-alt"></i> Lịch sử & Chỉnh sửa</button>
-</div>
 
-<div class="footer-info">
-    <span id="displayUser">User: ...</span> | <span id="appVersionDisplay">Phiên bản: ...</span>
-</div>
+    <!-- TOAST -->
+    <div id="toast" class="toast">
+        <i data-lucide="circle-check"></i>
+        <span id="toastMessage"></span>
+    </div>
 
-<div class="modal" id="calendarModal">
-    <div class="modal-content" style="padding: 20px 15px;">
-        <div class="cal-nav">
-            <i class="fas fa-chevron-left" onclick="changeMonth(-1)" style="padding:10px; cursor:pointer;"></i>
-            <h3 id="calMonthYear" style="font-weight:800;">Tháng --/----</h3>
-            <i class="fas fa-chevron-right" onclick="changeMonth(1)" style="padding:10px; cursor:pointer;"></i>
-        </div>
-        
-        <div class="view-toggle">
-            <button id="btnCalView" class="active" onclick="switchView('cal')">Lịch</button>
-            <button id="btnTableView" onclick="switchView('table')">Danh sách</button>
+
+    <!-- AUTH -->
+    <section id="authScreen" class="auth-screen">
+
+        <div class="auth-background">
+            <span class="auth-orb auth-orb-one"></span>
+            <span class="auth-orb auth-orb-two"></span>
+            <span class="auth-orb auth-orb-three"></span>
         </div>
 
-        <div id="calendarContainer">
-            <div class="cal-grid"><div class="cal-head">T2</div><div class="cal-head">T3</div><div class="cal-head">T4</div><div class="cal-head">T5</div><div class="cal-head">T6</div><div class="cal-head">T7</div><div class="cal-head" style="color:var(--ios-red)">CN</div></div>
-       
-      <div class="cal-grid" id="calendarDays" style="margin-top:10px;"></div>
-        </div>
+        <div class="auth-card">
 
-        <div id="tableContainer" class="table-container">
-            <table class="excel-table">
-                <thead><tr><th>Ngày</th><th>Vào</th><th>Ra</th><th>OT</th></tr></thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-
-        
- <div id="editPanel" style="display:none; border-top:1px solid var(--border-color); margin-top:20px; padding-top:15px;">
-            <p id="editDateLabel" style="text-align:center; font-weight:800; color:var(--ios-blue); margin-bottom:10px;"></p>
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                <div>
-                    <label style="font-size:10px; color:#888;">Giờ Vào (Gốc)</label>
-                    <input type="time" id="editIn" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main);"> 
-                </div>
-                <div>
-                    <label style="font-size:10px; color:#888;">Giờ Ra (Gốc)</label>
-                    <input type="time" id="editOut" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main);">
-                </div>
+            <div class="auth-logo">
+                <i data-lucide="timer-reset"></i>
             </div>
 
-            <div style="background: rgba(0, 122, 255, 0.05); border: 1px solid rgba(0, 122, 255, 0.2); padding: 15px; border-radius: 16px; margin-bottom: 15px;">
-                <p style="font-size: 11px; font-weight: 800; color: var(--ios-blue); margin-bottom: 10px;"><i class="fas fa-plus-circle"></i> TÍNH NHANH CA LÀM THÊM (VÍ DỤ: ĐÓN SẾP)</p>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div>
-                        <label style="font-size:10px; color:#888; font-weight: 600;">Bắt đầu lúc</label>
-                        <input type="time" id="extraIn" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-main);">
+            <div class="auth-heading">
+                <span class="eyebrow">PERSONAL OT TRACKER</span>
+                <h1 id="authTitle">OT Pro</h1>
+                <p>Ghi chép tăng ca nhanh chóng và chính xác.</p>
+            </div>
+
+            <div class="auth-form">
+
+                <label class="form-field">
+                    <span>Tên đăng nhập</span>
+
+                    <div class="input-shell">
+                        <i data-lucide="user-round"></i>
+
+                        <input
+                            type="text"
+                            id="username"
+                            placeholder="Nhập tên đăng nhập"
+                            autocomplete="username"
+                        >
                     </div>
-                    <div>
-                        <label style="font-size:10px; color:#888; font-weight: 600;">Kết thúc lúc</label>
-                        <input type="time" id="extraOut" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-main);">
+                </label>
+
+                <label class="form-field">
+                    <span>Mật khẩu</span>
+
+                    <div class="input-shell">
+                        <i data-lucide="lock-keyhole"></i>
+
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Nhập mật khẩu"
+                            autocomplete="current-password"
+                        >
+
+                        <button
+                            type="button"
+                            class="icon-button password-toggle"
+                            id="passwordToggle"
+                            aria-label="Hiện mật khẩu"
+                        >
+                            <i data-lucide="eye"></i>
+                        </button>
                     </div>
-                </div>
-                <button class="btn btn-secondary" id="btnAddExtra" style="background: var(--card-bg); font-size: 14px; padding: 12px; border: 1px solid var(--ios-blue); color: var(--ios-blue); width: 100%;">
-                    <i class="fas fa-calculator"></i> Tính & Cộng vào tổng OT
+                </label>
+
+                <button
+                    type="button"
+                    class="primary-button auth-submit"
+                    id="loginButton"
+                >
+                    <i data-lucide="log-in"></i>
+                    <span>Đăng nhập</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="text-button"
+                    id="registerButton"
+                >
+                    Chưa có tài khoản? Đăng ký
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- APP -->
+    <div id="appShell" class="app-shell hidden">
+
+        <header class="top-bar">
+
+            <div>
+                <p class="top-greeting">Xin chào,</p>
+                <h1 id="greetingName">Người dùng</h1>
+            </div>
+
+            <div class="top-actions">
+                <button
+                    type="button"
+                    class="menu-button"
+                    id="menuButton"
+                    aria-label="Mở menu"
+                    aria-controls="appMenu"
+                    aria-expanded="false"
+                >
+                    <i data-lucide="menu"></i>
                 </button>
             </div>
 
-            <div class="lunch-box" style="border-style: solid;">
-                <div id="lunchLabelEdit" style="font-size:14px; font-weight:700;">Tăng ca trưa (+1h)</div>
-                <label class="switch"><input type="checkbox" id="lunchCheckEdit"><span class="slider"></span></label>
-            </div>
+        </header>
 
-            <div style="background: rgba(255, 149, 0, 0.05); border: 1px solid rgba(255, 149, 0, 0.2); padding: 15px; border-radius: 16px; margin-bottom: 15px;">
-                <p style="font-size: 11px; font-weight: 800; color: var(--ios-orange); margin-bottom: 10px;"><i class="fas fa-utensils"></i> PHỤ CẤP CƠM TĂNG CA</p>
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                    <label style="font-size:13px; font-weight:600; color:var(--text-main);">Số phần cơm của ngày:</label>
-                    <input type="number" id="editMealCount" min="0" step="1" style="width:80px; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); text-align:center; font-weight:800; font-size:16px;">
+
+        <main class="main-content">
+
+            <!-- HERO CLOCK -->
+            <section class="hero-card">
+
+                <div class="hero-shine"></div>
+
+                <div class="hero-top">
+
+                    <div>
+                        <span class="hero-label">THỜI GIAN HIỆN TẠI</span>
+
+                        <p id="currentDate" class="hero-date">
+                            Đang tải ngày...
+                        </p>
+                    </div>
+
+                    <div class="live-indicator">
+                        <span></span>
+                        LIVE
+                    </div>
+
                 </div>
+
+                <div id="currentTime" class="hero-clock">
+                    00:00:00
+                </div>
+
+                <div class="hero-status">
+                    <i data-lucide="activity"></i>
+                    <span id="overallStatus">Chưa có ca đang chạy</span>
+                </div>
+
+            </section>
+
+
+            <!-- MAIN SHIFT -->
+            <section class="shift-card main-shift-card" id="mainShiftCard">
+
+                <div class="shift-card-glow"></div>
+
+                <div class="shift-heading">
+
+                    <div class="shift-icon main-shift-icon">
+                        <i data-lucide="briefcase-business"></i>
+                    </div>
+
+                    <div class="shift-heading-text">
+                        <span>CA CHÍNH</span>
+                        <h2 id="mainShiftSchedule">07:45 – 17:00</h2>
+                    </div>
+
+                    <span id="mainShiftBadge" class="status-badge neutral">
+                        Chưa bắt đầu
+                    </span>
+
+                </div>
+
+                <div class="shift-information">
+
+                    <div>
+                        <span>Trạng thái</span>
+                        <strong id="mainShiftInfo">Chưa ghi nhận ca hôm nay</strong>
+                    </div>
+
+                    <div class="shift-timer">
+                        <span>Thời gian ca</span>
+                        <strong id="mainElapsed">00:00:00</strong>
+                    </div>
+
+                </div>
+
+                <div class="lunch-toggle-row">
+
+                    <div>
+                        <div class="lunch-title">
+                            <i data-lucide="utensils"></i>
+                            <span id="lunchLabelMain">Tăng ca trưa +1 giờ</span>
+                        </div>
+
+                        <p>Áp dụng khi tính OT của ca chính.</p>
+                    </div>
+
+                    <label class="modern-switch">
+                        <input type="checkbox" id="lunchCheckMain">
+                        <span></span>
+                    </label>
+
+                </div>
+
+                <div class="shift-actions">
+
+                    <button
+                        type="button"
+                        class="shift-button start-button"
+                        id="mainStartBtn"
+                    >
+                        <i data-lucide="play"></i>
+
+                        <span>
+                            <small>CA CHÍNH</small>
+                            Vào ca
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="shift-button end-button"
+                        id="mainEndBtn"
+                    >
+                        <i data-lucide="square"></i>
+
+                        <span>
+                            <small>CA CHÍNH</small>
+                            Tan ca
+                        </span>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- EXTRA SHIFT -->
+            <section class="shift-card extra-shift-card" id="extraShiftCard">
+
+                <div class="shift-card-glow"></div>
+
+                <div class="shift-heading">
+
+                    <div class="shift-icon extra-shift-icon">
+                        <i data-lucide="sparkles"></i>
+                    </div>
+
+                    <div class="shift-heading-text">
+                        <span>CA THÊM</span>
+                        <h2>Ca phát sinh</h2>
+                    </div>
+
+                    <span id="extraShiftBadge" class="status-badge neutral">
+                        Sẵn sàng
+                    </span>
+
+                </div>
+
+                <div class="shift-information">
+
+                    <div>
+                        <span>Trạng thái</span>
+                        <strong id="extraShiftInfo">Chưa có ca thêm đang chạy</strong>
+                    </div>
+
+                    <div class="shift-timer">
+                        <span>Thời gian ca</span>
+                        <strong id="extraElapsed">00:00:00</strong>
+                    </div>
+
+                </div>
+
+                <div class="shift-actions">
+
+                    <button
+                        type="button"
+                        class="shift-button extra-start-button"
+                        id="extraStartBtn"
+                    >
+                        <i data-lucide="play"></i>
+
+                        <span>
+                            <small>CA THÊM</small>
+                            Vào ca
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="shift-button extra-end-button"
+                        id="extraEndBtn"
+                    >
+                        <i data-lucide="square"></i>
+
+                        <span>
+                            <small>CA THÊM</small>
+                            Tan ca
+                        </span>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- TODAY TOTAL -->
+            <section class="today-total-card" aria-label="Tổng giờ tăng ca hôm nay">
+
+                <div class="today-total-leading">
+
+                    <div class="today-total-icon">
+                        <i data-lucide="chart-no-axes-combined"></i>
+                    </div>
+
+                    <div class="today-total-copy">
+                        <span>TỔNG GIỜ HÔM NAY</span>
+                        <small>Ca chính và tất cả ca thêm</small>
+                    </div>
+
+                </div>
+
+                <strong id="todayOT" class="today-total-value">0h</strong>
+
+            </section>
+
+
+            <!-- MONTH TOTAL / COMPATIBILITY METRICS -->
+            <section class="home-secondary-section" aria-label="Tổng OT tháng hiện tại">
+                <span id="monthlyOT">0h</span>
+                <span id="todayMainOT">0h</span>
+                <span id="todayExtraOT">0h</span>
+                <span id="todayExtraCount">0 ca đã hoàn tất</span>
+            </section>
+
+        </main>
+
+
+        <footer class="app-footer">
+            <span id="displayUser">User: ...</span>
+            <span class="footer-dot"></span>
+            <span id="appVersionDisplay">Phiên bản: ...</span>
+        </footer>
+
+    </div>
+
+
+    <!-- APP MENU -->
+    <div id="appMenu" class="app-menu" aria-hidden="true">
+
+        <button
+            type="button"
+            class="app-menu-backdrop"
+            id="menuBackdrop"
+            aria-label="Đóng menu"
+        ></button>
+
+        <section
+            class="app-menu-panel compact-menu-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="appMenuTitle"
+        >
+
+            <div class="app-menu-handle"></div>
+
+            <header class="app-menu-header">
+
+                <div>
+                    <span>OT PRO</span>
+                    <h2 id="appMenuTitle">Menu</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="app-menu-close"
+                    id="menuCloseButton"
+                    aria-label="Đóng menu"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+
+            <div class="menu-user-card compact-user-card">
+
+                <div class="menu-user-avatar">
+                    <i data-lucide="user-round"></i>
+                </div>
+
+                <div class="menu-user-copy">
+                    <small>Tài khoản đang sử dụng</small>
+                    <strong id="menuUserName">Người dùng</strong>
+                </div>
+
             </div>
 
-            <div style="text-align:center; margin-bottom:5px;"><small style="color:#888; font-size:10px;">TỔNG GIỜ OT CỦA NGÀY</small></div>
-            <input type="number" id="editOT" step="0.1" inputmode="decimal" pattern="[0-9]*" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--ios-red); font-size:24px; font-weight:800; text-align:center; margin-bottom: 15px;">
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size:10px; font-weight:700; color:#888;">LÝ DO TĂNG CA (GHI CHÚ)</label>
-                <textarea id="editNote" rows="2" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-main); font-size: 13px;" placeholder="Ví dụ: Đón sếp 19h-23h..."></textarea>
+
+            <span class="menu-section-label">CHỨC NĂNG</span>
+
+
+            <div class="menu-grid menu-list">
+
+                <button
+                    type="button"
+                    class="menu-item menu-item-wide"
+                    id="historyButton"
+                >
+                    <span class="menu-item-icon">
+                        <i data-lucide="calendar-clock"></i>
+                    </span>
+
+                    <span class="menu-item-copy">
+                        <strong>Lịch sử chấm công</strong>
+                        <small>Xem lịch, danh sách và chỉnh sửa dữ liệu</small>
+                    </span>
+
+                    <i class="menu-item-arrow" data-lucide="chevron-right"></i>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="menu-item menu-item-wide"
+                    id="salaryButton"
+                >
+                    <span class="menu-item-icon">
+                        <i data-lucide="chart-column-big"></i>
+                    </span>
+
+                    <span class="menu-item-copy">
+                        <strong>Báo cáo tháng</strong>
+                        <small>Tổng OT, tiền lương và tiền ăn</small>
+                    </span>
+
+                    <i class="menu-item-arrow" data-lucide="chevron-right"></i>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="menu-item menu-item-wide"
+                    id="settingsButton"
+                >
+                    <span class="menu-item-icon">
+                        <i data-lucide="settings-2"></i>
+                    </span>
+
+                    <span class="menu-item-copy">
+                        <strong>Cài đặt</strong>
+                        <small>Giao diện, ca làm, lương và tài khoản</small>
+                    </span>
+
+                    <i class="menu-item-arrow" data-lucide="chevron-right"></i>
+                </button>
+
             </div>
-            
-            <button class="btn btn-start" style="width:100%;" id="saveBtn">Lưu thay đổi</button>
-            <button class="btn btn-secondary" style="background:rgba(255, 59, 48, 0.1); color:var(--ios-red); border:none;" id="deleteBtn">Xóa dữ liệu ngày</button>
-        </div>
-        <button class="btn btn-secondary" onclick="closeModal('calendarModal')" style="margin-top:10px;">Đóng</button>
+
+
+            <div class="menu-divider"></div>
+
+
+            <div class="compact-menu-footer">
+
+                <small id="menuVersionDisplay">Phiên bản: ...</small>
+
+                <button
+                    type="button"
+                    class="menu-logout-button compact-logout-button"
+                    id="logoutButton"
+                >
+                    <i data-lucide="log-out"></i>
+                    Đăng xuất
+                </button>
+
+            </div>
+
+        </section>
+
     </div>
-</div>
 
-<div class="modal" id="salaryModal">
-    <div class="modal-content">
-        <div class="cal-nav">
-            <i class="fas fa-chevron-left" onclick="changeSalaryMonth(-1)" style="padding:10px; cursor:pointer;"></i>
-            <h3 id="salaryMonthYear" style="font-weight:800;">Tháng --/----</h3>
-            <i class="fas fa-chevron-right" onclick="changeSalaryMonth(1)" style="padding:10px; cursor:pointer;"></i>
-        </div>
-        <label style="font-size:10px; font-weight:700; color:#888;">LƯƠNG CƠ BẢN</label>
-        <input type="number" id="baseSalaryInput" inputmode="numeric" pattern="[0-9]*" oninput="updateSalaryDisplay()" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); font-weight:800; text-align:center; color:var(--text-main);">
-        <div style="background:var(--input-bg); padding:20px; border-radius:24px; margin-top:20px; text-align:center; overflow:hidden;">
-            <p style="color:#888; font-size:13px;">Tổng OT tháng này: <b id="salaryOTHours" style="color:var(--ios-blue);">0h</b></p>
-            <p style="color:#888; font-size:13px; margin-bottom:10px;">Tiền OT (x2.0):</p>
-            <b id="otMoneyDetail" style="font-size:32px; color:var(--ios-red); display:block; overflow-x:auto; white-space:nowrap; padding-bottom:5px;">0đ</b>
-        </div>
-        <button class="btn btn-salary" onclick="closeModal('salaryModal')" style="margin-top:20px;">Hoàn tất</button>
+
+    <!-- HISTORY MODAL -->
+    <div id="historyModal" class="modal">
+
+        <div class="modal-backdrop" data-close-modal="historyModal"></div>
+
+        <section class="bottom-sheet large-sheet">
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">LỊCH SỬ</span>
+                    <h2>Quản lý tăng ca</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="historyModal"
+                    aria-label="Đóng lịch sử"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+
+            <div class="month-navigation">
+
+                <button type="button" id="historyPrevMonth" aria-label="Tháng trước">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+
+                <strong id="historyMonthLabel">Tháng --/----</strong>
+
+                <button type="button" id="historyNextMonth" aria-label="Tháng sau">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+
+            </div>
+
+
+            <div class="segmented-control">
+
+                <button type="button" class="active" data-history-view="calendar">
+                    <i data-lucide="calendar-3"></i>
+                    Lịch
+                </button>
+
+                <button type="button" data-history-view="list">
+                    <i data-lucide="list"></i>
+                    Danh sách
+                </button>
+
+            </div>
+
+
+            <div id="calendarHistoryPane">
+
+                <div class="calendar-weekdays">
+                    <span>T2</span>
+                    <span>T3</span>
+                    <span>T4</span>
+                    <span>T5</span>
+                    <span>T6</span>
+                    <span>T7</span>
+                    <span class="sunday-text">CN</span>
+                </div>
+
+                <div id="calendarDays" class="calendar-grid"></div>
+
+                <div class="calendar-legend">
+                    <span><i class="legend-dot main-dot"></i>Ca chính</span>
+                    <span><i class="legend-dot extra-dot"></i>Ca thêm</span>
+                    <span><i class="legend-dot active-dot"></i>Đang chạy</span>
+                </div>
+
+            </div>
+
+
+            <div id="listHistoryPane" class="hidden">
+                <div id="historyList" class="history-list"></div>
+            </div>
+
+        </section>
+
     </div>
-</div>
 
-<div class="modal" id="mealModal">
-    <div class="modal-content">
-        <div class="cal-nav">
-            <i class="fas fa-chevron-left" onclick="changeMealMonth(-1)" style="padding:10px; cursor:pointer;"></i>
-            <h3 id="mealMonthYear" style="font-weight:800;">Tháng --/----</h3>
-            <i class="fas fa-chevron-right" onclick="changeMealMonth(1)" style="padding:10px; cursor:pointer;"></i>
-        </div>
-        <label style="font-size:10px; font-weight:700; color:#888;">ĐƠN GIÁ 1 PHẦN CƠM (ĐỒNG)</label>
-        <input type="number" id="mealPriceInput" inputmode="numeric" pattern="[0-9]*" oninput="updateMealDisplay()" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-color); background:var(--input-bg); font-weight:800; text-align:center; color:var(--text-main);" placeholder="Ví dụ: 30000">
-        
-        <div style="margin-top:20px; max-height:220px; overflow-y:auto; border-radius:14px; border:1px solid var(--border-color);">
-            <table class="excel-table" style="width:100%;">
-                <thead>
-                    <tr>
-                        <th>Tuần</th>
-                        <th>Số phần</th>
-                        <th>Thành tiền</th>
-                    </tr>
-                </thead>
-                <tbody id="mealTableBody">
-                    </tbody>
-            </table>
-        </div>
 
-        <div style="background:var(--input-bg); padding:15px; border-radius:24px; margin-top:15px; text-align:center;">
-            <p style="color:#888; font-size:13px;">Tổng số phần tháng này: <b id="totalMealCountDisplay" style="color:var(--ios-orange);">0 phần</b></p>
-            <p style="color:#888; font-size:13px; margin-bottom:5px;">Tổng tiền cơm cả tháng:</p>
-            <b id="totalMealMoneyDisplay" style="font-size:28px; color:var(--ios-green); display:block; overflow-x:auto; white-space:nowrap;">0đ</b>
-        </div>
-        <button class="btn" style="background:var(--ios-orange); color:white; width:100%; margin-top:20px; border-radius:14px; border:none; padding:16px; font-weight:600; cursor:pointer;" onclick="closeModal('mealModal')">Hoàn tất</button>
+    <!-- DAY DETAIL MODAL -->
+    <div id="dayDetailModal" class="modal elevated-modal">
+
+        <div class="modal-backdrop" data-close-modal="dayDetailModal"></div>
+
+        <section class="bottom-sheet detail-sheet">
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">CHI TIẾT NGÀY</span>
+                    <h2 id="detailDateTitle">--/--/----</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="dayDetailModal"
+                    aria-label="Đóng chi tiết ngày"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+
+            <section class="detail-section">
+
+                <div class="detail-section-heading">
+
+                    <div class="detail-title-icon main-detail-icon">
+                        <i data-lucide="briefcase-business"></i>
+                    </div>
+
+                    <div>
+                        <span>CA CHÍNH</span>
+                        <h3>Thời gian làm việc chính</h3>
+                    </div>
+
+                    <label class="modern-switch small-switch">
+                        <input type="checkbox" id="detailHasMainShift">
+                        <span></span>
+                    </label>
+
+                </div>
+
+
+                <div id="detailMainFields">
+
+                    <div class="form-grid two-columns">
+
+                        <label class="form-field">
+                            <span>Giờ vào</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="log-in"></i>
+                                <input type="time" id="detailStartTime">
+                            </div>
+                        </label>
+
+                        <label class="form-field">
+                            <span>Giờ tan ca</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="log-out"></i>
+                                <input type="time" id="detailEndTime">
+                            </div>
+                        </label>
+
+                    </div>
+
+
+                    <div class="detail-option-row">
+
+                        <div>
+                            <strong id="detailLunchLabel">Tăng ca trưa +1 giờ</strong>
+                            <small>Áp dụng cho ca chính</small>
+                        </div>
+
+                        <label class="modern-switch">
+                            <input type="checkbox" id="detailLunchChecked">
+                            <span></span>
+                        </label>
+
+                    </div>
+
+
+                    <div class="form-grid two-columns">
+
+                        <label class="form-field">
+                            <span>OT ca chính</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="timer"></i>
+
+                                <input
+                                    type="number"
+                                    id="detailMainOT"
+                                    min="0"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                >
+
+                                <small>giờ</small>
+                            </div>
+                        </label>
+
+                        <label class="form-field">
+                            <span>Số phần cơm</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="utensils"></i>
+
+                                <input
+                                    type="number"
+                                    id="detailMealCount"
+                                    min="0"
+                                    step="1"
+                                    inputmode="numeric"
+                                >
+
+                                <small>phần</small>
+                            </div>
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section class="detail-section">
+
+                <div class="detail-section-heading">
+
+                    <div class="detail-title-icon extra-detail-icon">
+                        <i data-lucide="sparkles"></i>
+                    </div>
+
+                    <div>
+                        <span>CA THÊM</span>
+                        <h3>Các ca phát sinh trong ngày</h3>
+                    </div>
+
+                    <strong id="detailExtraTotal" class="detail-total">0h</strong>
+
+                </div>
+
+
+                <div id="detailExtraList" class="detail-extra-list"></div>
+
+
+                <div class="extra-editor">
+
+                    <div class="extra-editor-heading">
+
+                        <div>
+                            <span id="extraEditorEyebrow">THÊM THỦ CÔNG</span>
+                            <h4 id="extraEditorTitle">Ghi ca thêm</h4>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="mini-text-button hidden"
+                            id="cancelExtraEditButton"
+                        >
+                            Hủy sửa
+                        </button>
+
+                    </div>
+
+
+                    <div class="form-grid two-columns">
+
+                        <label class="form-field">
+                            <span>Bắt đầu</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="play"></i>
+                                <input type="time" id="extraEditorStart">
+                            </div>
+                        </label>
+
+                        <label class="form-field">
+                            <span>Kết thúc</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="square"></i>
+                                <input type="time" id="extraEditorEnd">
+                            </div>
+                        </label>
+
+                    </div>
+
+
+                    <label class="form-field">
+                        <span>Ghi chú ca thêm</span>
+
+                        <div class="input-shell">
+                            <i data-lucide="notebook-pen"></i>
+
+                            <input
+                                type="text"
+                                id="extraEditorNote"
+                                placeholder="Ví dụ: Đón sếp, đưa khách..."
+                            >
+                        </div>
+                    </label>
+
+
+                    <button
+                        type="button"
+                        class="secondary-primary-button"
+                        id="saveExtraEditorButton"
+                    >
+                        <i data-lucide="plus"></i>
+                        <span>Lưu ca thêm</span>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <section class="detail-section">
+
+                <label class="form-field">
+                    <span>Ghi chú chung của ngày</span>
+
+                    <div class="textarea-shell">
+                        <i data-lucide="file-text"></i>
+
+                        <textarea
+                            id="detailNote"
+                            rows="3"
+                            placeholder="Nhập ghi chú nếu cần..."
+                        ></textarea>
+                    </div>
+                </label>
+
+            </section>
+
+
+            <div class="detail-summary-card">
+
+                <div>
+                    <span>TỔNG OT TRONG NGÀY</span>
+                    <small>Ca chính + tất cả ca thêm</small>
+                </div>
+
+                <strong id="detailTotalOT">0h</strong>
+
+            </div>
+
+
+            <div class="detail-actions">
+
+                <button type="button" class="danger-outline-button" id="deleteDayButton">
+                    <i data-lucide="trash-2"></i>
+                    Xóa ngày
+                </button>
+
+                <button type="button" class="primary-button" id="saveDayButton">
+                    <i data-lucide="save"></i>
+                    Lưu thay đổi
+                </button>
+
+            </div>
+
+        </section>
+
     </div>
-</div>
 
-<div id="toast" class="toast"></div>
 
-<script src="script.js"></script>
+    <!-- SALARY / MONTHLY REPORT MODAL -->
+    <div id="salaryModal" class="modal">
+
+        <div class="modal-backdrop" data-close-modal="salaryModal"></div>
+
+        <section class="bottom-sheet">
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">BÁO CÁO THÁNG</span>
+                    <h2>Lương tăng ca</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="salaryModal"
+                    aria-label="Đóng báo cáo"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+
+            <div class="segmented-control report-segmented-control">
+
+                <button type="button" class="active" aria-current="page">
+                    <i data-lucide="wallet-cards"></i>
+                    Lương OT
+                </button>
+
+                <button type="button" id="mealButton">
+                    <i data-lucide="soup"></i>
+                    Tiền ăn
+                </button>
+
+            </div>
+
+
+            <div class="month-navigation">
+
+                <button type="button" id="salaryPrevMonth" aria-label="Tháng trước">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+
+                <strong id="salaryMonthLabel">Tháng --/----</strong>
+
+                <button type="button" id="salaryNextMonth" aria-label="Tháng sau">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+
+            </div>
+
+
+            <label class="form-field">
+                <span>Lương cơ bản</span>
+
+                <div class="input-shell large-input">
+                    <i data-lucide="banknote"></i>
+
+                    <input
+                        type="number"
+                        id="baseSalaryInput"
+                        min="0"
+                        inputmode="numeric"
+                        placeholder="Nhập lương cơ bản"
+                    >
+
+                    <small>đ</small>
+                </div>
+            </label>
+
+
+            <div class="salary-result-card">
+
+                <div class="salary-metric">
+                    <span>Tổng OT trong tháng</span>
+                    <strong id="salaryOTHours">0h</strong>
+                </div>
+
+                <div class="salary-divider"></div>
+
+                <div class="salary-total">
+                    <span>Tiền OT</span>
+                    <strong id="overtimeMoney">0đ</strong>
+                </div>
+
+                <p id="salaryFormulaDescription">
+                    Công thức đang dùng: Lương / 26 ngày / 8 giờ × hệ số OT × tổng OT.
+                </p>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- MEAL MODAL -->
+    <div id="mealModal" class="modal">
+
+        <div class="modal-backdrop" data-close-modal="mealModal"></div>
+
+        <section class="bottom-sheet">
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">BÁO CÁO THÁNG</span>
+                    <h2>Tiền ăn</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="mealModal"
+                    aria-label="Đóng tiền ăn"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+
+            <div class="month-navigation">
+
+                <button type="button" id="mealPrevMonth" aria-label="Tháng trước">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+
+                <strong id="mealMonthLabel">Tháng --/----</strong>
+
+                <button type="button" id="mealNextMonth" aria-label="Tháng sau">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+
+            </div>
+
+
+            <label class="form-field">
+                <span>Đơn giá một phần cơm</span>
+
+                <div class="input-shell large-input">
+                    <i data-lucide="hand-coins"></i>
+
+                    <input
+                        type="number"
+                        id="mealPriceInput"
+                        min="0"
+                        inputmode="numeric"
+                        placeholder="Ví dụ: 30000"
+                    >
+
+                    <small>đ</small>
+                </div>
+            </label>
+
+
+            <div id="mealWeekList" class="meal-week-list"></div>
+
+
+            <div class="meal-summary-card">
+
+                <div>
+                    <span>Tổng số phần</span>
+                    <strong id="totalMealCount">0 phần</strong>
+                </div>
+
+                <div>
+                    <span>Tổng tiền cơm</span>
+                    <strong id="totalMealMoney">0đ</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modal elevated-modal">
+
+        <div class="modal-backdrop" data-close-modal="settingsModal"></div>
+
+        <section
+            class="bottom-sheet large-sheet settings-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settingsTitle"
+        >
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">CÀI ĐẶT</span>
+                    <h2 id="settingsTitle">Ứng dụng</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="settingsModal"
+                    aria-label="Đóng cài đặt"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+
+            <div class="settings-list">
+
+                <!-- APPEARANCE -->
+                <section class="settings-section">
+
+                    <div class="settings-section-heading">
+                        <span class="settings-section-icon">
+                            <i data-lucide="palette"></i>
+                        </span>
+
+                        <div>
+                            <span>GIAO DIỆN</span>
+                            <h3>Hiển thị ứng dụng</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+
+                        <label class="settings-control-row" for="themeModeSelect">
+
+                            <span class="settings-control-copy">
+                                <strong>Chế độ màu</strong>
+                                <small>Sáng, tối hoặc theo hệ thống</small>
+                            </span>
+
+                            <select id="themeModeSelect" class="settings-select">
+                                <option value="system">Theo hệ thống</option>
+                                <option value="light">Sáng</option>
+                                <option value="dark">Tối</option>
+                            </select>
+
+                        </label>
+
+
+                        <label class="settings-control-row" for="fontSizeSelect">
+
+                            <span class="settings-control-copy">
+                                <strong>Kích thước chữ</strong>
+                                <small>Điều chỉnh toàn bộ chữ trong app</small>
+                            </span>
+
+                            <select id="fontSizeSelect" class="settings-select">
+                                <option value="small">Nhỏ</option>
+                                <option value="medium" selected>Vừa</option>
+                                <option value="large">Lớn</option>
+                            </select>
+
+                        </label>
+
+
+                        <div class="settings-control-row">
+
+                            <span class="settings-control-copy">
+                                <strong>Hiển thị giây</strong>
+                                <small>Bật để đồng hồ hiển thị dạng 15:41:26</small>
+                            </span>
+
+                            <label class="modern-switch">
+                                <input type="checkbox" id="showSecondsToggle" checked>
+                                <span></span>
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- MAIN SHIFT -->
+                <section class="settings-section">
+
+                    <div class="settings-section-heading">
+                        <span class="settings-section-icon">
+                            <i data-lucide="briefcase-business"></i>
+                        </span>
+
+                        <div>
+                            <span>CA CHÍNH</span>
+                            <h3>Khung giờ mặc định</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-group settings-form-group">
+
+                        <div class="form-grid two-columns">
+
+                            <label class="form-field">
+                                <span>Giờ bắt đầu</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="log-in"></i>
+                                    <input type="time" id="defaultShiftStart" value="07:45">
+                                </div>
+                            </label>
+
+                            <label class="form-field">
+                                <span>Giờ kết thúc</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="log-out"></i>
+                                    <input type="time" id="defaultShiftEnd" value="17:00">
+                                </div>
+                            </label>
+
+                        </div>
+
+                        <p class="settings-help-text">
+                            Thay đổi chỉ áp dụng cho ca mới và công thức tính sau này, không sửa dữ liệu cũ.
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+                <!-- SALARY AND MEAL -->
+                <section class="settings-section">
+
+                    <div class="settings-section-heading">
+                        <span class="settings-section-icon">
+                            <i data-lucide="hand-coins"></i>
+                        </span>
+
+                        <div>
+                            <span>LƯƠNG VÀ TIỀN ĂN</span>
+                            <h3>Cấu hình báo cáo</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-group settings-form-group">
+
+                        <label class="form-field">
+                            <span>Lương cơ bản</span>
+
+                            <div class="input-shell large-input">
+                                <i data-lucide="banknote"></i>
+
+                                <input
+                                    type="number"
+                                    id="settingsBaseSalary"
+                                    min="0"
+                                    inputmode="numeric"
+                                    placeholder="Nhập lương cơ bản"
+                                >
+
+                                <small>đ</small>
+                            </div>
+                        </label>
+
+
+                        <div class="form-grid two-columns">
+
+                            <label class="form-field">
+                                <span>Hệ số OT</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="badge-percent"></i>
+
+                                    <input
+                                        type="number"
+                                        id="settingsOTMultiplier"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        value="2"
+                                    >
+
+                                    <small>lần</small>
+                                </div>
+                            </label>
+
+                            <label class="form-field">
+                                <span>Giá một phần cơm</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="soup"></i>
+
+                                    <input
+                                        type="number"
+                                        id="settingsMealPrice"
+                                        min="0"
+                                        inputmode="numeric"
+                                        value="30000"
+                                    >
+
+                                    <small>đ</small>
+                                </div>
+                            </label>
+
+                        </div>
+
+
+                        <div class="settings-subsection-heading">
+
+                            <div>
+                                <strong>Mốc nhận phần cơm</strong>
+                                <small>App lấy mốc cao nhất mà giờ Tan ca đã đạt</small>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="mini-text-button"
+                                id="resetMealThresholdsButton"
+                            >
+                                Mặc định
+                            </button>
+
+                        </div>
+
+
+                        <div id="mealThresholdList" class="meal-threshold-list">
+
+                            <div class="meal-threshold-row" data-threshold-row>
+                                <div class="input-shell threshold-time-input">
+                                    <i data-lucide="clock-3"></i>
+                                    <input type="time" class="meal-threshold-time" value="18:30">
+                                </div>
+
+                                <div class="input-shell threshold-count-input">
+                                    <i data-lucide="utensils"></i>
+
+                                    <input
+                                        type="number"
+                                        class="meal-threshold-count"
+                                        min="0"
+                                        step="1"
+                                        inputmode="numeric"
+                                        value="1"
+                                    >
+
+                                    <small>phần</small>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="meal-threshold-delete"
+                                    data-delete-meal-threshold
+                                    aria-label="Xóa mốc phần cơm"
+                                >
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </div>
+
+
+                            <div class="meal-threshold-row" data-threshold-row>
+                                <div class="input-shell threshold-time-input">
+                                    <i data-lucide="clock-3"></i>
+                                    <input type="time" class="meal-threshold-time" value="20:30">
+                                </div>
+
+                                <div class="input-shell threshold-count-input">
+                                    <i data-lucide="utensils"></i>
+
+                                    <input
+                                        type="number"
+                                        class="meal-threshold-count"
+                                        min="0"
+                                        step="1"
+                                        inputmode="numeric"
+                                        value="2"
+                                    >
+
+                                    <small>phần</small>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="meal-threshold-delete"
+                                    data-delete-meal-threshold
+                                    aria-label="Xóa mốc phần cơm"
+                                >
+                                    <i data-lucide="trash-2"></i>
+                                </button>
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="secondary-primary-button add-threshold-button"
+                            id="addMealThresholdButton"
+                        >
+                            <i data-lucide="plus"></i>
+                            <span>Thêm mốc phần cơm</span>
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+                <!-- CONNECTION -->
+                <section class="settings-section">
+
+                    <div class="settings-section-heading">
+                        <span class="settings-section-icon">
+                            <i data-lucide="database"></i>
+                        </span>
+
+                        <div>
+                            <span>KẾT NỐI</span>
+                            <h3>Supabase</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+
+                        <div class="connection-status-row">
+
+                            <span class="connection-status-icon" id="connectionStatusIcon">
+                                <i data-lucide="circle-help"></i>
+                            </span>
+
+                            <span class="connection-status-copy">
+                                <strong id="connectionStatus">Chưa kiểm tra</strong>
+                                <small id="connectionStatusDetail">Nhấn kiểm tra để xác nhận quyền đọc dữ liệu.</small>
+                            </span>
+
+                            <button
+                                type="button"
+                                class="mini-text-button connection-check-button"
+                                id="checkConnectionButton"
+                            >
+                                Kiểm tra
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ACCOUNT -->
+                <section class="settings-section">
+
+                    <div class="settings-section-heading">
+                        <span class="settings-section-icon">
+                            <i data-lucide="shield-user"></i>
+                        </span>
+
+                        <div>
+                            <span>TÀI KHOẢN</span>
+                            <h3>Bảo mật và phiên đăng nhập</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+
+                        <div class="settings-row">
+
+                            <div class="settings-row-copy">
+                                <strong>Tài khoản hiện tại</strong>
+                                <small>Dữ liệu được tải theo tên đăng nhập này</small>
+                            </div>
+
+                            <span id="settingsUsername" class="settings-value">Người dùng</span>
+
+                        </div>
+
+                        <div class="settings-row">
+
+                            <div class="settings-row-copy">
+                                <strong>Phiên bản ứng dụng</strong>
+                                <small>Thông tin bản đang sử dụng</small>
+                            </div>
+
+                            <span id="settingsVersion" class="settings-value">OT Pro</span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="settings-group settings-form-group password-settings-group">
+
+                        <div class="settings-subsection-heading">
+                            <div>
+                                <strong>Đổi mật khẩu</strong>
+                                <small>Chỉ cập nhật tài khoản đang đăng nhập</small>
+                            </div>
+                        </div>
+
+                        <label class="form-field">
+                            <span>Mật khẩu hiện tại</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="lock-keyhole"></i>
+
+                                <input
+                                    type="password"
+                                    id="currentPasswordInput"
+                                    autocomplete="current-password"
+                                    placeholder="Nhập mật khẩu hiện tại"
+                                >
+                            </div>
+                        </label>
+
+                        <label class="form-field">
+                            <span>Mật khẩu mới</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="key-round"></i>
+
+                                <input
+                                    type="password"
+                                    id="newPasswordInput"
+                                    autocomplete="new-password"
+                                    placeholder="Nhập mật khẩu mới"
+                                >
+                            </div>
+                        </label>
+
+                        <label class="form-field">
+                            <span>Nhập lại mật khẩu mới</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="key-square"></i>
+
+                                <input
+                                    type="password"
+                                    id="confirmNewPasswordInput"
+                                    autocomplete="new-password"
+                                    placeholder="Nhập lại mật khẩu mới"
+                                >
+                            </div>
+                        </label>
+
+                        <button
+                            type="button"
+                            class="secondary-primary-button"
+                            id="changePasswordButton"
+                        >
+                            <i data-lucide="shield-check"></i>
+                            <span>Cập nhật mật khẩu</span>
+                        </button>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="danger-outline-button settings-logout-button"
+                        id="settingsLogoutButton"
+                    >
+                        <i data-lucide="log-out"></i>
+                        Đăng xuất tài khoản
+                    </button>
+
+                </section>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
 </body>
 </html>
