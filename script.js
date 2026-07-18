@@ -2081,7 +2081,7 @@ async function changeCurrentPassword() {
           "users"
         )
         .select(
-          "id,username,password"
+          "username,password"
         )
         .eq(
           "username",
