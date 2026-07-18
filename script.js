@@ -2033,10 +2033,10 @@ async function changeCurrentPassword() {
 
   if (
     newPassword.length <
-    4
+    1
   ) {
     showToast(
-      "Mật khẩu mới cần ít nhất 4 ký tự.",
+      "Mật khẩu mới cần ít nhất 1 ký tự.",
       true
     );
 
