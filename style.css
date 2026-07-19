@@ -157,16 +157,16 @@ html[data-theme="dark"] {
 }
 
 html[data-font-size="small"] {
-  --scale:.92;
+  --scale:1;
 }
 
 html[data-font-size="medium"],
 html:not([data-font-size]) {
-  --scale:1;
+  --scale:1.1;
 }
 
 html[data-font-size="large"] {
-  --scale:1.1;
+  --scale:1.2;
 }
 
 * {
