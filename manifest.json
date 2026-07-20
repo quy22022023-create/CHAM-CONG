@@ -1,88 +1,20 @@
-"use strict";
-
-const CACHE_VERSION = "ot-pro-v8-5-1";
-
-const APP_FILES = [
-  "./",
-  "./index.html",
-  "./style.css?v=8.5.1",
-  "./script.js?v=8.5.1",
-  "./manifest.json",
-  "./image.PNG"
-];
-
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches
-      .open(CACHE_VERSION)
-      .then(cache => cache.addAll(APP_FILES))
-  );
-
-  self.skipWaiting();
-});
-
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    Promise.all([
-      caches.keys().then(cacheNames =>
-        Promise.all(
-          cacheNames
-            .filter(cacheName => cacheName !== CACHE_VERSION)
-            .map(cacheName => caches.delete(cacheName))
-        )
-      ),
-
-      self.clients.claim()
-    ])
-  );
-});
-
-self.addEventListener("fetch", event => {
-  const request = event.request;
-
-  if (request.method !== "GET") {
-    return;
-  }
-
-  const requestUrl = new URL(request.url);
-
-  if (requestUrl.origin !== self.location.origin) {
-    return;
-  }
-
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request, {
-        cache: "no-store"
-      })
-        .then(async response => {
-          const cache = await caches.open(CACHE_VERSION);
-
-          await cache.put(
-            "./index.html",
-            response.clone()
-          );
-
-          return response;
-        })
-        .catch(() => caches.match("./index.html"))
-    );
-
-    return;
-  }
-
-  event.respondWith(
-    fetch(request)
-      .then(async response => {
-        const cache = await caches.open(CACHE_VERSION);
-
-        await cache.put(
-          request,
-          response.clone()
-        );
-
-        return response;
-      })
-      .catch(() => caches.match(request))
-  );
-});
+{
+  "name": "OT Pro",
+  "short_name": "OT Pro",
+  "description": "Ứng dụng quản lý tăng ca, bảng lương và tiền cơm cá nhân.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f6f9",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "./image.PNG",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
