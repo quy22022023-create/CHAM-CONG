@@ -26,7 +26,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=8.5.1">
 </head>
 
 <body>
@@ -470,15 +470,33 @@
                 <button
                     type="button"
                     class="menu-item menu-item-wide"
-                    id="salaryButton"
+                    id="mealButton"
                 >
                     <span class="menu-item-icon">
-                        <i data-lucide="chart-column-big"></i>
+                        <i data-lucide="soup"></i>
                     </span>
 
                     <span class="menu-item-copy">
-                        <strong>Báo cáo tháng</strong>
-                        <small>Tổng OT, tiền lương và tiền ăn</small>
+                        <strong>Tiền cơm</strong>
+                        <small>Xem theo tuần và đánh dấu khoản đã nhận</small>
+                    </span>
+
+                    <i class="menu-item-arrow" data-lucide="chevron-right"></i>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="menu-item menu-item-wide"
+                    id="salaryButton"
+                >
+                    <span class="menu-item-icon">
+                        <i data-lucide="wallet-cards"></i>
+                    </span>
+
+                    <span class="menu-item-copy">
+                        <strong>Thu nhập cá nhân</strong>
+                        <small>Bảng lương riêng tư, chỉ hiện sau khi xác nhận xem</small>
                     </span>
 
                     <i class="menu-item-arrow" data-lucide="chevron-right"></i>
@@ -644,6 +662,149 @@
                 </button>
 
             </header>
+
+
+            <section class="detail-section leave-detail-section" id="detailLeaveSection">
+
+                <div class="detail-section-heading">
+
+                    <div class="detail-title-icon leave-detail-icon">
+                        <i data-lucide="calendar-off"></i>
+                    </div>
+
+                    <div>
+                        <span>NGÀY CÔNG VÀ PHÉP</span>
+                        <h3>Đánh dấu nghỉ khi cần</h3>
+                    </div>
+
+                    <span id="detailLeaveBadge" class="payroll-badge auto-badge">
+                        Mặc định có công
+                    </span>
+
+                </div>
+
+
+                <div class="leave-status-card">
+
+                    <span id="detailLeaveStatusIcon" class="leave-status-icon">
+                        <i data-lucide="briefcase-business"></i>
+                    </span>
+
+                    <span class="leave-status-copy">
+                        <span>TRẠNG THÁI NGÀY</span>
+                        <strong id="detailLeaveStatusTitle">Ngày làm việc bình thường</strong>
+                        <small id="detailLeaveStatusDescription">
+                            Không có dữ liệu tăng ca vẫn được tính công và không sử dụng phép.
+                        </small>
+                    </span>
+
+                    <strong id="detailLeaveBalance" class="leave-balance-pill">
+                        0 ngày phép
+                    </strong>
+
+                </div>
+
+
+                <div class="leave-choice-grid" role="group" aria-label="Chọn thời lượng nghỉ">
+
+                    <button
+                        type="button"
+                        class="leave-choice-button"
+                        id="leaveFullDayButton"
+                        data-leave-amount="1"
+                        aria-pressed="false"
+                    >
+                        <strong>Nghỉ cả ngày</strong>
+                        <small>Sử dụng 1 ngày phép trước khi trừ lương</small>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="leave-choice-button"
+                        id="leaveHalfDayButton"
+                        data-leave-amount="0.5"
+                        aria-pressed="false"
+                    >
+                        <strong>Nghỉ nửa ngày</strong>
+                        <small>Sử dụng 0,5 ngày phép trước khi trừ lương</small>
+                    </button>
+
+                </div>
+
+
+                <div id="leaveSessionOptions" class="leave-session-grid hidden" role="group" aria-label="Chọn buổi nghỉ">
+
+                    <button
+                        type="button"
+                        class="leave-session-button active"
+                        id="leaveMorningButton"
+                        data-leave-session="morning"
+                        aria-pressed="true"
+                    >
+                        Nghỉ buổi sáng
+                    </button>
+
+                    <button
+                        type="button"
+                        class="leave-session-button"
+                        id="leaveAfternoonButton"
+                        data-leave-session="afternoon"
+                        aria-pressed="false"
+                    >
+                        Nghỉ buổi chiều
+                    </button>
+
+                </div>
+
+
+                <div class="leave-result-grid">
+
+                    <div class="leave-result-card paid-result">
+                        <span>Dùng phép năm</span>
+                        <strong id="detailPaidLeaveAmount">0 ngày</strong>
+                    </div>
+
+                    <div class="leave-result-card unpaid-result">
+                        <span>Nghỉ không lương</span>
+                        <strong id="detailUnpaidLeaveAmount">0 ngày</strong>
+                    </div>
+
+                </div>
+
+
+                <div id="detailLeaveWarning" class="leave-warning hidden">
+                    <i data-lucide="triangle-alert"></i>
+                    <span>
+                        Chủ nhật không nằm trong 26 công mặc định, vì vậy không cần đánh dấu nghỉ.
+                    </span>
+                </div>
+
+
+                <label class="form-field" id="leaveNoteField">
+                    <span>Ghi chú nghỉ</span>
+
+                    <div class="input-shell">
+                        <i data-lucide="notebook-pen"></i>
+
+                        <input
+                            type="text"
+                            id="detailLeaveNote"
+                            placeholder="Ví dụ: Nghỉ việc riêng, nghỉ khám bệnh..."
+                        >
+                    </div>
+                </label>
+
+
+                <button
+                    type="button"
+                    class="leave-cancel-button hidden"
+                    id="cancelLeaveButton"
+                >
+                    <i data-lucide="rotate-ccw"></i>
+                    Hủy đánh dấu nghỉ
+                </button>
+
+            </section>
 
 
             <section class="detail-section">
@@ -880,7 +1041,7 @@
 
                 <button type="button" class="danger-outline-button" id="deleteDayButton">
                     <i data-lucide="trash-2"></i>
-                    Xóa ngày
+                    Xóa dữ liệu OT
                 </button>
 
                 <button type="button" class="primary-button" id="saveDayButton">
@@ -900,15 +1061,15 @@
 
         <div class="modal-backdrop" data-close-modal="salaryModal"></div>
 
-        <section class="bottom-sheet">
+        <section class="bottom-sheet large-sheet salary-sheet">
 
             <div class="sheet-handle"></div>
 
             <header class="sheet-header">
 
                 <div>
-                    <span class="sheet-eyebrow">BÁO CÁO THÁNG</span>
-                    <h2>Lương tăng ca</h2>
+                    <span class="sheet-eyebrow">THÔNG TIN RIÊNG TƯ</span>
+                    <h2>Thu nhập cá nhân</h2>
                 </div>
 
                 <button
@@ -921,22 +1082,6 @@
                 </button>
 
             </header>
-
-
-            <div class="segmented-control report-segmented-control">
-
-                <button type="button" class="active" aria-current="page">
-                    <i data-lucide="wallet-cards"></i>
-                    Lương OT
-                </button>
-
-                <button type="button" id="mealButton">
-                    <i data-lucide="soup"></i>
-                    Tiền ăn
-                </button>
-
-            </div>
-
 
             <div class="month-navigation">
 
@@ -953,42 +1098,997 @@
             </div>
 
 
-            <label class="form-field">
-                <span>Lương cơ bản</span>
+            <div id="salaryAccessGate" class="salary-access-gate">
 
-                <div class="input-shell large-input">
-                    <i data-lucide="banknote"></i>
+                <article class="salary-access-card">
 
-                    <input
-                        type="number"
-                        id="baseSalaryInput"
-                        min="0"
-                        inputmode="numeric"
-                        placeholder="Nhập lương cơ bản"
+                    <div class="salary-access-icon">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+
+                    <div class="salary-access-copy">
+                        <span>THU NHẬP CÁ NHÂN</span>
+                        <strong>Bảng lương đang được ẩn</strong>
+                        <small>
+                            Chọn tháng và bấm xem để hiển thị thực nhận, thu nhập, khấu trừ, ngày công và phép năm.
+                        </small>
+                    </div>
+
+                    <div class="salary-access-month">
+                        <span>Tháng đang chọn</span>
+                        <strong id="salaryAccessMonthLabel">Tháng --/----</strong>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="salary-reveal-button"
+                        id="revealSalaryButton"
                     >
+                        <i data-lucide="eye"></i>
+                        Xem bảng lương
+                    </button>
 
-                    <small>đ</small>
+                </article>
+
+            </div>
+
+
+            <div id="salaryPrivateContent" class="salary-private-content" hidden>
+
+                <div id="salaryReportBody" class="salary-report-body">
+
+                <div class="payroll-summary-grid">
+
+                    <article class="payroll-summary-card net-card">
+                        <span>THỰC NHẬN</span>
+                        <strong id="payrollNetSalary">0₫</strong>
+                        <small id="payrollSnapshotStatus">Chưa lưu bảng lương tháng</small>
+                    </article>
+
+                    <article class="payroll-summary-card income-card">
+                        <span>TỔNG THU NHẬP</span>
+                        <strong id="payrollTotalIncome">0₫</strong>
+                        <small>Lương, OT và các khoản được cộng</small>
+                    </article>
+
+                    <article class="payroll-summary-card deduction-card">
+                        <span>TỔNG KHẤU TRỪ</span>
+                        <strong id="payrollTotalDeductions">0₫</strong>
+                        <small>Bảo hiểm, ứng trước và khoản trừ khác</small>
+                    </article>
+
                 </div>
-            </label>
 
 
-            <div class="salary-result-card">
+                <div class="payroll-quick-metrics" aria-label="Chỉ số bảng lương nhanh">
 
-                <div class="salary-metric">
-                    <span>Tổng OT trong tháng</span>
-                    <strong id="salaryOTHours">0h</strong>
+                    <article class="payroll-quick-metric">
+                        <span>TỔNG OT</span>
+                        <strong id="payrollQuickOT">0h</strong>
+                    </article>
+
+                    <article class="payroll-quick-metric">
+                        <span>CÔNG HƯỞNG LƯƠNG</span>
+                        <strong id="payrollQuickPaidDays">26 công</strong>
+                    </article>
+
                 </div>
 
-                <div class="salary-divider"></div>
 
-                <div class="salary-total">
-                    <span>Tiền OT</span>
-                    <strong id="overtimeMoney">0đ</strong>
+                <section class="payroll-section">
+
+                    <header class="payroll-section-header">
+
+                        <span class="payroll-section-icon attendance-icon">
+                            <i data-lucide="calendar-check-2"></i>
+                        </span>
+
+                        <span class="payroll-section-copy">
+                            <span>CHẤM CÔNG VÀ PHÉP</span>
+                            <strong>26 công mặc định</strong>
+                            <small>Ngày không có dữ liệu tăng ca vẫn được tính công.</small>
+                        </span>
+
+                        <span id="payrollAttendanceBadge" class="payroll-badge auto-badge">
+                            Tự động
+                        </span>
+
+                    </header>
+
+                    <div class="payroll-section-body">
+
+                        <div class="payroll-stat-grid">
+
+                            <article class="payroll-stat-card">
+                                <span>Công tiêu chuẩn</span>
+                                <strong id="payrollStandardDays">26 công</strong>
+                                <small>Mặc định trong Cài đặt</small>
+                            </article>
+
+                            <article class="payroll-stat-card highlight-stat">
+                                <span>Công hưởng lương</span>
+                                <strong id="payrollPaidDays">26 công</strong>
+                                <small>Chỉ giảm khi phép đã hết</small>
+                            </article>
+
+                            <article class="payroll-stat-card">
+                                <span>Phép đầu tháng</span>
+                                <strong id="payrollLeaveOpening">0 ngày</strong>
+                                <small>Số dư cộng dồn</small>
+                            </article>
+
+                            <article class="payroll-stat-card">
+                                <span>Phép cộng tháng này</span>
+                                <strong id="payrollLeaveAccrued">1 ngày</strong>
+                                <small>Theo cấu hình tài khoản</small>
+                            </article>
+
+                            <article class="payroll-stat-card">
+                                <span>Phép đã sử dụng</span>
+                                <strong id="payrollLeaveUsed">0 ngày</strong>
+                                <small>Cả ngày hoặc nửa ngày</small>
+                            </article>
+
+                            <article class="payroll-stat-card">
+                                <span>Nghỉ không lương</span>
+                                <strong id="payrollUnpaidLeave">0 ngày</strong>
+                                <small>Phần nghỉ vượt số phép</small>
+                            </article>
+
+                            <article class="payroll-stat-card">
+                                <span>Phép cuối tháng</span>
+                                <strong id="payrollLeaveClosing">0 ngày</strong>
+                                <small>Tiếp tục cộng dồn</small>
+                            </article>
+
+                            <article class="payroll-stat-card">
+                                <span>Tổng OT tháng</span>
+                                <strong id="salaryOTHours">0h</strong>
+                                <small>Ca chính và ca thêm hoàn tất</small>
+                            </article>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="payroll-section">
+
+                    <header class="payroll-section-header">
+
+                        <span class="payroll-section-icon income-icon">
+                            <i data-lucide="circle-dollar-sign"></i>
+                        </span>
+
+                        <span class="payroll-section-copy">
+                            <span>THU NHẬP</span>
+                            <strong>Lương và các khoản được cộng</strong>
+                            <small>Bấm trực tiếp vào từng khoản để điều chỉnh.</small>
+                        </span>
+
+                        <strong id="payrollIncomeSectionTotal" class="payroll-section-total">0₫</strong>
+
+                    </header>
+
+                    <div class="payroll-section-body">
+
+                        <div class="payroll-line-list">
+
+                            <button
+                                type="button"
+                                class="payroll-line-button positive"
+                                data-payroll-editor-toggle="base-salary"
+                                aria-controls="baseSalaryInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Lương làm việc</span>
+                                    <small>Lương cơ bản / 26 × công hưởng lương</small>
+                                </span>
+
+                                <strong id="payrollWorkingSalary" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="baseSalaryInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="baseSalaryInput">Lương cơ bản áp dụng</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="banknote"></i>
+
+                                            <input
+                                                type="text"
+                                                id="baseSalaryInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button
+                                        type="button"
+                                        class="payroll-inline-cancel"
+                                        data-payroll-editor-cancel="base-salary"
+                                    >
+                                        Đóng
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="payroll-inline-apply"
+                                        data-payroll-editor-apply="base-salary"
+                                    >
+                                        Áp dụng
+                                    </button>
+                                </div>
+
+                            </div>
+
+
+                            <div class="payroll-line positive">
+                                <span class="payroll-line-copy">
+                                    <span>Tiền tăng ca</span>
+                                    <small id="salaryFormulaDescription">Lương / 26 / 8 × hệ số OT × tổng OT</small>
+                                </span>
+                                <strong id="overtimeMoney" class="payroll-line-value">0₫</strong>
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button positive payroll-conditional-row"
+                                data-payroll-setting="mainAllowanceMode"
+                                data-payroll-editor-toggle="main-allowance"
+                                aria-controls="mainAllowanceInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Phụ cấp</span>
+                                    <small id="payrollMainAllowanceMode">Theo cấu hình</small>
+                                </span>
+
+                                <strong id="payrollMainAllowance" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="mainAllowanceInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollMainAllowanceInput">Mức phụ cấp tháng</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="badge-dollar-sign"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollMainAllowanceInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button type="button" class="payroll-inline-cancel" data-payroll-editor-cancel="main-allowance">Đóng</button>
+                                    <button type="button" class="payroll-inline-apply" data-payroll-editor-apply="main-allowance">Áp dụng</button>
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button positive payroll-conditional-row"
+                                data-payroll-setting="otherAllowanceMode"
+                                data-payroll-editor-toggle="other-allowance"
+                                aria-controls="otherAllowanceInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Phụ cấp khác</span>
+                                    <small id="payrollOtherAllowanceMode">Theo cấu hình</small>
+                                </span>
+
+                                <strong id="payrollOtherAllowance" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="otherAllowanceInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollOtherAllowanceInput">Mức phụ cấp khác tháng</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="badge-dollar-sign"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollOtherAllowanceInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button type="button" class="payroll-inline-cancel" data-payroll-editor-cancel="other-allowance">Đóng</button>
+                                    <button type="button" class="payroll-inline-apply" data-payroll-editor-apply="other-allowance">Áp dụng</button>
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button positive payroll-conditional-row"
+                                data-payroll-setting="attendanceAllowanceMode"
+                                data-payroll-editor-toggle="attendance-allowance"
+                                aria-controls="attendanceAllowanceInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Chuyên cần</span>
+                                    <small id="payrollAttendanceAllowanceMode">Theo cấu hình</small>
+                                </span>
+
+                                <strong id="payrollAttendanceAllowance" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="attendanceAllowanceInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollAttendanceAllowanceInput">Mức chuyên cần tháng</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="badge-check"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollAttendanceAllowanceInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button type="button" class="payroll-inline-cancel" data-payroll-editor-cancel="attendance-allowance">Đóng</button>
+                                    <button type="button" class="payroll-inline-apply" data-payroll-editor-apply="attendance-allowance">Áp dụng</button>
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button positive payroll-conditional-row"
+                                data-payroll-setting="responsibilityAllowanceMode"
+                                data-payroll-editor-toggle="responsibility-allowance"
+                                aria-controls="responsibilityAllowanceInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Trách nhiệm</span>
+                                    <small id="payrollResponsibilityAllowanceMode">Theo cấu hình</small>
+                                </span>
+
+                                <strong id="payrollResponsibilityAllowance" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="responsibilityAllowanceInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollResponsibilityAllowanceInput">Mức trách nhiệm tháng</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="shield-check"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollResponsibilityAllowanceInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button type="button" class="payroll-inline-cancel" data-payroll-editor-cancel="responsibility-allowance">Đóng</button>
+                                    <button type="button" class="payroll-inline-apply" data-payroll-editor-apply="responsibility-allowance">Áp dụng</button>
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button positive payroll-conditional-row"
+                                data-payroll-setting="fuelEnabled"
+                                id="openFuelPayrollEditorButton"
+                                aria-controls="fuelPayrollEditorModal"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Tiền xăng</span>
+                                    <small id="payrollFuelFormula">0 km × 0₫/km</small>
+                                </span>
+
+                                <strong id="payrollFuelMoney" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <span id="payrollFuelSectionTotal" class="hidden" aria-hidden="true">0₫</span>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button positive"
+                                data-payroll-editor-toggle="other-income"
+                                aria-controls="otherIncomeInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Khoản cộng khác</span>
+                                    <small id="payrollOtherIncomeDescription">Chưa có khoản cộng</small>
+                                </span>
+
+                                <strong id="payrollOtherIncomeMoney" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="otherIncomeInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollOtherIncomeInput">Số tiền</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="circle-plus"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollOtherIncomeInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollOtherIncomeNote">Ghi chú khoản cộng</label>
+
+                                        <div class="input-shell">
+                                            <i data-lucide="notebook-pen"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollOtherIncomeNote"
+                                                class="payroll-note-input"
+                                                autocomplete="off"
+                                            >
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button type="button" class="payroll-inline-cancel" data-payroll-editor-cancel="other-income">Đóng</button>
+                                    <button type="button" class="payroll-inline-apply" data-payroll-editor-apply="other-income">Áp dụng</button>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="payroll-section">
+
+                    <header class="payroll-section-header">
+
+                        <span class="payroll-section-icon deduction-icon">
+                            <i data-lucide="receipt-text"></i>
+                        </span>
+
+                        <span class="payroll-section-copy">
+                            <span>KHẤU TRỪ</span>
+                            <strong>Bảo hiểm và các khoản đã trừ</strong>
+                            <small>Nghỉ không lương đã phản ánh trong lương làm việc.</small>
+                        </span>
+
+                        <strong id="payrollDeductionSectionTotal" class="payroll-section-total">0₫</strong>
+
+                    </header>
+
+                    <div class="payroll-section-body">
+
+                        <div class="payroll-line-list">
+
+                            <button
+                                type="button"
+                                class="payroll-line-button negative payroll-conditional-row"
+                                data-payroll-setting="insuranceMode"
+                                id="openInsurancePayrollEditorButton"
+                                aria-controls="insurancePayrollEditorModal"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>BHXH + BHYT + BHTN</span>
+                                    <small id="payrollInsuranceDescription">Theo cấu hình bảo hiểm</small>
+                                </span>
+
+                                <strong id="payrollInsuranceMoney" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button negative"
+                                data-payroll-editor-toggle="advance"
+                                aria-controls="advanceInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Lương ứng trước</span>
+                                    <small>Giá trị riêng của tháng</small>
+                                </span>
+
+                                <strong id="payrollAdvanceMoney" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="advanceInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollAdvanceInput">Số tiền đã ứng</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="hand-coins"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollAdvanceInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button type="button" class="payroll-inline-cancel" data-payroll-editor-cancel="advance">Đóng</button>
+                                    <button type="button" class="payroll-inline-apply" data-payroll-editor-apply="advance">Áp dụng</button>
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="payroll-line-button negative"
+                                data-payroll-editor-toggle="other-deduction"
+                                aria-controls="otherDeductionInlineEditor"
+                                aria-expanded="false"
+                            >
+                                <span class="payroll-line-copy">
+                                    <span>Khoản trừ khác</span>
+                                    <small id="payrollOtherDeductionDescription">Chưa có khoản trừ</small>
+                                </span>
+
+                                <strong id="payrollOtherDeductionMoney" class="payroll-line-value">0₫</strong>
+
+                                <span class="payroll-line-action" aria-hidden="true">
+                                    <i data-lucide="chevron-right"></i>
+                                </span>
+                            </button>
+
+                            <div id="otherDeductionInlineEditor" class="payroll-inline-editor" hidden>
+
+                                <div class="payroll-inline-editor-grid">
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollOtherDeductionInput">Số tiền</label>
+
+                                        <div class="input-shell currency-input-shell">
+                                            <i data-lucide="circle-minus"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollOtherDeductionInput"
+                                                class="payroll-money-input"
+                                                inputmode="numeric"
+                                                autocomplete="off"
+                                            >
+
+                                            <small class="payroll-currency-suffix">₫</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="payroll-inline-field full-width">
+                                        <label for="payrollOtherDeductionNote">Ghi chú khoản trừ</label>
+
+                                        <div class="input-shell">
+                                            <i data-lucide="notebook-pen"></i>
+
+                                            <input
+                                                type="text"
+                                                id="payrollOtherDeductionNote"
+                                                class="payroll-note-input"
+                                                autocomplete="off"
+                                            >
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="payroll-inline-actions">
+                                    <button type="button" class="payroll-inline-cancel" data-payroll-editor-cancel="other-deduction">Đóng</button>
+                                    <button type="button" class="payroll-inline-apply" data-payroll-editor-apply="other-deduction">Áp dụng</button>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div id="payrollUnpaidLeaveInformation" class="payroll-information-line hidden">
+                            <span>Giảm lương do nghỉ không lương</span>
+                            <strong id="payrollUnpaidLeaveReduction">0₫</strong>
+                        </div>
+
+
+                        <div class="payroll-line subtotal-line negative">
+                            <span class="payroll-line-copy">
+                                <span>Tổng khấu trừ</span>
+                                <small>Bảo hiểm + ứng trước + khoản trừ khác</small>
+                            </span>
+                            <strong id="payrollTotalDeductionsLine" class="payroll-line-value">0₫</strong>
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <div class="payroll-formula-card">
+                    <i data-lucide="calculator"></i>
+                    <span>
+                        Lương làm việc được tính theo công hưởng lương. Tiền OT giữ nguyên công thức hiện tại. Nghỉ không lương chỉ làm giảm lương làm việc và không bị trừ lần thứ hai.
+                    </span>
                 </div>
 
-                <p id="salaryFormulaDescription">
-                    Công thức đang dùng: Lương / 26 ngày / 8 giờ × hệ số OT × tổng OT.
-                </p>
+                <div id="payrollAlert" class="payroll-alert-card hidden">
+                    <i data-lucide="triangle-alert"></i>
+                    <span id="payrollAlertMessage"></span>
+                </div>
+
+
+                <div class="payroll-sticky-actions">
+
+                    <span id="payrollSaveStatus" class="payroll-save-status">
+                        Không có thay đổi chưa lưu.
+                    </span>
+
+                    <button
+                        type="button"
+                        class="danger-outline-button"
+                        id="resetPayrollMonthButton"
+                    >
+                        <i data-lucide="rotate-ccw"></i>
+                        Khôi phục
+                    </button>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="savePayrollMonthButton"
+                        disabled
+                    >
+                        <i data-lucide="save"></i>
+                        Lưu bảng lương
+                    </button>
+
+                </div>
+
+            </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- FUEL PAYROLL EDITOR -->
+    <div id="fuelPayrollEditorModal" class="modal payroll-editor-modal">
+
+        <div class="modal-backdrop" data-close-modal="fuelPayrollEditorModal"></div>
+
+        <section class="bottom-sheet payroll-editor-sheet" role="dialog" aria-modal="true" aria-labelledby="fuelPayrollEditorTitle">
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">ĐIỀU CHỈNH BẢNG LƯƠNG</span>
+                    <h2 id="fuelPayrollEditorTitle">Tiền xăng</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="fuelPayrollEditorModal"
+                    aria-label="Đóng chỉnh sửa tiền xăng"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+            <div class="payroll-editor-form">
+
+                <div class="payroll-inline-field">
+                    <label for="payrollMonthlyKmInput">Tổng kilomet tháng</label>
+
+                    <div class="input-shell">
+                        <i data-lucide="route"></i>
+
+                        <input
+                            type="text"
+                            id="payrollMonthlyKmInput"
+                            inputmode="decimal"
+                            autocomplete="off"
+                        >
+
+                        <small>km</small>
+                    </div>
+                </div>
+
+                <div class="payroll-inline-field">
+                    <label for="payrollFuelRateInput">Đơn giá mỗi kilomet</label>
+
+                    <div class="input-shell currency-input-shell">
+                        <i data-lucide="badge-dollar-sign"></i>
+
+                        <input
+                            type="text"
+                            id="payrollFuelRateInput"
+                            class="payroll-money-input"
+                            inputmode="numeric"
+                            autocomplete="off"
+                        >
+
+                        <small class="payroll-currency-suffix">₫</small>
+                    </div>
+                </div>
+
+                <div class="payroll-editor-summary">
+                    <span>Tiền xăng tháng</span>
+                    <strong id="payrollFuelEditorPreview">0₫</strong>
+                </div>
+
+                <div class="payroll-editor-actions">
+                    <button
+                        type="button"
+                        class="danger-outline-button"
+                        id="resetFuelPayrollEditorButton"
+                    >
+                        Khôi phục
+                    </button>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="applyFuelPayrollEditorButton"
+                    >
+                        Áp dụng
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- INSURANCE PAYROLL EDITOR -->
+    <div id="insurancePayrollEditorModal" class="modal payroll-editor-modal">
+
+        <div class="modal-backdrop" data-close-modal="insurancePayrollEditorModal"></div>
+
+        <section class="bottom-sheet payroll-editor-sheet" role="dialog" aria-modal="true" aria-labelledby="insurancePayrollEditorTitle">
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">ĐIỀU CHỈNH BẢNG LƯƠNG</span>
+                    <h2 id="insurancePayrollEditorTitle">Bảo hiểm</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="insurancePayrollEditorModal"
+                    aria-label="Đóng chỉnh sửa bảo hiểm"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+            <div class="payroll-editor-form">
+
+                <div class="payroll-inline-field">
+                    <label for="payrollInsuranceModeInput">Cách tính bảo hiểm</label>
+
+                    <select id="payrollInsuranceModeInput" class="settings-select">
+                        <option value="disabled">Không áp dụng</option>
+                        <option value="percentage">Theo tỷ lệ</option>
+                        <option value="fixed">Số tiền cố định</option>
+                    </select>
+                </div>
+
+                <div class="payroll-inline-field" data-payroll-insurance-field="percentage">
+                    <label for="payrollInsuranceBaseInput">Mức lương đóng bảo hiểm</label>
+
+                    <div class="input-shell currency-input-shell">
+                        <i data-lucide="landmark"></i>
+
+                        <input
+                            type="text"
+                            id="payrollInsuranceBaseInput"
+                            class="payroll-money-input"
+                            inputmode="numeric"
+                            autocomplete="off"
+                        >
+
+                        <small class="payroll-currency-suffix">₫</small>
+                    </div>
+                </div>
+
+                <div class="payroll-inline-field" data-payroll-insurance-field="percentage">
+                    <label for="payrollInsuranceRateInput">Tỷ lệ bảo hiểm</label>
+
+                    <div class="input-shell">
+                        <i data-lucide="percent"></i>
+
+                        <input
+                            type="number"
+                            id="payrollInsuranceRateInput"
+                            min="0"
+                            step="0.1"
+                            inputmode="decimal"
+                        >
+
+                        <small>%</small>
+                    </div>
+                </div>
+
+                <div class="payroll-inline-field" data-payroll-insurance-field="fixed">
+                    <label for="payrollInsuranceFixedInput">Số tiền bảo hiểm</label>
+
+                    <div class="input-shell currency-input-shell">
+                        <i data-lucide="shield-check"></i>
+
+                        <input
+                            type="text"
+                            id="payrollInsuranceFixedInput"
+                            class="payroll-money-input"
+                            inputmode="numeric"
+                            autocomplete="off"
+                        >
+
+                        <small class="payroll-currency-suffix">₫</small>
+                    </div>
+                </div>
+
+                <div class="payroll-editor-summary">
+                    <span>Tiền bảo hiểm tháng</span>
+                    <strong id="payrollInsuranceEditorPreview">0₫</strong>
+                </div>
+
+                <div class="payroll-editor-actions">
+                    <button
+                        type="button"
+                        class="danger-outline-button"
+                        id="resetInsurancePayrollEditorButton"
+                    >
+                        Khôi phục
+                    </button>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        id="applyInsurancePayrollEditorButton"
+                    >
+                        Áp dụng
+                    </button>
+                </div>
 
             </div>
 
@@ -1002,22 +2102,22 @@
 
         <div class="modal-backdrop" data-close-modal="mealModal"></div>
 
-        <section class="bottom-sheet">
+        <section class="bottom-sheet large-sheet meal-sheet">
 
             <div class="sheet-handle"></div>
 
             <header class="sheet-header">
 
                 <div>
-                    <span class="sheet-eyebrow">BÁO CÁO THÁNG</span>
-                    <h2>Tiền ăn</h2>
+                    <span class="sheet-eyebrow">BÁO CÁO RIÊNG</span>
+                    <h2>Tiền cơm</h2>
                 </div>
 
                 <button
                     type="button"
                     class="close-button"
                     data-close-modal="mealModal"
-                    aria-label="Đóng tiền ăn"
+                    aria-label="Đóng báo cáo tiền cơm"
                 >
                     <i data-lucide="x"></i>
                 </button>
@@ -1040,44 +2140,167 @@
             </div>
 
 
-            <label class="form-field">
-                <span>Đơn giá một phần cơm</span>
+            <div id="mealReportBody" class="meal-report-body">
 
-                <div class="input-shell large-input">
-                    <i data-lucide="hand-coins"></i>
+                <div class="meal-report-intro">
 
-                    <input
-                        type="number"
-                        id="mealPriceInput"
-                        min="0"
-                        inputmode="numeric"
-                        placeholder="Ví dụ: 30000"
-                    >
+                    <span class="meal-report-intro-icon">
+                        <i data-lucide="calendar-check-2"></i>
+                    </span>
 
-                    <small>đ</small>
-                </div>
-            </label>
+                    <div class="meal-report-intro-copy">
+                        <strong>Quản lý tiền cơm theo tuần</strong>
+                        <small>
+                            Mỗi tuần từ Thứ Hai đến Chủ nhật có trạng thái nhận riêng. Tiền cơm không thuộc bảng lương.
+                        </small>
+                    </div>
 
-
-            <div id="mealWeekList" class="meal-week-list"></div>
-
-
-            <div class="meal-summary-card">
-
-                <div>
-                    <span>Tổng số phần</span>
-                    <strong id="totalMealCount">0 phần</strong>
                 </div>
 
-                <div>
-                    <span>Tổng tiền cơm</span>
-                    <strong id="totalMealMoney">0đ</strong>
+
+                <div class="meal-price-control">
+
+                    <label class="form-field">
+                        <span>Đơn giá một phần cơm</span>
+
+                        <div class="input-shell large-input">
+                            <i data-lucide="hand-coins"></i>
+
+                            <input
+                                type="number"
+                                id="mealPriceInput"
+                                min="0"
+                                inputmode="numeric"
+                                autocomplete="off"
+                            >
+
+                            <small>₫</small>
+                        </div>
+                    </label>
+
+                </div>
+
+
+                <div class="meal-overview-grid" aria-label="Tổng quan tiền cơm tháng">
+
+                    <article class="meal-overview-item">
+                        <span>TỔNG TIỀN CƠM</span>
+                        <strong id="totalMealMoney">0₫</strong>
+                        <small id="totalMealCount">0 phần</small>
+                    </article>
+
+                    <article class="meal-overview-item received-item">
+                        <span>ĐÃ NHẬN</span>
+                        <strong id="mealReceivedTotal">0₫</strong>
+                        <small id="mealReceivedWeekCount">0 tuần</small>
+                    </article>
+
+                    <article class="meal-overview-item pending-item">
+                        <span>CHƯA NHẬN</span>
+                        <strong id="mealPendingTotal">0₫</strong>
+                        <small id="mealPendingWeekCount">0 tuần</small>
+                    </article>
+
+                </div>
+
+
+                <div class="meal-week-section-heading">
+                    <div>
+                        <strong>Chi tiết từng tuần</strong>
+                        <small>Bấm nút của tuần tương ứng sau khi đã nhận tiền.</small>
+                    </div>
+                    <span>Thứ Hai – Chủ nhật</span>
+                </div>
+
+
+                <div id="mealWeekList" class="meal-week-list"></div>
+
+
+                <div id="mealEmptyState" class="meal-empty-state hidden">
+                    <span class="meal-empty-state-icon">
+                        <i data-lucide="soup"></i>
+                    </span>
+                    <strong>Tháng này chưa có phần cơm</strong>
+                    <small>Khi dữ liệu phần cơm được ghi nhận, các tuần sẽ xuất hiện tại đây.</small>
                 </div>
 
             </div>
 
         </section>
 
+    </div>
+
+
+    <!-- MEAL RECEIPT CONFIRM MODAL -->
+    <div id="mealReceiptConfirmModal" class="modal elevated-modal meal-receipt-confirm-modal">
+
+        <div class="modal-backdrop" data-close-modal="mealReceiptConfirmModal"></div>
+
+        <section
+            class="bottom-sheet meal-receipt-confirm-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mealReceiptConfirmTitle"
+        >
+
+            <div class="sheet-handle"></div>
+
+            <header class="sheet-header">
+
+                <div>
+                    <span class="sheet-eyebrow">XÁC NHẬN</span>
+                    <h2 id="mealReceiptConfirmTitle">Cập nhật trạng thái nhận tiền</h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="close-button"
+                    data-close-modal="mealReceiptConfirmModal"
+                    aria-label="Đóng xác nhận"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </header>
+
+
+            <div class="meal-receipt-confirm-copy">
+                <strong id="mealReceiptConfirmWeek">Tuần --/-- – --/--</strong>
+                <small id="mealReceiptConfirmDescription">
+                    Xác nhận cập nhật trạng thái nhận tiền của tuần này.
+                </small>
+            </div>
+
+
+            <div class="meal-receipt-confirm-actions">
+
+                <button
+                    type="button"
+                    class="danger-outline-button"
+                    id="cancelMealReceiptConfirmButton"
+                >
+                    Đóng
+                </button>
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    id="confirmMealReceiptActionButton"
+                >
+                    Xác nhận
+                </button>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- COMPATIBILITY BRIDGE: hidden until script.js V8.4 is deployed -->
+    <div class="hidden" aria-hidden="true">
+        <span id="salaryMealReference">0₫</span>
+        <button type="button" id="openMealFromSalaryButton" tabindex="-1"></button>
     </div>
 
 
@@ -1136,11 +2359,10 @@
 
                             <span class="settings-control-copy">
                                 <strong>Chế độ màu</strong>
-                                <small>Sáng, tối hoặc theo hệ thống</small>
+                                <small>Chọn giao diện sáng hoặc tối</small>
                             </span>
 
                             <select id="themeModeSelect" class="settings-select">
-                                <option value="system">Theo hệ thống</option>
                                 <option value="light">Sáng</option>
                                 <option value="dark">Tối</option>
                             </select>
@@ -1230,44 +2452,82 @@
                 </section>
 
 
-                <!-- SALARY AND MEAL -->
+                <!-- PAYROLL SETTINGS -->
                 <section class="settings-section">
 
                     <div class="settings-section-heading">
                         <span class="settings-section-icon">
-                            <i data-lucide="hand-coins"></i>
+                            <i data-lucide="wallet-cards"></i>
                         </span>
 
                         <div>
-                            <span>LƯƠNG VÀ TIỀN ĂN</span>
-                            <h3>Cấu hình báo cáo</h3>
+                            <span>HỆ THỐNG TÍNH LƯƠNG</span>
+                            <h3>Lương, công, phụ cấp và khấu trừ</h3>
                         </div>
                     </div>
 
-                    <div class="settings-group settings-form-group">
+                    <div class="settings-group settings-form-group payroll-settings-group">
 
-                        <label class="form-field">
-                            <span>Lương cơ bản</span>
+                        <div class="settings-grid-two">
 
-                            <div class="input-shell large-input">
-                                <i data-lucide="banknote"></i>
+                            <label class="form-field settings-number-field">
+                                <span>Lương cơ bản</span>
 
-                                <input
-                                    type="number"
-                                    id="settingsBaseSalary"
-                                    min="0"
-                                    inputmode="numeric"
-                                    placeholder="Nhập lương cơ bản"
-                                >
+                                <div class="input-shell">
+                                    <i data-lucide="banknote"></i>
 
-                                <small>đ</small>
-                            </div>
-                        </label>
+                                    <input
+                                        type="number"
+                                        id="settingsBaseSalary"
+                                        min="0"
+                                        step="1000"
+                                        inputmode="numeric"
+                                        placeholder="Nhập lương cơ bản"
+                                    >
 
+                                    <small>đ</small>
+                                </div>
+                            </label>
 
-                        <div class="form-grid two-columns">
+                            <label class="form-field settings-number-field">
+                                <span>Ngày công tiêu chuẩn</span>
 
-                            <label class="form-field">
+                                <div class="input-shell">
+                                    <i data-lucide="calendar-days"></i>
+
+                                    <input
+                                        type="number"
+                                        id="settingsStandardWorkDays"
+                                        min="1"
+                                        step="0.5"
+                                        inputmode="decimal"
+                                        value="26"
+                                    >
+
+                                    <small>công</small>
+                                </div>
+                            </label>
+
+                            <label class="form-field settings-number-field">
+                                <span>Giờ tiêu chuẩn mỗi ngày</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="clock-3"></i>
+
+                                    <input
+                                        type="number"
+                                        id="settingsStandardHours"
+                                        min="0.5"
+                                        step="0.5"
+                                        inputmode="decimal"
+                                        value="8"
+                                    >
+
+                                    <small>giờ</small>
+                                </div>
+                            </label>
+
+                            <label class="form-field settings-number-field">
                                 <span>Hệ số OT</span>
 
                                 <div class="input-shell">
@@ -1276,7 +2536,7 @@
                                     <input
                                         type="number"
                                         id="settingsOTMultiplier"
-                                        min="0"
+                                        min="0.1"
                                         step="0.1"
                                         inputmode="decimal"
                                         value="2"
@@ -1286,24 +2546,372 @@
                                 </div>
                             </label>
 
-                            <label class="form-field">
-                                <span>Giá một phần cơm</span>
+                        </div>
+
+
+                        <div class="payroll-settings-note">
+                            <i data-lucide="info"></i>
+                            <span>
+                                Mặc định mỗi tháng đủ 26 công. Ngày không có dữ liệu tăng ca vẫn được tính công; chỉ giảm công khi bạn đánh dấu nghỉ và đã sử dụng hết phép năm.
+                            </span>
+                        </div>
+
+
+                        <div class="settings-subsection-heading">
+                            <div>
+                                <strong>Các khoản phụ cấp</strong>
+                                <small>Chọn cách áp dụng riêng cho từng khoản.</small>
+                            </div>
+                        </div>
+
+
+                        <div class="allowance-settings-list">
+
+                            <div class="allowance-setting-row">
+                                <span class="allowance-setting-copy">
+                                    <strong>Phụ cấp</strong>
+                                    <small>Khoản phụ cấp chính theo bảng lương.</small>
+                                </span>
+
+                                <span class="allowance-setting-controls">
+                                    <div class="input-shell">
+                                        <i data-lucide="circle-dollar-sign"></i>
+
+                                        <input
+                                            type="number"
+                                            id="settingsMainAllowance"
+                                            min="0"
+                                            step="1000"
+                                            inputmode="numeric"
+                                            placeholder="0"
+                                        >
+
+                                        <small>đ</small>
+                                    </div>
+
+                                    <select id="settingsMainAllowanceMode" class="settings-select">
+                                        <option value="fixed">Cố định đủ tháng</option>
+                                        <option value="proportional">Theo tỷ lệ ngày công</option>
+                                        <option value="monthly">Nhập riêng từng tháng</option>
+                                        <option value="disabled">Không áp dụng</option>
+                                    </select>
+                                </span>
+                            </div>
+
+
+                            <div class="allowance-setting-row">
+                                <span class="allowance-setting-copy">
+                                    <strong>Phụ cấp khác</strong>
+                                    <small>Khoản bổ sung ngoài phụ cấp chính.</small>
+                                </span>
+
+                                <span class="allowance-setting-controls">
+                                    <div class="input-shell">
+                                        <i data-lucide="badge-plus"></i>
+
+                                        <input
+                                            type="number"
+                                            id="settingsOtherAllowance"
+                                            min="0"
+                                            step="1000"
+                                            inputmode="numeric"
+                                            placeholder="0"
+                                        >
+
+                                        <small>đ</small>
+                                    </div>
+
+                                    <select id="settingsOtherAllowanceMode" class="settings-select">
+                                        <option value="fixed">Cố định đủ tháng</option>
+                                        <option value="proportional">Theo tỷ lệ ngày công</option>
+                                        <option value="monthly">Nhập riêng từng tháng</option>
+                                        <option value="disabled">Không áp dụng</option>
+                                    </select>
+                                </span>
+                            </div>
+
+
+                            <div class="allowance-setting-row">
+                                <span class="allowance-setting-copy">
+                                    <strong>Chuyên cần</strong>
+                                    <small>Có thể trả cố định hoặc theo tỷ lệ công.</small>
+                                </span>
+
+                                <span class="allowance-setting-controls">
+                                    <div class="input-shell">
+                                        <i data-lucide="award"></i>
+
+                                        <input
+                                            type="number"
+                                            id="settingsAttendanceAllowance"
+                                            min="0"
+                                            step="1000"
+                                            inputmode="numeric"
+                                            placeholder="0"
+                                        >
+
+                                        <small>đ</small>
+                                    </div>
+
+                                    <select id="settingsAttendanceAllowanceMode" class="settings-select">
+                                        <option value="fixed">Cố định đủ tháng</option>
+                                        <option value="proportional">Theo tỷ lệ ngày công</option>
+                                        <option value="monthly">Nhập riêng từng tháng</option>
+                                        <option value="disabled">Không áp dụng</option>
+                                    </select>
+                                </span>
+                            </div>
+
+
+                            <div class="allowance-setting-row">
+                                <span class="allowance-setting-copy">
+                                    <strong>Trách nhiệm</strong>
+                                    <small>Khoản trách nhiệm hoặc chức vụ.</small>
+                                </span>
+
+                                <span class="allowance-setting-controls">
+                                    <div class="input-shell">
+                                        <i data-lucide="shield-check"></i>
+
+                                        <input
+                                            type="number"
+                                            id="settingsResponsibilityAllowance"
+                                            min="0"
+                                            step="1000"
+                                            inputmode="numeric"
+                                            placeholder="0"
+                                        >
+
+                                        <small>đ</small>
+                                    </div>
+
+                                    <select id="settingsResponsibilityAllowanceMode" class="settings-select">
+                                        <option value="fixed">Cố định đủ tháng</option>
+                                        <option value="proportional">Theo tỷ lệ ngày công</option>
+                                        <option value="monthly">Nhập riêng từng tháng</option>
+                                        <option value="disabled">Không áp dụng</option>
+                                    </select>
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="settings-subsection-heading">
+                            <div>
+                                <strong>Tiền xăng</strong>
+                                <small>Tiền xăng = tổng kilomet tháng × đơn giá mỗi kilomet.</small>
+                            </div>
+                        </div>
+
+
+                        <label class="form-field settings-number-field">
+                            <span>Đơn giá mặc định mỗi kilomet</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="fuel"></i>
+
+                                <input
+                                    type="number"
+                                    id="settingsFuelRate"
+                                    min="0"
+                                    step="1"
+                                    inputmode="numeric"
+                                    placeholder="0"
+                                >
+
+                                <small>đ/km</small>
+                            </div>
+                        </label>
+
+
+                        <div class="settings-subsection-heading">
+                            <div>
+                                <strong>Phép năm cộng dồn</strong>
+                                <small>Mỗi ngày nghỉ tự ưu tiên sử dụng phép trước.</small>
+                            </div>
+                        </div>
+
+
+                        <div class="settings-grid-two">
+
+                            <label class="form-field settings-number-field">
+                                <span>Phép cộng mỗi tháng</span>
 
                                 <div class="input-shell">
-                                    <i data-lucide="soup"></i>
+                                    <i data-lucide="calendar-plus"></i>
 
                                     <input
                                         type="number"
-                                        id="settingsMealPrice"
+                                        id="settingsMonthlyLeaveAccrual"
                                         min="0"
+                                        step="0.5"
+                                        inputmode="decimal"
+                                        value="1"
+                                    >
+
+                                    <small>ngày</small>
+                                </div>
+                            </label>
+
+                            <label class="form-field settings-number-field">
+                                <span>Số dư phép ban đầu</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="calendar-range"></i>
+
+                                    <input
+                                        type="number"
+                                        id="settingsInitialLeaveBalance"
+                                        min="0"
+                                        step="0.5"
+                                        inputmode="decimal"
+                                        value="0"
+                                    >
+
+                                    <small>ngày</small>
+                                </div>
+                            </label>
+
+                        </div>
+
+
+                        <label class="form-field">
+                            <span>Tháng bắt đầu tính phép</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="calendar-fold"></i>
+                                <input type="month" id="settingsLeaveStartMonth">
+                            </div>
+                        </label>
+
+
+                        <div class="settings-subsection-heading">
+                            <div>
+                                <strong>Bảo hiểm</strong>
+                                <small>Có thể tính theo tỷ lệ hoặc nhập số tiền cố định.</small>
+                            </div>
+                        </div>
+
+
+                        <label class="form-field" for="settingsInsuranceMode">
+                            <span>Cách tính bảo hiểm</span>
+
+                            <select id="settingsInsuranceMode" class="settings-select">
+                                <option value="percentage">Theo mức đóng × tỷ lệ</option>
+                                <option value="fixed">Số tiền cố định</option>
+                                <option value="disabled">Không khấu trừ</option>
+                            </select>
+                        </label>
+
+
+                        <div class="settings-grid-two">
+
+                            <label class="form-field settings-number-field">
+                                <span>Mức lương đóng BH</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="landmark"></i>
+
+                                    <input
+                                        type="number"
+                                        id="settingsInsuranceBase"
+                                        min="0"
+                                        step="1000"
                                         inputmode="numeric"
-                                        value="30000"
+                                        placeholder="0"
                                     >
 
                                     <small>đ</small>
                                 </div>
                             </label>
 
+                            <label class="form-field settings-number-field">
+                                <span>Tỷ lệ bảo hiểm</span>
+
+                                <div class="input-shell">
+                                    <i data-lucide="percent"></i>
+
+                                    <input
+                                        type="number"
+                                        id="settingsInsuranceRate"
+                                        min="0"
+                                        step="0.1"
+                                        inputmode="decimal"
+                                        value="10.5"
+                                    >
+
+                                    <small>%</small>
+                                </div>
+                            </label>
+
+                        </div>
+
+
+                        <label class="form-field settings-number-field">
+                            <span>Số tiền bảo hiểm cố định</span>
+
+                            <div class="input-shell">
+                                <i data-lucide="receipt-cent"></i>
+
+                                <input
+                                    type="number"
+                                    id="settingsInsuranceFixedAmount"
+                                    min="0"
+                                    step="1000"
+                                    inputmode="numeric"
+                                    placeholder="0"
+                                >
+
+                                <small>đ</small>
+                            </div>
+                        </label>
+
+                    </div>
+
+                </section>
+
+
+                <!-- MEAL SETTINGS -->
+                <section class="settings-section">
+
+                    <div class="settings-section-heading">
+                        <span class="settings-section-icon">
+                            <i data-lucide="soup"></i>
+                        </span>
+
+                        <div>
+                            <span>TIỀN CƠM RIÊNG</span>
+                            <h3>Đơn giá và mốc nhận phần cơm</h3>
+                        </div>
+                    </div>
+
+                    <div class="settings-group settings-form-group">
+
+                        <label class="form-field">
+                            <span>Giá một phần cơm</span>
+
+                            <div class="input-shell large-input">
+                                <i data-lucide="soup"></i>
+
+                                <input
+                                    type="number"
+                                    id="settingsMealPrice"
+                                    min="0"
+                                    inputmode="numeric"
+                                    value="30000"
+                                >
+
+                                <small>đ</small>
+                            </div>
+                        </label>
+
+
+                        <div class="payroll-settings-note">
+                            <i data-lucide="info"></i>
+                            <span>
+                                Tiền cơm được báo cáo riêng, không cộng vào tổng thu nhập hoặc thực nhận của bảng lương.
+                            </span>
                         </div>
 
 
@@ -1420,6 +3028,28 @@
                             <h3>Supabase</h3>
                         </div>
                     </div>
+
+                    <div class="settings-sync-card">
+
+                        <span class="settings-sync-icon local" id="settingsSyncIcon">
+                            <i data-lucide="hard-drive"></i>
+                        </span>
+
+                        <span class="settings-sync-copy">
+                            <strong id="settingsSyncStatus">Đang dùng dữ liệu trên máy</strong>
+                            <small id="settingsSyncDetail">Ứng dụng chưa kiểm tra dữ liệu lương, phép và tiền cơm trên Supabase.</small>
+                        </span>
+
+                        <button
+                            type="button"
+                            class="settings-sync-button"
+                            id="settingsSyncButton"
+                        >
+                            Đồng bộ
+                        </button>
+
+                    </div>
+
 
                     <div class="settings-group">
 
@@ -1574,7 +3204,7 @@
     </div>
 
 
-    <script src="script.js"></script>
+    <script src="script.js?v=8.5.1"></script>
 
 </body>
 </html>
