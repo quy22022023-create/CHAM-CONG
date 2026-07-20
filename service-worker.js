@@ -1,12 +1,12 @@
 "use strict";
 
-const CACHE_VERSION = "ot-pro-v8-5-1";
+const CACHE_VERSION = "ot-pro-v8-7-1";
 
 const APP_FILES = [
   "./",
   "./index.html",
-  "./style.css?v=8.5.1",
-  "./script.js?v=8.5.1",
+  "./style.css?v=8.7.1",
+  "./script.js?v=8.7.1",
   "./manifest.json",
   "./image.PNG"
 ];
