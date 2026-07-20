@@ -1,43 +1,88 @@
-const CACHE_NAME = 'ot-pro-v3.4-cache';
-const assetsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap'
+"use strict";
+
+const CACHE_VERSION = "ot-pro-v8-5-1";
+
+const APP_FILES = [
+  "./",
+  "./index.html",
+  "./style.css?v=8.5.1",
+  "./script.js?v=8.5.1",
+  "./manifest.json",
+  "./image.PNG"
 ];
 
-self.addEventListener('install', event => {
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(assetsToCache);
-    })
+    caches
+      .open(CACHE_VERSION)
+      .then(cache => cache.addAll(APP_FILES))
   );
+
   self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
-    })
+    Promise.all([
+      caches.keys().then(cacheNames =>
+        Promise.all(
+          cacheNames
+            .filter(cacheName => cacheName !== CACHE_VERSION)
+            .map(cacheName => caches.delete(cacheName))
+        )
+      ),
+
+      self.clients.claim()
+    ])
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', event => {
-  if (event.request.url.includes('supabase.co')) {
+self.addEventListener("fetch", event => {
+  const request = event.request;
+
+  if (request.method !== "GET") {
     return;
   }
+
+  const requestUrl = new URL(request.url);
+
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request, {
+        cache: "no-store"
+      })
+        .then(async response => {
+          const cache = await caches.open(CACHE_VERSION);
+
+          await cache.put(
+            "./index.html",
+            response.clone()
+          );
+
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
+    );
+
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    fetch(request)
+      .then(async response => {
+        const cache = await caches.open(CACHE_VERSION);
+
+        await cache.put(
+          request,
+          response.clone()
+        );
+
+        return response;
+      })
+      .catch(() => caches.match(request))
   );
 });
