@@ -8429,3 +8429,539 @@ html[data-theme="dark"] .salary-reveal-button {
     transition:none !important;
   }
 }
+
+/* =========================================================
+   SETTINGS V8.7 — FOUR EQUAL HORIZONTAL TABS + AUTO-SAVE UI
+========================================================= */
+
+/* Cài đặt chỉ dùng bốn tab ngang; không còn màn hình danh mục/trang quay lại. */
+.settings-back-button,
+.settings-home-view,
+.settings-category-grid,
+.settings-category-card {
+  display:none !important;
+}
+
+.settings-sheet {
+  padding-bottom:
+    calc(
+      18px +
+      var(--safe-bottom)
+    );
+}
+
+.settings-sheet-header {
+  position:sticky;
+  top:0;
+  z-index:18;
+
+  background:var(--card);
+}
+
+.settings-header-leading {
+  min-width:0;
+
+  display:flex;
+  align-items:center;
+
+  gap:10px;
+}
+
+.settings-header-copy {
+  min-width:0;
+}
+
+.settings-header-copy h2 {
+  overflow:hidden;
+
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+/* Thanh bốn tab luôn cùng chiều rộng và cùng chiều cao. */
+.settings-tab-bar {
+  position:sticky;
+  top:61px;
+  z-index:16;
+
+  width:100%;
+
+  margin-bottom:10px;
+  padding:4px;
+
+  display:grid;
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0,1fr)
+    );
+
+  gap:4px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:16px;
+
+  background:var(--card);
+
+  box-shadow:
+    0 5px 16px
+    rgba(17,24,39,.06);
+}
+
+.settings-tab-button {
+  position:relative;
+
+  width:100%;
+  min-width:0;
+  height:60px;
+  min-height:60px;
+
+  padding:
+    7px
+    3px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap:4px;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius:12px;
+
+  background:transparent;
+  color:var(--sub);
+
+  font-size:
+    calc(
+      7.5px *
+      var(--scale)
+    );
+
+  font-weight:800;
+  line-height:1.08;
+  letter-spacing:-.08px;
+
+  text-align:center;
+  white-space:nowrap;
+
+  transition:
+    background var(--ease),
+    border-color var(--ease),
+    color var(--ease),
+    transform var(--ease);
+}
+
+.settings-tab-button svg {
+  width:18px;
+  height:18px;
+}
+
+.settings-tab-button span {
+  max-width:100%;
+
+  overflow:hidden;
+
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+
+.settings-tab-button:active {
+  transform:scale(.96);
+}
+
+.settings-tab-button.active,
+.settings-tab-button[aria-selected="true"] {
+  border-color:
+    rgba(52,120,246,.18);
+
+  background:var(--blue-soft);
+  color:var(--blue2);
+}
+
+.settings-tab-button.active::after,
+.settings-tab-button[aria-selected="true"]::after {
+  position:absolute;
+
+  right:17%;
+  bottom:3px;
+  left:17%;
+
+  height:2px;
+
+  content:"";
+
+  border-radius:999px;
+
+  background:currentColor;
+  opacity:.82;
+}
+
+.settings-tab-button:focus-visible {
+  border-color:var(--blue);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(52,120,246,.12);
+}
+
+/* Trạng thái lưu tự động: chỉ là thông tin, không tạo thêm nút Lưu. */
+.settings-autosave-status {
+  min-height:36px;
+
+  margin-bottom:10px;
+  padding:
+    8px
+    10px;
+
+  display:flex;
+  align-items:center;
+
+  gap:7px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:12px;
+
+  background:var(--soft);
+  color:var(--sub);
+
+  font-size:
+    calc(
+      7.8px *
+      var(--scale)
+    );
+
+  font-weight:700;
+  line-height:1.35;
+}
+
+.settings-autosave-status svg {
+  width:15px;
+  height:15px;
+}
+
+.settings-autosave-status[data-state="dirty"] {
+  border-color:
+    rgba(243,154,37,.2);
+
+  background:var(--orange-soft);
+  color:var(--orange2);
+}
+
+.settings-autosave-status[data-state="saving"] {
+  border-color:
+    rgba(52,120,246,.2);
+
+  background:var(--blue-soft);
+  color:var(--blue2);
+}
+
+.settings-autosave-status[data-state="saved"] {
+  border-color:
+    rgba(37,182,95,.18);
+
+  background:var(--green-soft);
+  color:var(--green2);
+}
+
+.settings-autosave-status[data-state="local"] {
+  border-color:
+    rgba(243,154,37,.2);
+
+  background:var(--orange-soft);
+  color:var(--orange2);
+}
+
+.settings-autosave-status[data-state="error"] {
+  border-color:
+    rgba(235,75,75,.2);
+
+  background:var(--red-soft);
+  color:var(--red2);
+}
+
+.settings-autosave-status.hidden {
+  display:none !important;
+}
+
+/* Các panel thay đổi ngay dưới thanh tab. */
+.settings-tab-panels,
+.settings-detail-view {
+  width:100%;
+}
+
+.settings-detail-view {
+  display:block;
+}
+
+.settings-tab-panel,
+.settings-detail-page {
+  width:100%;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:14px;
+
+  animation:
+    settings-tab-panel-in
+    .18s
+    ease
+    both;
+}
+
+.settings-tab-panel.hidden,
+.settings-detail-page.hidden {
+  display:none !important;
+}
+
+@keyframes settings-tab-panel-in {
+  from {
+    opacity:0;
+    transform:translateY(4px);
+  }
+
+  to {
+    opacity:1;
+    transform:none;
+  }
+}
+
+/* Intro của panel gọn hơn để giảm độ sâu cuộn. */
+.settings-detail-intro {
+  min-height:60px;
+
+  padding:
+    10px
+    12px;
+
+  display:grid;
+  grid-template-columns:
+    38px
+    minmax(0,1fr);
+
+  align-items:center;
+  gap:10px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:15px;
+
+  background:var(--soft);
+}
+
+.settings-detail-intro-icon {
+  width:38px;
+  height:38px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border-radius:12px;
+}
+
+.settings-detail-intro-copy {
+  min-width:0;
+}
+
+.settings-detail-intro-copy strong,
+.settings-detail-intro-copy small {
+  display:block;
+}
+
+.settings-detail-intro-copy strong {
+  margin-bottom:2px;
+
+  font-size:
+    calc(
+      10.5px *
+      var(--scale)
+    );
+
+  font-weight:800;
+}
+
+.settings-detail-intro-copy small {
+  color:var(--sub);
+
+  font-size:
+    calc(
+      7.6px *
+      var(--scale)
+    );
+
+  line-height:1.4;
+}
+
+.settings-detail-page[data-settings-page="appearance-shift"] .settings-detail-intro-icon {
+  background:var(--blue-soft);
+  color:var(--blue2);
+}
+
+.settings-detail-page[data-settings-page="payroll-allowance"] .settings-detail-intro-icon {
+  background:var(--orange-soft);
+  color:var(--orange2);
+}
+
+.settings-detail-page[data-settings-page="benefits-deductions"] .settings-detail-intro-icon {
+  background:var(--green-soft);
+  color:var(--green2);
+}
+
+.settings-detail-page[data-settings-page="account-data"] .settings-detail-intro-icon {
+  background:var(--purple-soft);
+  color:var(--purple2);
+}
+
+.settings-detail-page .settings-section {
+  gap:9px;
+}
+
+.settings-detail-page .settings-section-heading {
+  padding-inline:2px;
+}
+
+.settings-detail-page .settings-section-heading h3 {
+  line-height:1.25;
+}
+
+.settings-detail-page .settings-group,
+.settings-detail-page .settings-form-group {
+  background:var(--card);
+}
+
+.settings-detail-page .settings-group {
+  box-shadow:var(--shadow);
+}
+
+.settings-detail-page[data-settings-page="appearance-shift"] .settings-section-icon {
+  background:var(--blue-soft);
+  color:var(--blue2);
+}
+
+.settings-detail-page[data-settings-page="payroll-allowance"] .settings-section-icon {
+  background:var(--orange-soft);
+  color:var(--orange2);
+}
+
+.settings-detail-page[data-settings-page="benefits-deductions"] .settings-section-icon {
+  background:var(--green-soft);
+  color:var(--green2);
+}
+
+.settings-detail-page[data-settings-page="account-data"] .settings-section-icon {
+  background:var(--purple-soft);
+  color:var(--purple2);
+}
+
+.settings-detail-page .settings-sync-card {
+  margin-bottom:0;
+}
+
+/* Khi đang thoát/lưu, khóa thao tác nhưng không làm giao diện nhảy. */
+.settings-sheet.is-saving-settings .settings-tab-button,
+.settings-sheet.is-saving-settings input,
+.settings-sheet.is-saving-settings select,
+.settings-sheet.is-saving-settings textarea,
+.settings-sheet.is-saving-settings .modern-switch {
+  pointer-events:none;
+}
+
+.settings-sheet.is-saving-settings {
+  cursor:progress;
+}
+
+html[data-theme="dark"] .settings-sheet-header,
+html[data-theme="dark"] .settings-tab-bar {
+  background:var(--card);
+}
+
+html[data-theme="dark"] .settings-tab-bar,
+html[data-theme="dark"] .settings-detail-page .settings-group {
+  box-shadow:
+    0 8px 22px
+    rgba(0,0,0,.18);
+}
+
+/* Bốn tab vẫn giữ một hàng trên iPhone nhỏ. */
+@media (max-width:390px) {
+  .settings-tab-bar {
+    gap:3px;
+    padding:3px;
+  }
+
+  .settings-tab-button {
+    height:58px;
+    min-height:58px;
+
+    padding:
+      6px
+      2px;
+
+    font-size:
+      calc(
+        7px *
+        var(--scale)
+      );
+  }
+
+  .settings-tab-button svg {
+    width:17px;
+    height:17px;
+  }
+
+  .settings-detail-intro-copy small {
+    font-size:
+      calc(
+        7.2px *
+        var(--scale)
+      );
+  }
+}
+
+@media (max-width:320px) {
+  .settings-tab-button {
+    height:56px;
+    min-height:56px;
+
+    font-size:
+      calc(
+        6.6px *
+        var(--scale)
+      );
+  }
+
+  .settings-tab-button svg {
+    width:16px;
+    height:16px;
+  }
+}
+
+/* Font lớn vẫn giữ tab bằng nhau, không cuộn ngang. */
+html[data-font-size="large"] .settings-tab-button {
+  font-size:8px;
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .settings-tab-panel,
+  .settings-detail-page,
+  .settings-tab-button {
+    animation:none !important;
+    transition:none !important;
+  }
+}
