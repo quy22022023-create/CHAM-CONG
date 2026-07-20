@@ -1,14 +1,14 @@
 "use strict";
 
 // =====================================================
-// OT PRO V8.1 PAYROLL SYNC
+// OT PRO V8.7 SETTINGS TABS
 // Giữ nguyên users, work_logs và extra_shifts.
 // Cài đặt lương, ngày nghỉ và bảng lương đồng bộ với Supabase,
 // đồng thời giữ localStorage làm bộ nhớ dự phòng.
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V8.4 Meal & Salary Privacy";
+const APP_VERSION = "OT Pro V8.7 Settings Tabs";
 
 const SB_URL =
   "https://dtdknettwfgilklaqeae.supabase.co";
@@ -47,6 +47,14 @@ const INSURANCE_MODES =
     "percentage",
     "fixed",
     "disabled"
+  ]);
+
+const SETTINGS_TABS =
+  Object.freeze([
+    "general",
+    "income",
+    "benefits",
+    "account"
   ]);
 
 const appState = {
@@ -102,6 +110,9 @@ const appState = {
   settingsSyncing: false,
   suppressSettingsRemoteSave: false,
   activeSettingsTab: "general",
+  settingsDirty: false,
+  settingsClosing: false,
+  settingsOpenSnapshot: null,
   activePayrollInlineEditor: null,
 
   salaryRevealed: false,
@@ -260,7 +271,7 @@ function bindEvents() {
   on(
     "#settingsLogoutButton",
     "click",
-    logout
+    () => requestCloseSettings({ afterClose: logout })
   );
 
   on(
@@ -623,9 +634,23 @@ function bindEvents() {
 
 
 function bindSettingsEvents() {
-  $$('[data-settings-tab]').forEach(button => {
+  const tabButtons =
+    $$('[data-settings-tab]');
+
+  tabButtons.forEach((button, index) => {
     button.addEventListener("click", () => {
-      setSettingsTab(button.dataset.settingsTab || "general");
+      setSettingsTab(
+        button.dataset.settingsTab || "general",
+        { focus: false }
+      );
+    });
+
+    button.addEventListener("keydown", event => {
+      handleSettingsTabKeydown(
+        event,
+        index,
+        tabButtons
+      );
     });
   });
 
@@ -633,7 +658,7 @@ function bindSettingsEvents() {
     runLockedAction(
       "settingsSupabaseSync",
       ["#settingsSyncButton"],
-      syncAllPayrollDataToSupabase
+      syncSettingsManually
     )
   );
 
@@ -1716,9 +1741,15 @@ function saveSettings() {
     );
 
     if (!appState.suppressSettingsRemoteSave) {
-      scheduleSettingsSupabaseSave();
+      if (isSettingsModalOpen()) {
+        markSettingsDirty();
+      } else {
+        scheduleSettingsSupabaseSave();
+      }
     }
   }
+
+  updateSettingsCategorySummaries();
 }
 
 
@@ -1810,6 +1841,7 @@ function syncSettingsUI() {
   syncSalaryInputs("settings");
   syncMealPriceInputs("settings");
   updateInsuranceSettingsVisibility();
+  updateSettingsCategorySummaries();
 }
 
 
@@ -3049,25 +3081,491 @@ function isMissingPayrollTableError(error) {
 }
 
 
-function setSettingsTab(tabName) {
-  const allowed = new Set(["general", "payroll", "leave", "meal", "account"]);
-  const next = allowed.has(tabName) ? tabName : "general";
+function isSettingsModalOpen() {
+  return Boolean(
+    $("#settingsModal")
+      ?.classList
+      .contains("show")
+  );
+}
 
-  appState.activeSettingsTab = next;
+
+function scrollSettingsToTop() {
+  const list =
+    $("#settingsModal .settings-list");
+
+  list?.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+function setSettingsTab(
+  tabName,
+  {
+    focus = false,
+    scroll = true
+  } = {}
+) {
+  const safeTab =
+    SETTINGS_TABS.includes(tabName)
+      ? tabName
+      : "general";
+
+  appState.activeSettingsTab =
+    safeTab;
 
   $$('[data-settings-tab]').forEach(button => {
-    const active = button.dataset.settingsTab === next;
+    const active =
+      button.dataset.settingsTab === safeTab;
+
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+
+    if (active && focus) {
+      button.focus({ preventScroll: true });
+    }
   });
 
-  $$('[data-settings-panel]').forEach(panel => {
-    const active = panel.dataset.settingsPanel === next;
+  $$('[data-settings-tab-panel]').forEach(panel => {
+    const active =
+      panel.dataset.settingsTabPanel === safeTab;
+
     panel.classList.toggle("hidden", !active);
     panel.classList.toggle("active", active);
+    panel.setAttribute("aria-hidden", String(!active));
   });
 
+  if (scroll) {
+    scrollSettingsToTop();
+  }
+
   refreshIcons();
+}
+
+
+function handleSettingsTabKeydown(
+  event,
+  currentIndex,
+  buttons
+) {
+  if (!buttons.length) {
+    return;
+  }
+
+  let nextIndex = null;
+
+  if (
+    event.key === "ArrowRight" ||
+    event.key === "ArrowDown"
+  ) {
+    nextIndex =
+      (currentIndex + 1) % buttons.length;
+  } else if (
+    event.key === "ArrowLeft" ||
+    event.key === "ArrowUp"
+  ) {
+    nextIndex =
+      (currentIndex - 1 + buttons.length) % buttons.length;
+  } else if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = buttons.length - 1;
+  }
+
+  if (nextIndex === null) {
+    return;
+  }
+
+  event.preventDefault();
+
+  const nextButton =
+    buttons[nextIndex];
+
+  setSettingsTab(
+    nextButton?.dataset.settingsTab || "general",
+    { focus: true }
+  );
+}
+
+
+function setSettingsAutosaveStatus(
+  state,
+  message
+) {
+  const box =
+    $("#settingsAutosaveStatus");
+
+  if (!box) {
+    return;
+  }
+
+  const iconByState = {
+    dirty: "cloud-upload",
+    saving: "loader-circle",
+    saved: "cloud-check",
+    local: "hard-drive",
+    error: "cloud-off"
+  };
+
+  const safeState =
+    state || "saved";
+
+  box.dataset.state =
+    safeState;
+
+  const iconName =
+    iconByState[safeState] ||
+    "cloud-check";
+
+  if (box.dataset.iconState !== iconName) {
+    const icon =
+      box.querySelector("svg, i[data-lucide]");
+
+    if (icon) {
+      icon.outerHTML =
+        `<i data-lucide="${iconName}"></i>`;
+    } else {
+      box.insertAdjacentHTML(
+        "afterbegin",
+        `<i data-lucide="${iconName}"></i>`
+      );
+    }
+
+    box.dataset.iconState =
+      iconName;
+
+    refreshIcons();
+  }
+
+  setText(
+    "#settingsAutosaveText",
+    message
+  );
+}
+
+
+function getSettingsSnapshot() {
+  return JSON.stringify(
+    sanitizeSettings(
+      appState.settings ||
+      {}
+    )
+  );
+}
+
+
+function markSettingsDirty() {
+  if (
+    appState.suppressSettingsRemoteSave ||
+    !isSettingsModalOpen()
+  ) {
+    return;
+  }
+
+  const currentSnapshot =
+    getSettingsSnapshot();
+
+  appState.settingsDirty =
+    currentSnapshot !==
+    appState.settingsOpenSnapshot;
+
+  if (appState.settingsSyncTimer) {
+    window.clearTimeout(
+      appState.settingsSyncTimer
+    );
+
+    appState.settingsSyncTimer = null;
+  }
+
+  if (!appState.settingsDirty) {
+    setSettingsAutosaveStatus(
+      "saved",
+      "Không có thay đổi cần lưu."
+    );
+
+    return;
+  }
+
+  setSettingsAutosaveStatus(
+    "dirty",
+    "Có thay đổi chưa đồng bộ. Bấm X hoặc chạm ra ngoài để lưu và thoát."
+  );
+}
+
+
+function resetSettingsAutosaveState() {
+  appState.settingsDirty = false;
+  appState.settingsClosing = false;
+  appState.settingsOpenSnapshot =
+    getSettingsSnapshot();
+
+  setSettingsAutosaveStatus(
+    "saved",
+    "Thay đổi sẽ tự động lưu khi bạn đóng Cài đặt."
+  );
+}
+
+
+function focusInvalidSetting(
+  tabName,
+  selector,
+  message
+) {
+  setSettingsTab(
+    tabName,
+    { focus: false }
+  );
+
+  window.requestAnimationFrame(() => {
+    const field =
+      $(selector);
+
+    field?.focus();
+    field?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  });
+
+  showToast(message, true);
+}
+
+
+function validateSettingsBeforeClose() {
+  const startTime =
+    $("#defaultShiftStart")?.value ||
+    appState.settings.defaultShiftStart;
+
+  const endTime =
+    $("#defaultShiftEnd")?.value ||
+    appState.settings.defaultShiftEnd;
+
+  if (!isValidTime(startTime)) {
+    focusInvalidSetting(
+      "general",
+      "#defaultShiftStart",
+      "Giờ bắt đầu ca không hợp lệ."
+    );
+
+    return false;
+  }
+
+  if (!isValidTime(endTime)) {
+    focusInvalidSetting(
+      "general",
+      "#defaultShiftEnd",
+      "Giờ kết thúc ca không hợp lệ."
+    );
+
+    return false;
+  }
+
+  const leaveStartMonth =
+    $("#settingsLeaveStartMonth")?.value ||
+    appState.settings.leaveStartMonth;
+
+  if (
+    !/^\d{4}-(0[1-9]|1[0-2])$/
+      .test(leaveStartMonth)
+  ) {
+    focusInvalidSetting(
+      "benefits",
+      "#settingsLeaveStartMonth",
+      "Tháng bắt đầu tính phép không hợp lệ."
+    );
+
+    return false;
+  }
+
+  if (!commitMealThresholdsFromUI()) {
+    setSettingsTab(
+      "benefits",
+      { focus: false }
+    );
+
+    return false;
+  }
+
+  appState.settings.defaultShiftStart =
+    startTime;
+
+  appState.settings.defaultShiftEnd =
+    endTime;
+
+  appState.settings.leaveStartMonth =
+    leaveStartMonth;
+
+  saveSettings();
+  syncSettingsUI();
+
+  return true;
+}
+
+
+async function syncSettingsManually() {
+  try {
+    await syncAllPayrollDataToSupabase();
+
+    appState.settingsDirty = false;
+    appState.settingsOpenSnapshot =
+      getSettingsSnapshot();
+
+    setSettingsAutosaveStatus(
+      "saved",
+      "Đã lưu và đồng bộ Cài đặt lên Supabase."
+    );
+  } catch (error) {
+    setSettingsAutosaveStatus(
+      "local",
+      "Dữ liệu đã lưu trên thiết bị nhưng chưa thể đồng bộ Supabase."
+    );
+
+    throw error;
+  }
+}
+
+
+function updateSettingsCategorySummaries() {
+  // Bản V8.7 dùng bốn tab ngang nên không còn thẻ tóm tắt danh mục.
+}
+
+
+async function requestCloseSettings({
+  afterClose = null
+} = {}) {
+  const modal =
+    $("#settingsModal");
+
+  if (
+    !modal?.classList.contains("show")
+  ) {
+    if (typeof afterClose === "function") {
+      afterClose();
+    }
+
+    return;
+  }
+
+  if (appState.settingsClosing) {
+    return;
+  }
+
+  if (!validateSettingsBeforeClose()) {
+    return;
+  }
+
+  if (appState.settingsSyncTimer) {
+    window.clearTimeout(
+      appState.settingsSyncTimer
+    );
+
+    appState.settingsSyncTimer = null;
+  }
+
+  if (!appState.settingsDirty) {
+    closeModal(
+      "settingsModal",
+      { skipSettingsSave: true }
+    );
+
+    if (typeof afterClose === "function") {
+      afterClose();
+    }
+
+    return;
+  }
+
+  appState.settingsClosing = true;
+
+  const sheet =
+    $("#settingsModal .settings-sheet");
+
+  sheet?.classList.add(
+    "is-saving-settings"
+  );
+
+  setSettingsAutosaveStatus(
+    "saving",
+    "Đang lưu Cài đặt..."
+  );
+
+  let remoteSaved = false;
+
+  try {
+    if (
+      appState.currentUser &&
+      appState.payrollSupabaseAvailable !== false
+    ) {
+      const result =
+        await saveSettingsToSupabase({
+          quiet: true
+        });
+
+      remoteSaved =
+        result?.saved === true;
+    }
+
+    appState.settingsDirty = false;
+    appState.settingsOpenSnapshot =
+      getSettingsSnapshot();
+
+    if (remoteSaved) {
+      setSettingsAutosaveStatus(
+        "saved",
+        "Đã lưu và đồng bộ Cài đặt lên Supabase."
+      );
+
+      showToast(
+        "Đã lưu và đồng bộ Cài đặt."
+      );
+    } else {
+      setSettingsAutosaveStatus(
+        "local",
+        "Đã lưu trên thiết bị, chưa đồng bộ Supabase."
+      );
+
+      showToast(
+        "Đã lưu Cài đặt trên thiết bị."
+      );
+    }
+  } catch (error) {
+    console.error(
+      "Không thể đồng bộ Cài đặt khi đóng:",
+      error
+    );
+
+    appState.settingsDirty = false;
+    appState.settingsOpenSnapshot =
+      getSettingsSnapshot();
+
+    setSettingsAutosaveStatus(
+      "local",
+      "Đã lưu trên thiết bị, sẽ đồng bộ lại khi có kết nối."
+    );
+
+    showToast(
+      "Đã lưu trên thiết bị, chưa thể đồng bộ Supabase.",
+      true
+    );
+  } finally {
+    sheet?.classList.remove(
+      "is-saving-settings"
+    );
+
+    appState.settingsClosing = false;
+  }
+
+  closeModal(
+    "settingsModal",
+    { skipSettingsSave: true }
+  );
+
+  if (typeof afterClose === "function") {
+    afterClose();
+  }
 }
 
 
@@ -3095,6 +3593,7 @@ function setSettingsSyncStatus(state, title, detail) {
     button.textContent = appState.settingsSyncing ? "Đang đồng bộ" : "Đồng bộ";
   }
 
+  updateSettingsCategorySummaries();
   refreshIcons();
 }
 
@@ -3190,7 +3689,8 @@ function scheduleSettingsSupabaseSave() {
   if (
     !appState.currentUser ||
     appState.payrollSupabaseAvailable !== true ||
-    appState.suppressSettingsRemoteSave
+    appState.suppressSettingsRemoteSave ||
+    isSettingsModalOpen()
   ) {
     return;
   }
@@ -3217,14 +3717,15 @@ function scheduleSettingsSupabaseSave() {
 
 async function saveSettingsToSupabase({ quiet = false } = {}) {
   if (!appState.currentUser) {
-    return;
+    return { saved: false, reason: "no-user" };
   }
 
   if (appState.payrollSupabaseAvailable === false) {
     if (!quiet) {
       throw new Error("Chưa có các bảng dữ liệu lương trên Supabase.");
     }
-    return;
+
+    return { saved: false, reason: "unavailable" };
   }
 
   setSettingsSyncStatus(
@@ -3273,6 +3774,8 @@ async function saveSettingsToSupabase({ quiet = false } = {}) {
   if (!quiet) {
     showToast("Đã đồng bộ cài đặt lên Supabase.");
   }
+
+  return { saved: true };
 }
 
 
@@ -8160,7 +8663,7 @@ function renderSalary() {
   setText("#payrollFuelMoney", formatPayrollMoney(result.fuelMoney));
   setText(
     "#payrollFuelFormula",
-    `${formatNumber(result.monthlyKm)} km × ${formatPayrollMoney(result.fuelRate)}/km`
+    `${formatNumber(result.monthlyKm)} km giao hàng × ${formatPayrollMoney(result.fuelRate)}/km`
   );
 
   setText(
@@ -8776,7 +9279,7 @@ function renderMeal() {
 function openMealReceiptConfirmation(weekStart) {
   if (appState.mealReceiptSupabaseAvailable === false) {
     showToast(
-      "Chưa có bảng meal_weekly_receipts. Hãy chạy file SQL V8.4 trên Supabase.",
+      "Chưa có bảng meal_weekly_receipts. Hãy chạy file SQL nhận tiền cơm theo tuần trên Supabase.",
       true
     );
     return;
@@ -8857,7 +9360,7 @@ async function confirmMealReceiptAction() {
       appState.mealReceiptSupabaseAvailable = false;
       renderMeal();
       throw new Error(
-        "Chưa có bảng meal_weekly_receipts. Hãy chạy file SQL V8.4 trước."
+        "Chưa có bảng meal_weekly_receipts. Hãy chạy file SQL nhận tiền cơm theo tuần trước."
       );
     }
 
@@ -8972,7 +9475,11 @@ function openSettings() {
   closeAppMenu();
 
   syncSettingsUI();
-  setSettingsTab(appState.activeSettingsTab || "general");
+  resetSettingsAutosaveState();
+  setSettingsTab(
+    "general",
+    { focus: false, scroll: false }
+  );
   refreshSettingsSyncStatus();
 
   setConnectionStatus(
@@ -9020,8 +9527,19 @@ function openModal(
 
 
 function closeModal(
-  id
+  id,
+  {
+    skipSettingsSave = false
+  } = {}
 ) {
+  if (
+    id === "settingsModal" &&
+    !skipSettingsSave
+  ) {
+    requestCloseSettings();
+    return;
+  }
+
   const modal =
     document.getElementById(
       id
@@ -9050,6 +9568,14 @@ function closeModal(
 
   if (id === "salaryModal") {
     setSalaryPrivacyState(false);
+  }
+
+  if (id === "settingsModal") {
+    resetSettingsAutosaveState();
+    setSettingsTab(
+      "general",
+      { focus: false, scroll: false }
+    );
   }
 
   if (id === "mealReceiptConfirmModal") {
