@@ -9,12 +9,12 @@
 <meta content="#111827" name="theme-color"/>
 <title>OT Pro</title>
 <link href="manifest.json" rel="manifest"/>
-<link href="./image.PNG" rel="icon" type="image/png"/>
-<link href="./image.PNG" rel="apple-touch-icon"/>
+<link href="./icon-192.png" rel="icon" type="image/png"/>
+<link href="./apple-touch-icon.png" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-<link href="style.css?v=8.7.1" rel="stylesheet"/>
+<link href="style.css" rel="stylesheet"/>
 </head>
 <body>
 <!-- LOADING -->
@@ -221,11 +221,23 @@
 <strong class="today-total-value" id="todayOT">0h</strong>
 </section>
 <!-- MONTH TOTAL / COMPATIBILITY METRICS -->
-<section aria-label="Tổng OT tháng hiện tại" class="home-secondary-section">
-<span id="monthlyOT">0h</span>
-<span id="todayMainOT">0h</span>
-<span id="todayExtraOT">0h</span>
-<span id="todayExtraCount">0 ca đã hoàn tất</span>
+<section aria-label="Tổng OT và tiền OT tạm tính tháng hiện tại" class="home-secondary-section">
+<div class="monthly-ot-leading">
+<div class="monthly-ot-icon">
+<i data-lucide="chart-no-axes-combined"></i>
+</div>
+<div class="monthly-ot-copy">
+<span>OT THÁNG NÀY</span>
+<small>Tiền OT tạm tính theo bảng lương tháng</small>
+</div>
+</div>
+<div class="monthly-ot-values">
+<strong id="monthlyOT">0h</strong>
+<span id="monthlyOTMoney">≈ 0₫</span>
+</div>
+<span class="home-compat-metric" id="todayMainOT">0h</span>
+<span class="home-compat-metric" id="todayExtraOT">0h</span>
+<span class="home-compat-metric" id="todayExtraCount">0 ca đã hoàn tất</span>
 </section>
 </main>
 <footer class="app-footer">
@@ -666,6 +678,16 @@
 <span>CÔNG HƯỞNG LƯƠNG</span>
 <strong id="payrollQuickPaidDays">26 công</strong>
 </article>
+</div>
+<div class="salary-compare-launch salary-insight-launch">
+<button class="secondary-primary-button salary-compare-button" id="openSalaryCompareButton" type="button">
+<i data-lucide="git-compare-arrows"></i>
+<span>So sánh</span>
+</button>
+<button class="secondary-primary-button salary-chart-button" id="openSalaryChartButton" type="button">
+<i data-lucide="chart-no-axes-combined"></i>
+<span>Biểu đồ</span>
+</button>
 </div>
 <section class="payroll-section">
 <header class="payroll-section-header">
@@ -1401,7 +1423,7 @@
 <div class="settings-group settings-form-group payroll-settings-group">
 <div class="settings-grid-two">
 <label class="form-field settings-number-field">
-<span>Lương cơ bản</span>
+<span>Lương cơ bản hiện tại</span>
 <div class="input-shell">
 <i data-lucide="banknote"></i>
 <input id="settingsBaseSalary" inputmode="numeric" min="0" placeholder="Nhập lương cơ bản" step="1000" type="number">
@@ -1438,6 +1460,63 @@
 <span>
                                 Mặc định mỗi tháng đủ 26 công. Ngày không có dữ liệu tăng ca vẫn được tính công; chỉ giảm công khi bạn đánh dấu nghỉ và đã sử dụng hết phép năm.
                             </span>
+</div>
+<div class="salary-history-settings income-history-settings">
+<div class="settings-subsection-heading salary-history-heading">
+<div>
+<strong>Lịch sử thu nhập</strong>
+<small>Ghi lại từng khoản thay đổi theo tháng hiệu lực để biết thu nhập tăng ở đâu.</small>
+</div>
+<span class="salary-history-current-pill" id="salaryHistoryCurrentValue">Chưa thiết lập</span>
+</div>
+<div class="salary-history-editor income-history-editor">
+<label class="form-field">
+<span>Hiệu lực từ tháng</span>
+<div class="input-shell">
+<i data-lucide="calendar-range"></i>
+<input id="salaryHistoryEffectiveMonth" type="month">
+</input></div>
+</label>
+<label class="form-field">
+<span>Khoản thay đổi</span>
+<div class="input-shell">
+<i data-lucide="list-filter"></i>
+<select id="incomeHistoryField">
+<option value="baseSalary">Lương cơ bản</option>
+<option value="mainAllowance">Phụ cấp</option>
+<option value="otherAllowance">Phụ cấp khác</option>
+<option value="attendanceAllowance">Phụ cấp chuyên cần</option>
+<option value="responsibilityAllowance">Phụ cấp trách nhiệm</option>
+<option value="fuelRate">Đơn giá giao hàng</option>
+<option value="otMultiplier">Hệ số OT</option>
+<option value="insuranceBase">Mức lương đóng bảo hiểm</option>
+<option value="insuranceRate">Tỷ lệ bảo hiểm</option>
+<option value="insuranceFixedAmount">Bảo hiểm cố định</option>
+<option value="standardWorkDays">Ngày công tiêu chuẩn</option>
+<option value="standardHours">Giờ tiêu chuẩn/ngày</option>
+</select>
+</div>
+</label>
+<label class="form-field income-history-value-field">
+<span>Giá trị mới</span>
+<div class="input-shell">
+<i data-lucide="badge-dollar-sign"></i>
+<input id="incomeHistoryValue" inputmode="decimal" min="0" placeholder="Nhập giá trị mới" step="0.1" type="number">
+<small id="incomeHistoryValueUnit">đ</small>
+</input></div>
+</label>
+<button class="secondary-primary-button salary-history-add-button" id="addIncomeHistoryButton" type="button">
+<i data-lucide="plus"></i>
+<span>Ghi thay đổi</span>
+</button>
+</div>
+<p class="salary-history-base-hint" id="salaryHistoryBaseHint"></p>
+<div class="salary-history-impact hidden" id="salaryHistoryImpactStatus">
+<i data-lucide="triangle-alert"></i>
+<span id="salaryHistoryImpactText"></span>
+<button class="salary-history-resolve-button" id="salaryHistoryResolveButton" type="button">Xử lý</button>
+</div>
+<div class="salary-history-list" id="salaryHistoryList"></div>
 </div>
 </div>
 </section>
@@ -1843,6 +1922,230 @@
 </div></div></div>
 </section>
 </div>
-<script src="script.js?v=8.7.1"></script>
+<!-- RETROACTIVE SALARY REVISION MODAL -->
+<div class="modal elevated-modal" id="salaryRevisionModal">
+<div class="modal-backdrop"></div>
+<section aria-labelledby="salaryRevisionTitle" aria-modal="true" class="bottom-sheet salary-revision-sheet" role="dialog">
+<div class="sheet-handle"></div>
+<header class="sheet-header">
+<div>
+<span class="sheet-eyebrow">ĐIỀU CHỈNH HỒI TỐ</span>
+<h2 id="salaryRevisionTitle">Thay đổi thu nhập ảnh hưởng tháng đã lưu</h2>
+</div>
+<button aria-label="Để xử lý sau" class="close-button" id="salaryRevisionLaterButton" type="button">
+<i data-lucide="x"></i>
+</button>
+</header>
+<p class="salary-revision-summary" id="salaryRevisionSummary"></p>
+<div class="salary-revision-list" id="salaryRevisionList"></div>
+<div class="salary-revision-total-card">
+<span>CHÊNH LỆCH ƯỚC TÍNH</span>
+<strong id="salaryRevisionTotal">0₫</strong>
+</div>
+<div class="salary-revision-choice">
+<button class="salary-revision-option" id="salaryRevisionUpdatePastButton" type="button">
+<span class="salary-revision-option-icon update"><i data-lucide="history"></i></span>
+<span>
+<strong>Cập nhật tháng đã lưu</strong>
+<small>Tính lại các khoản chịu ảnh hưởng theo cấu hình mới, nhưng giữ nguyên OT/phép và dữ liệu phát sinh đã chốt của từng tháng.</small>
+</span>
+</button>
+<button class="salary-revision-option primary" id="salaryRevisionCarryForwardButton" type="button">
+<span class="salary-revision-option-icon carry"><i data-lucide="corner-down-right"></i></span>
+<span>
+<strong>Ghi chênh lệch vào tháng này</strong>
+<small id="salaryRevisionCarryForwardText">Đưa phần chênh lệch vào khoản cộng hoặc khoản trừ của tháng hiện tại.</small>
+</span>
+</button>
+</div>
+<div class="salary-revision-footnote">
+<i data-lucide="shield-check"></i>
+<span>App không tự thay đổi bảng lương đã chốt. Bạn luôn chọn cách xử lý phần chênh lệch do thay đổi cấu hình thu nhập.</span>
+</div>
+</section>
+</div>
+
+<!-- SALARY CHART MODAL -->
+<div class="modal elevated-modal" id="salaryChartModal">
+<div class="modal-backdrop" data-close-modal="salaryChartModal"></div>
+<section aria-labelledby="salaryChartTitle" aria-modal="true" class="bottom-sheet large-sheet salary-chart-sheet" role="dialog">
+<div class="sheet-handle"></div>
+<header class="sheet-header">
+<div>
+<span class="sheet-eyebrow">XU HƯỚNG THU NHẬP</span>
+<h2 id="salaryChartTitle">Biểu đồ 12 tháng</h2>
+</div>
+<button aria-label="Đóng biểu đồ" class="close-button" id="salaryChartCloseButton" type="button">
+<i data-lucide="x"></i>
+</button>
+</header>
+<div class="salary-chart-year-nav">
+<button aria-label="Năm trước" id="salaryChartPrevYear" type="button">
+<i data-lucide="chevron-left"></i>
+</button>
+<strong id="salaryChartYearLabel">Năm ----</strong>
+<button aria-label="Năm sau" id="salaryChartNextYear" type="button">
+<i data-lucide="chevron-right"></i>
+</button>
+</div>
+<div aria-label="Chọn dữ liệu biểu đồ" class="salary-chart-metric-tabs" role="tablist">
+<button aria-selected="true" class="active" data-salary-chart-metric="ot-hours" role="tab" type="button">
+<i data-lucide="timer"></i>
+<span>Giờ OT</span>
+</button>
+<button aria-selected="false" data-salary-chart-metric="ot-money" role="tab" type="button">
+<i data-lucide="badge-dollar-sign"></i>
+<span>Tiền OT</span>
+</button>
+<button aria-selected="false" data-salary-chart-metric="net-income" role="tab" type="button">
+<i data-lucide="wallet-cards"></i>
+<span>Thực nhận</span>
+</button>
+</div>
+<div class="salary-chart-loading hidden" id="salaryChartLoading">
+<div class="loading-spinner"></div>
+<span>Đang tải dữ liệu 12 tháng...</span>
+</div>
+<div class="salary-chart-content" id="salaryChartContent">
+<div class="salary-chart-summary-grid">
+<article class="salary-chart-summary-card">
+<span>TỔNG CẢ NĂM</span>
+<strong id="salaryChartTotal">--</strong>
+<small id="salaryChartTotalHint">Theo dữ liệu hiện có</small>
+</article>
+<article class="salary-chart-summary-card">
+<span>CAO NHẤT</span>
+<strong id="salaryChartMax">--</strong>
+<small id="salaryChartMaxMonth">--</small>
+</article>
+<article class="salary-chart-summary-card">
+<span>TRUNG BÌNH</span>
+<strong id="salaryChartAverage">--</strong>
+<small id="salaryChartAverageHint">Trên các tháng có dữ liệu</small>
+</article>
+</div>
+<section class="salary-chart-card">
+<div class="salary-chart-card-header">
+<div>
+<span id="salaryChartMetricEyebrow">GIỜ TĂNG CA</span>
+<strong id="salaryChartMetricTitle">Xu hướng OT theo tháng</strong>
+</div>
+<small>Chạm vào một điểm để xem chi tiết</small>
+</div>
+<div class="salary-chart-canvas" id="salaryChartCanvas"></div>
+<div class="salary-chart-legend">
+<span><i class="salary-chart-legend-dot saved"></i>Đã chốt</span>
+<span><i class="salary-chart-legend-dot estimate"></i>Ước tính / dữ liệu hiện tại</span>
+</div>
+</section>
+<article class="salary-chart-detail" id="salaryChartDetail">
+<div class="salary-chart-detail-icon">
+<i data-lucide="mouse-pointer-click"></i>
+</div>
+<div class="salary-chart-detail-copy">
+<span id="salaryChartSelectedMonth">Chọn một tháng</span>
+<strong id="salaryChartSelectedValue">--</strong>
+<small id="salaryChartSelectedStatus">Chạm vào điểm trên biểu đồ để xem số liệu.</small>
+</div>
+</article>
+<div class="salary-chart-note">
+<i data-lucide="info"></i>
+<span>Giờ OT lấy từ dữ liệu chấm công. Tiền OT và Thực nhận của tháng chưa lưu bảng lương được hiển thị dưới dạng tạm tính.</span>
+</div>
+</div>
+</section>
+</div>
+
+<!-- SALARY COMPARISON MODAL -->
+<div class="modal elevated-modal" id="salaryCompareModal">
+<div class="modal-backdrop"></div>
+<section aria-labelledby="salaryCompareTitle" aria-modal="true" class="bottom-sheet large-sheet salary-compare-sheet" role="dialog">
+<div class="sheet-handle"></div>
+<header class="sheet-header">
+<div>
+<span class="sheet-eyebrow">SO SÁNH THU NHẬP</span>
+<h2 id="salaryCompareTitle">So sánh hai tháng</h2>
+</div>
+<button aria-label="Đóng so sánh" class="close-button" id="salaryCompareCloseButton" type="button">
+<i data-lucide="x"></i>
+</button>
+</header>
+<div class="salary-compare-controls">
+<div class="salary-compare-current">
+<span>Tháng đang xem</span>
+<strong id="salaryCompareCurrentMonth">Tháng --/----</strong>
+</div>
+<label class="form-field">
+<span>So với tháng</span>
+<div class="input-shell">
+<i data-lucide="calendar-range"></i>
+<input id="salaryCompareMonth" type="month">
+</div>
+</label>
+<label class="salary-compare-toggle">
+<input id="salaryCompareChangedOnly" type="checkbox" checked>
+<span>Chỉ hiện khoản có thay đổi</span>
+</label>
+<button class="secondary-primary-button" id="salaryCompareRunButton" type="button">
+<i data-lucide="git-compare-arrows"></i>
+<span>So sánh</span>
+</button>
+</div>
+<div class="salary-compare-loading hidden" id="salaryCompareLoading">
+<div class="loading-spinner"></div>
+<span>Đang chuẩn bị dữ liệu hai tháng...</span>
+</div>
+<div class="salary-compare-content" id="salaryCompareContent">
+<div class="salary-compare-summary-grid">
+<article class="salary-compare-summary-card">
+<span>THỰC NHẬN</span>
+<strong id="salaryCompareNetDiff">0₫</strong>
+<small id="salaryCompareNetPercent">0%</small>
+</article>
+<article class="salary-compare-summary-card">
+<span>TỔNG THU NHẬP</span>
+<strong id="salaryCompareIncomeDiff">0₫</strong>
+<small>Chênh lệch hai tháng</small>
+</article>
+<article class="salary-compare-summary-card">
+<span>KHẤU TRỪ</span>
+<strong id="salaryCompareDeductionDiff">0₫</strong>
+<small>Chênh lệch hai tháng</small>
+</article>
+</div>
+<section class="salary-compare-section">
+<header>
+<div>
+<span>THAY ĐỔI CẤU HÌNH</span>
+<strong>Tăng ở khoản nào?</strong>
+</div>
+<small>So sánh chính sách áp dụng của hai tháng.</small>
+</header>
+<div class="salary-compare-list" id="salaryComparePolicyList"></div>
+</section>
+<section class="salary-compare-section">
+<header>
+<div>
+<span>CHÊNH LỆCH BẢNG LƯƠNG</span>
+<strong>Khoản nào làm số tiền khác đi?</strong>
+</div>
+<small>Chênh lệch thực tế gồm cả thay đổi cấu hình và phát sinh OT, công, km.</small>
+</header>
+<div class="salary-compare-list" id="salaryComparePayrollList"></div>
+</section>
+<section class="salary-compare-section">
+<header>
+<div>
+<span>BIẾN ĐỘNG THỰC TẾ</span>
+<strong>Khối lượng làm việc</strong>
+</div>
+<small>OT, ngày công và kilomet giao hàng giữa hai tháng.</small>
+</header>
+<div class="salary-compare-list" id="salaryCompareActivityList"></div>
+</section>
+</div>
+</section>
+</div>
+<script src="script.js"></script>
 </body>
 </html>

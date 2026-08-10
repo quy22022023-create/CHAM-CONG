@@ -1,0 +1,70 @@
+OT PRO - BÁO CÁO KIỂM TRA TRƯỚC KHI UP WEB
+===========================================
+Ngày kiểm tra: 10/08/2026
+Nền kiểm tra: bản hiện tại có Lịch sử thu nhập + So sánh tháng + Biểu đồ 12 tháng
+APP_VERSION trong code được giữ nguyên: OT Pro V8.7 Settings Tabs
+
+A. KIỂM TRA CẤU TRÚC
+--------------------
+PASS - script.js không có lỗi cú pháp (node --check).
+PASS - service-worker.js không có lỗi cú pháp.
+PASS - style.css parse không có lỗi.
+PASS - Không có HTML id bị trùng.
+PASS - Không có id mà JS gọi trực tiếp nhưng HTML bị thiếu.
+PASS - Tất cả data-close-modal đều trỏ tới modal tồn tại.
+PASS - Tất cả aria-controls đều trỏ tới phần tử tồn tại.
+PASS - Không còn file local nào được HTML tham chiếu nhưng bị thiếu.
+PASS - manifest.json hợp lệ.
+
+B. SMOKE TEST GIAO DIỆN MOBILE 390x844
+--------------------------------------
+PASS - Màn hình chính mở bình thường.
+PASS - Lịch sử chấm công mở được và chuyển sang Danh sách được.
+PASS - Tiền cơm mở được.
+PASS - Thu nhập cá nhân mở được.
+PASS - Mở khóa bảng lương được.
+PASS - So sánh hai tháng mở được.
+PASS - Biểu đồ mở được và chuyển metric được.
+PASS - Cài đặt mở được và chuyển các tab General/Income/Benefits/Account được.
+PASS - Không phát sinh page error/console error trong smoke test.
+PASS - Không phát sinh tràn ngang viewport ở các màn đã kiểm tra.
+
+Ghi chú: smoke test dùng Supabase giả lập để không đụng dữ liệu thật.
+
+C. TEST LOGIC NGHIỆP VỤ QUAN TRỌNG
+-----------------------------------
+PASS - Ca thêm 23:00 -> 01:00 được hiểu là ca qua ngày kế tiếp.
+PASS - Ca thêm 23:00 -> 01:00 tính đúng 2 giờ.
+PASS - Ca 17:00 -> 00:30 vẫn nhận đúng mốc 2 phần cơm mặc định.
+PASS - Ca chính 07:45 -> 19:00 ngày thường tính 2 giờ OT với cấu hình mặc định.
+PASS - Tăng lương hiệu lực 09/2026 không làm tháng 08/2026 dùng nhầm mức mới.
+PASS - Tháng 09/2026 nhận đúng mức lương mới.
+PASS - Một mốc lịch sử có thể ghi thay đổi nhiều khoản (ví dụ lương cơ bản + phụ cấp trách nhiệm).
+PASS - Bảng lương đã chốt không báo nguồn đổi nếu OT/phép nguồn không đổi.
+PASS - Bảng lương phát hiện được khi OT nguồn thay đổi.
+PASS - Biểu đồ xử lý được trường hợp dữ liệu toàn 0, không chia cho 0.
+
+D. PWA / GÓI WEB ĐÃ BỔ SUNG
+----------------------------
+Đã bổ sung:
+- manifest.json
+- service-worker.js
+- icon-192.png
+- icon-512.png
+- apple-touch-icon.png
+- image.PNG (giữ tương thích tên file cũ)
+
+Service worker chỉ cache file tĩnh cùng domain. Dữ liệu Supabase/API không bị cache để tránh hiển thị dữ liệu nghiệp vụ cũ.
+
+E. NHỮNG ĐIỂM CHƯA THỂ XÁC NHẬN 100% BẰNG GÓI SOURCE
+----------------------------------------------------
+1. Không chạy thao tác ghi/xóa thử trên Supabase production để tránh làm thay đổi dữ liệu thật.
+2. Database hiện tại phải tiếp tục có đúng các bảng/cột/constraint mà app đang sử dụng.
+3. App vẫn tải Google Fonts, Supabase JS và Lucide từ CDN bên ngoài. Nếu CDN bị chặn trong lần tải đầu, một phần app có thể không hoạt động đúng.
+4. Cơ chế đăng nhập hiện tại vẫn dùng bảng users và so sánh password từ client. Đây là rủi ro bảo mật đã biết; chưa chuyển sang Supabase Auth/RLS vì đó là thay đổi backend lớn và không nằm trong yêu cầu đóng gói này.
+5. Gói này không kèm SQL schema/database migration vì người dùng đã quyết định chưa làm phần đó.
+
+F. KẾT LUẬN
+-----------
+Bản source hiện tại đạt điều kiện kỹ thuật để upload lên static web host bằng cùng database Supabase hiện tại.
+Khuyến nghị host qua HTTPS để service worker/PWA hoạt động đầy đủ.

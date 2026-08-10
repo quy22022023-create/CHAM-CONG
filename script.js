@@ -49,6 +49,54 @@ const INSURANCE_MODES =
     "disabled"
   ]);
 
+const INCOME_POLICY_NUMERIC_FIELDS = Object.freeze([
+  "baseSalary",
+  "standardWorkDays",
+  "standardHours",
+  "otMultiplier",
+  "mainAllowance",
+  "otherAllowance",
+  "attendanceAllowance",
+  "responsibilityAllowance",
+  "fuelRate",
+  "insuranceBase",
+  "insuranceRate",
+  "insuranceFixedAmount"
+]);
+
+const INCOME_POLICY_MODE_FIELDS = Object.freeze([
+  "mainAllowanceMode",
+  "otherAllowanceMode",
+  "attendanceAllowanceMode",
+  "responsibilityAllowanceMode",
+  "insuranceMode"
+]);
+
+const INCOME_POLICY_FIELDS = Object.freeze([
+  ...INCOME_POLICY_NUMERIC_FIELDS,
+  ...INCOME_POLICY_MODE_FIELDS
+]);
+
+const INCOME_POLICY_META = Object.freeze({
+  baseSalary: { label: "Lương cơ bản", unit: "đ", kind: "money" },
+  standardWorkDays: { label: "Ngày công tiêu chuẩn", unit: "công", kind: "number" },
+  standardHours: { label: "Giờ tiêu chuẩn/ngày", unit: "giờ", kind: "number" },
+  otMultiplier: { label: "Hệ số OT", unit: "lần", kind: "number" },
+  mainAllowance: { label: "Phụ cấp", unit: "đ", kind: "money" },
+  otherAllowance: { label: "Phụ cấp khác", unit: "đ", kind: "money" },
+  attendanceAllowance: { label: "Phụ cấp chuyên cần", unit: "đ", kind: "money" },
+  responsibilityAllowance: { label: "Phụ cấp trách nhiệm", unit: "đ", kind: "money" },
+  fuelRate: { label: "Đơn giá giao hàng", unit: "đ/km", kind: "money-rate" },
+  insuranceBase: { label: "Mức lương đóng bảo hiểm", unit: "đ", kind: "money" },
+  insuranceRate: { label: "Tỷ lệ bảo hiểm", unit: "%", kind: "number" },
+  insuranceFixedAmount: { label: "Bảo hiểm cố định", unit: "đ", kind: "money" },
+  mainAllowanceMode: { label: "Cách tính phụ cấp", unit: "", kind: "mode" },
+  otherAllowanceMode: { label: "Cách tính phụ cấp khác", unit: "", kind: "mode" },
+  attendanceAllowanceMode: { label: "Cách tính chuyên cần", unit: "", kind: "mode" },
+  responsibilityAllowanceMode: { label: "Cách tính trách nhiệm", unit: "", kind: "mode" },
+  insuranceMode: { label: "Cách tính bảo hiểm", unit: "", kind: "mode" }
+});
+
 const SETTINGS_TABS =
   Object.freeze([
     "general",
@@ -117,13 +165,20 @@ const appState = {
 
   salaryRevealed: false,
   salaryRevealToken: 0,
+  salaryComparison: null,
+  salaryChartYear: new Date().getFullYear(),
+  salaryChartMetric: "ot-hours",
+  salaryChartData: null,
+  salaryChartSelectedIndex: null,
 
   mealReportRowsByMonth: {},
   mealReportLoadedMonths: new Set(),
   mealReportRequestTokens: {},
   mealReceipts: {},
   mealReceiptSupabaseAvailable: null,
-  selectedMealReceiptWeek: null
+  selectedMealReceiptWeek: null,
+
+  pendingSalaryRevisions: []
 };
 
 const $ =
@@ -507,7 +562,14 @@ function bindEvents() {
   on(
     "#detailStartTime",
     "input",
-    calculateDetailMainOT
+    () => {
+      calculateDetailMainOT();
+
+      suggestMealCount(
+        $("#detailEndTime")
+          ?.value || ""
+      );
+    }
   );
 
   on(
@@ -723,6 +785,7 @@ function bindSettingsEvents() {
   Object.entries(numericSettings).forEach(([selector, key]) => {
     on(selector, "input", event => {
       const raw = event.target.value;
+      const previousValue = appState.settings[key];
 
       if (["standardWorkDays", "standardHours", "otMultiplier"].includes(key)) {
         appState.settings[key] =
@@ -741,6 +804,16 @@ function bindSettingsEvents() {
           sanitizeNonNegativeNumber(raw);
       }
 
+      if (
+        key === "baseSalary" &&
+        !sanitizeSalaryHistory(appState.settings.salaryHistory).length &&
+        !hasGeneralIncomeHistory(appState.settings)
+      ) {
+        appState.settings.salaryHistoryBaseAmount =
+          appState.settings.baseSalary;
+      }
+
+      trackCurrentIncomePolicySettingChange(key, appState.settings[key], previousValue);
       saveSettings();
 
       if (key === "mealPrice") {
@@ -756,6 +829,8 @@ function bindSettingsEvents() {
       if (key.startsWith("insurance")) {
         updateInsuranceSettingsVisibility();
       }
+
+      renderDashboard();
     });
   });
 
@@ -769,7 +844,9 @@ function bindSettingsEvents() {
 
   Object.entries(selectSettings).forEach(([selector, key]) => {
     on(selector, "change", event => {
+      const previousValue = appState.settings[key];
       appState.settings[key] = event.target.value;
+      trackCurrentIncomePolicySettingChange(key, appState.settings[key], previousValue);
       saveSettings();
       resetUnsavedPayrollDraftDefaults();
       updateInsuranceSettingsVisibility();
@@ -793,6 +870,80 @@ function bindSettingsEvents() {
   on("#resetMealThresholdsButton", "click", resetMealThresholds);
   on("#checkConnectionButton", "click", checkSupabaseConnection);
   on("#changePasswordButton", "click", changeCurrentPassword);
+  on("#addIncomeHistoryButton", "click", addIncomeHistoryEntry);
+  on("#incomeHistoryField", "change", updateIncomeHistoryEditor);
+  on("#salaryHistoryResolveButton", "click", openSalaryRevisionModalIfNeeded);
+
+  on("#salaryHistoryList", "click", event => {
+    const button = event.target.closest("[data-delete-income-history]");
+
+    if (!button) {
+      return;
+    }
+
+    deleteIncomeHistoryEntry(button.dataset.deleteIncomeHistory || "");
+  });
+
+  on("#salaryRevisionLaterButton", "click", () => {
+    closeModal("salaryRevisionModal");
+  });
+
+  on("#salaryRevisionUpdatePastButton", "click", () =>
+    runLockedAction(
+      "salaryRevisionUpdatePast",
+      ["#salaryRevisionUpdatePastButton", "#salaryRevisionCarryForwardButton"],
+      applySalaryRevisionToSavedMonths
+    )
+  );
+
+  on("#salaryRevisionCarryForwardButton", "click", () =>
+    runLockedAction(
+      "salaryRevisionCarryForward",
+      ["#salaryRevisionUpdatePastButton", "#salaryRevisionCarryForwardButton"],
+      carrySalaryRevisionToCurrentMonth
+    )
+  );
+
+  on("#openSalaryCompareButton", "click", openSalaryCompare);
+  on("#openSalaryChartButton", "click", openSalaryChart);
+  on("#salaryChartCloseButton", "click", () => closeModal("salaryChartModal"));
+  on("#salaryChartPrevYear", "click", () => changeSalaryChartYear(-1));
+  on("#salaryChartNextYear", "click", () => changeSalaryChartYear(1));
+
+  $$('[data-salary-chart-metric]').forEach(button => {
+    button.addEventListener("click", () => {
+      setSalaryChartMetric(button.dataset.salaryChartMetric || "ot-hours");
+    });
+  });
+
+  on("#salaryChartCanvas", "click", event => {
+    const point = event.target.closest("[data-salary-chart-index]");
+    if (point) {
+      selectSalaryChartPoint(Number(point.dataset.salaryChartIndex));
+    }
+  });
+
+  on("#salaryChartCanvas", "keydown", event => {
+    const point = event.target.closest("[data-salary-chart-index]");
+    if (!point || !["Enter", " "].includes(event.key)) {
+      return;
+    }
+    event.preventDefault();
+    selectSalaryChartPoint(Number(point.dataset.salaryChartIndex));
+  });
+
+  on("#salaryCompareCloseButton", "click", () => closeModal("salaryCompareModal"));
+  on("#salaryCompareRunButton", "click", () =>
+    runLockedAction(
+      "salaryCompare",
+      ["#salaryCompareRunButton"],
+      runSalaryComparison
+    )
+  );
+  on("#salaryCompareChangedOnly", "change", renderLastSalaryComparison);
+  on("#salaryCompareMonth", "change", () => {
+    appState.salaryComparison = null;
+  });
 
   on("#mealThresholdList", "click", event => {
     const deleteButton =
@@ -1451,6 +1602,577 @@ function refreshIcons() {
 // CÀI ĐẶT + BỘ NHỚ DỰ PHÒNG
 // =====================================================
 
+
+function sanitizeSalaryHistory(value) {
+  const unique = new Map();
+
+  (Array.isArray(value) ? value : []).forEach(item => {
+    const effectiveMonth = String(
+      item?.effectiveMonth || item?.effectiveDate || ""
+    ).slice(0, 7);
+    const amount = sanitizeNonNegativeNumber(item?.amount, -1);
+
+    if (
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(effectiveMonth) ||
+      amount < 0
+    ) {
+      return;
+    }
+
+    unique.set(effectiveMonth, {
+      effectiveMonth,
+      amount,
+      createdAt: item?.createdAt || null
+    });
+  });
+
+  return Array.from(unique.values())
+    .sort((a, b) => a.effectiveMonth.localeCompare(b.effectiveMonth));
+}
+
+
+
+
+function sanitizeIncomePolicyValue(key, value, fallback = 0) {
+  if (INCOME_POLICY_MODE_FIELDS.includes(key)) {
+    if (key === "insuranceMode") {
+      return INSURANCE_MODES.includes(value) ? value : "percentage";
+    }
+    return ALLOWANCE_MODES.includes(value) ? value : "fixed";
+  }
+
+  if (["standardWorkDays", "standardHours", "otMultiplier"].includes(key)) {
+    return sanitizePositiveNumber(value, sanitizePositiveNumber(fallback, 1));
+  }
+
+  return sanitizeNonNegativeNumber(value, sanitizeNonNegativeNumber(fallback));
+}
+
+
+function getRawIncomePolicyFromSettings(settings = {}) {
+  const defaults = getDefaultSettings();
+  const result = {};
+
+  INCOME_POLICY_FIELDS.forEach(key => {
+    result[key] = sanitizeIncomePolicyValue(
+      key,
+      settings?.[key],
+      defaults[key]
+    );
+  });
+
+  return result;
+}
+
+
+function sanitizeIncomeHistoryBase(value, fallbackSettings = {}) {
+  const fallback = getRawIncomePolicyFromSettings(fallbackSettings);
+  const source = value && typeof value === "object" && !Array.isArray(value)
+    ? value
+    : {};
+  const result = {};
+
+  INCOME_POLICY_FIELDS.forEach(key => {
+    result[key] = sanitizeIncomePolicyValue(
+      key,
+      source[key],
+      fallback[key]
+    );
+  });
+
+  return result;
+}
+
+
+function sanitizeIncomeHistory(value) {
+  const unique = new Map();
+
+  (Array.isArray(value) ? value : []).forEach(item => {
+    const effectiveMonth = String(
+      item?.effectiveMonth || item?.effectiveDate || ""
+    ).slice(0, 7);
+
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(effectiveMonth)) {
+      return;
+    }
+
+    const rawChanges = item?.changes && typeof item.changes === "object"
+      ? item.changes
+      : {};
+    const changes = {};
+
+    INCOME_POLICY_FIELDS.forEach(key => {
+      if (!Object.prototype.hasOwnProperty.call(rawChanges, key)) {
+        return;
+      }
+
+      changes[key] = sanitizeIncomePolicyValue(key, rawChanges[key]);
+    });
+
+    if (!Object.keys(changes).length) {
+      return;
+    }
+
+    const previous = unique.get(effectiveMonth);
+    unique.set(effectiveMonth, {
+      effectiveMonth,
+      changes: {
+        ...(previous?.changes || {}),
+        ...changes
+      },
+      createdAt: item?.createdAt || previous?.createdAt || null
+    });
+  });
+
+  return Array.from(unique.values())
+    .sort((a, b) => a.effectiveMonth.localeCompare(b.effectiveMonth));
+}
+
+
+function normalizeIncomeHistoryAgainstBase(value, baseSettings = appState.settings?.incomeHistoryBase) {
+  const history = sanitizeIncomeHistory(value);
+  const fallback = getRawIncomePolicyFromSettings(appState.settings || {});
+  const policy = sanitizeIncomeHistoryBase(baseSettings, fallback);
+  const normalized = [];
+
+  history.forEach(item => {
+    const changes = {};
+
+    Object.entries(item.changes || {}).forEach(([key, rawValue]) => {
+      if (!INCOME_POLICY_FIELDS.includes(key)) {
+        return;
+      }
+
+      const value = sanitizeIncomePolicyValue(key, rawValue, policy[key]);
+      const isSame = INCOME_POLICY_MODE_FIELDS.includes(key)
+        ? String(value) === String(policy[key])
+        : Math.abs(Number(value || 0) - Number(policy[key] || 0)) <= 0.0001;
+
+      if (!isSame) {
+        changes[key] = value;
+      }
+
+      policy[key] = value;
+    });
+
+    if (Object.keys(changes).length) {
+      normalized.push({
+        effectiveMonth: item.effectiveMonth,
+        changes,
+        createdAt: item.createdAt || null
+      });
+    }
+  });
+
+  return normalized;
+}
+
+
+function hasGeneralIncomeHistory(settings = appState.settings) {
+  return sanitizeIncomeHistory(settings?.incomeHistory).length > 0;
+}
+
+
+function getIncomePolicyForMonth(monthKey, settings = appState.settings) {
+  const raw = getRawIncomePolicyFromSettings(settings || {});
+  const history = sanitizeIncomeHistory(settings?.incomeHistory);
+
+  if (history.length) {
+    const policy = sanitizeIncomeHistoryBase(settings?.incomeHistoryBase, raw);
+
+    history.forEach(item => {
+      if (item.effectiveMonth <= monthKey) {
+        Object.entries(item.changes).forEach(([key, value]) => {
+          policy[key] = sanitizeIncomePolicyValue(key, value, policy[key]);
+        });
+      }
+    });
+
+    return policy;
+  }
+
+  // Tương thích dữ liệu cũ: lịch sử mức lương chỉ tác động lương cơ bản.
+  const legacySalaryHistory = sanitizeSalaryHistory(settings?.salaryHistory);
+
+  if (legacySalaryHistory.length) {
+    raw.baseSalary = resolveSalaryForMonth(
+      monthKey,
+      legacySalaryHistory,
+      sanitizeNonNegativeNumber(
+        settings?.salaryHistoryBaseAmount,
+        raw.baseSalary
+      )
+    );
+  }
+
+  return raw;
+}
+
+
+function getPolicyBeforeIncomeHistoryMonth(effectiveMonth, settings = appState.settings) {
+  const raw = getRawIncomePolicyFromSettings(settings || {});
+  const history = sanitizeIncomeHistory(settings?.incomeHistory);
+
+  if (!history.length) {
+    if (
+      settings?.incomeHistoryBase &&
+      typeof settings.incomeHistoryBase === "object" &&
+      !Array.isArray(settings.incomeHistoryBase)
+    ) {
+      return sanitizeIncomeHistoryBase(settings.incomeHistoryBase, raw);
+    }
+
+    const legacy = sanitizeSalaryHistory(settings?.salaryHistory);
+    const previousMonthDate = new Date(`${effectiveMonth}-01T00:00:00`);
+    previousMonthDate.setMonth(previousMonthDate.getMonth() - 1);
+    return getIncomePolicyForMonth(getMonthKey(previousMonthDate), settings);
+  }
+
+  const policy = sanitizeIncomeHistoryBase(settings?.incomeHistoryBase, raw);
+
+  history.forEach(item => {
+    if (item.effectiveMonth < effectiveMonth) {
+      Object.entries(item.changes).forEach(([key, value]) => {
+        policy[key] = sanitizeIncomePolicyValue(key, value, policy[key]);
+      });
+    }
+  });
+
+  return policy;
+}
+
+
+function ensureIncomeHistoryInitialized() {
+  if (hasGeneralIncomeHistory(appState.settings)) {
+    return;
+  }
+
+  const raw = getRawIncomePolicyFromSettings(appState.settings || {});
+  const legacy = sanitizeSalaryHistory(appState.settings?.salaryHistory);
+  const existingBase =
+    appState.settings?.incomeHistoryBase &&
+    typeof appState.settings.incomeHistoryBase === "object" &&
+    !Array.isArray(appState.settings.incomeHistoryBase)
+      ? sanitizeIncomeHistoryBase(appState.settings.incomeHistoryBase, raw)
+      : null;
+  const base = existingBase || { ...raw };
+  const history = [];
+
+  if (legacy.length) {
+    base.baseSalary = sanitizeNonNegativeNumber(
+      appState.settings?.salaryHistoryBaseAmount,
+      raw.baseSalary
+    );
+
+    legacy.forEach(item => {
+      history.push({
+        effectiveMonth: item.effectiveMonth,
+        changes: { baseSalary: item.amount },
+        createdAt: item.createdAt || new Date().toISOString()
+      });
+    });
+  }
+
+  appState.settings.incomeHistoryBase = base;
+  appState.settings.incomeHistory = sanitizeIncomeHistory(history);
+
+  // Sau khi đã chuyển dữ liệu lương cũ sang cấu trúc mới, không dùng lại
+  // salaryHistory để tránh các mốc cũ xuất hiện lần hai khi xóa/sửa lịch sử mới.
+  if (legacy.length) {
+    appState.settings.salaryHistory = [];
+  }
+}
+
+
+function applyCurrentIncomePolicyToSettings(settings = appState.settings) {
+  if (!settings || !sanitizeIncomeHistory(settings.incomeHistory).length) {
+    return settings;
+  }
+
+  const policy = getIncomePolicyForMonth(getMonthKey(new Date()), settings);
+
+  INCOME_POLICY_FIELDS.forEach(key => {
+    settings[key] = policy[key];
+  });
+
+  return settings;
+}
+
+
+function upsertIncomeHistoryChange(effectiveMonth, key, value) {
+  if (!INCOME_POLICY_FIELDS.includes(key)) {
+    return false;
+  }
+
+  ensureIncomeHistoryInitialized();
+
+  // Nếu chỉ vừa khởi tạo từ cấu hình hiện tại mà chưa có event nào,
+  // base là trạng thái trước thay đổi đầu tiên.
+  if (!appState.settings.incomeHistoryBase) {
+    appState.settings.incomeHistoryBase = getRawIncomePolicyFromSettings(appState.settings);
+  }
+
+  const history = sanitizeIncomeHistory(appState.settings.incomeHistory);
+  const previousPolicy = getPolicyBeforeIncomeHistoryMonth(effectiveMonth, {
+    ...appState.settings,
+    incomeHistory: history
+  });
+  const normalizedValue = sanitizeIncomePolicyValue(key, value, previousPolicy[key]);
+  const index = history.findIndex(item => item.effectiveMonth === effectiveMonth);
+  const entry = index >= 0
+    ? { ...history[index], changes: { ...history[index].changes } }
+    : { effectiveMonth, changes: {}, createdAt: new Date().toISOString() };
+
+  if (String(normalizedValue) === String(previousPolicy[key])) {
+    delete entry.changes[key];
+  } else {
+    entry.changes[key] = normalizedValue;
+  }
+
+  if (index >= 0) {
+    history.splice(index, 1);
+  }
+
+  if (Object.keys(entry.changes).length) {
+    history.push(entry);
+  }
+
+  appState.settings.incomeHistory = normalizeIncomeHistoryAgainstBase(
+    history,
+    appState.settings.incomeHistoryBase
+  );
+  applyCurrentIncomePolicyToSettings(appState.settings);
+  return true;
+}
+
+
+function trackCurrentIncomePolicySettingChange(key, value, previousValue = value) {
+  if (!INCOME_POLICY_FIELDS.includes(key)) {
+    return false;
+  }
+
+  const hasHistory = hasGeneralIncomeHistory(appState.settings);
+  const hasLegacyHistory =
+    sanitizeSalaryHistory(appState.settings?.salaryHistory).length > 0;
+
+  // Nếu người dùng sửa mức hiện tại trước rồi mới khai báo tháng hiệu lực,
+  // giữ lại cấu hình TRƯỚC lần sửa đầu tiên làm mốc gốc. Nhờ đó các tháng
+  // cũ không bị hiểu nhầm là đã dùng mức mới.
+  if (!hasHistory && !hasLegacyHistory) {
+    if (
+      !appState.settings?.incomeHistoryBase ||
+      typeof appState.settings.incomeHistoryBase !== "object" ||
+      Array.isArray(appState.settings.incomeHistoryBase)
+    ) {
+      const base = getRawIncomePolicyFromSettings(appState.settings || {});
+      base[key] = sanitizeIncomePolicyValue(key, previousValue, base[key]);
+      appState.settings.incomeHistoryBase = sanitizeIncomeHistoryBase(base, base);
+    }
+
+    return false;
+  }
+
+  // Khi lần đầu nâng từ lịch sử lương cũ sang lịch sử thu nhập,
+  // phải chụp giá trị TRƯỚC khi người dùng vừa sửa khoản hiện tại.
+  if (!hasHistory) {
+    const latestValue = appState.settings[key];
+    appState.settings[key] = previousValue;
+    ensureIncomeHistoryInitialized();
+    appState.settings[key] = latestValue;
+  }
+
+  return upsertIncomeHistoryChange(getMonthKey(new Date()), key, value);
+}
+
+
+function getTrackedIncomePolicyFieldsForMonth(monthKey, settings = appState.settings) {
+  const history = sanitizeIncomeHistory(settings?.incomeHistory);
+
+  if (history.length) {
+    return Array.from(new Set(
+      history
+        .filter(item => item.effectiveMonth <= monthKey)
+        .flatMap(item => Object.keys(item.changes || {}))
+    ));
+  }
+
+  const legacy = sanitizeSalaryHistory(settings?.salaryHistory);
+  return legacy.some(item => item.effectiveMonth <= monthKey)
+    ? ["baseSalary"]
+    : [];
+}
+
+
+function getIncomePolicySignatureForMonth(monthKey, settings = appState.settings) {
+  const policy = getIncomePolicyForMonth(monthKey, settings);
+  return INCOME_POLICY_FIELDS
+    .map(key => `${key}:${policy[key]}`)
+    .join("|");
+}
+
+
+function formatIncomePolicyValue(key, value) {
+  const meta = INCOME_POLICY_META[key] || { unit: "", kind: "number" };
+
+  if (meta.kind === "money") {
+    return formatPayrollMoney(value);
+  }
+
+  if (meta.kind === "money-rate") {
+    return `${formatPayrollMoney(value)}/km`;
+  }
+
+  if (meta.kind === "mode") {
+    const labels = {
+      fixed: "Cố định",
+      proportional: "Theo công",
+      monthly: "Theo tháng",
+      disabled: "Không áp dụng",
+      percentage: "Theo tỷ lệ"
+    };
+    return labels[value] || String(value || "");
+  }
+
+  return `${formatNumber(value)}${meta.unit ? ` ${meta.unit}` : ""}`;
+}
+
+
+function getIncomeHistoryDisplayEntries(settings = appState.settings) {
+  const general = sanitizeIncomeHistory(settings?.incomeHistory);
+
+  if (general.length) {
+    return general;
+  }
+
+  return sanitizeSalaryHistory(settings?.salaryHistory).map(item => ({
+    effectiveMonth: item.effectiveMonth,
+    changes: { baseSalary: item.amount },
+    createdAt: item.createdAt || null
+  }));
+}
+
+
+function sanitizeSalaryCarryForwards(value) {
+  const unique = new Map();
+
+  (Array.isArray(value) ? value : []).forEach(item => {
+    const id = String(item?.id || "").trim();
+    const targetMonth = String(item?.targetMonth || "").slice(0, 7);
+    const amount = Number(item?.amount);
+
+    if (
+      !id ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(targetMonth) ||
+      !Number.isFinite(amount) ||
+      Math.abs(amount) < 0.01
+    ) {
+      return;
+    }
+
+    unique.set(id, {
+      id,
+      targetMonth,
+      amount,
+      note: String(item?.note || ""),
+      sourceMonths: Array.isArray(item?.sourceMonths)
+        ? item.sourceMonths
+            .map(month => String(month || "").slice(0, 7))
+            .filter(month => /^\d{4}-(0[1-9]|1[0-2])$/.test(month))
+        : [],
+      createdAt: item?.createdAt || null
+    });
+  });
+
+  return Array.from(unique.values())
+    .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+}
+
+
+function getSalaryCarryForwardsForMonth(monthKey, settings = appState.settings) {
+  return sanitizeSalaryCarryForwards(settings?.salaryCarryForwards)
+    .filter(item => item.targetMonth === monthKey);
+}
+
+
+function applySalaryCarryForwardsToDraft(
+  draft,
+  monthKey,
+  { markDirty = false } = {}
+) {
+  const entries = getSalaryCarryForwardsForMonth(monthKey);
+  const appliedIds = new Set(
+    Array.isArray(draft.appliedSalaryCarryForwardIds)
+      ? draft.appliedSalaryCarryForwardIds
+      : []
+  );
+  let changed = false;
+
+  entries.forEach(entry => {
+    if (appliedIds.has(entry.id)) {
+      return;
+    }
+
+    if (entry.amount > 0) {
+      draft.otherIncome =
+        sanitizeNonNegativeNumber(draft.otherIncome) + entry.amount;
+      draft.otherIncomeNote = [draft.otherIncomeNote, entry.note]
+        .filter(Boolean)
+        .join(" • ");
+    } else {
+      draft.otherDeduction =
+        sanitizeNonNegativeNumber(draft.otherDeduction) + Math.abs(entry.amount);
+      draft.otherDeductionNote = [draft.otherDeductionNote, entry.note]
+        .filter(Boolean)
+        .join(" • ");
+    }
+
+    appliedIds.add(entry.id);
+    changed = true;
+  });
+
+  draft.appliedSalaryCarryForwardIds = Array.from(appliedIds);
+
+  if (changed && markDirty) {
+    draft.dirty = true;
+  }
+
+  return changed;
+}
+
+
+function resolveSalaryForMonth(monthKey, history, baseAmount) {
+  let amount = sanitizeNonNegativeNumber(baseAmount);
+
+  sanitizeSalaryHistory(history).forEach(item => {
+    if (item.effectiveMonth <= monthKey) {
+      amount = item.amount;
+    }
+  });
+
+  return amount;
+}
+
+
+function getEffectiveSalaryForMonth(monthKey, settings = appState.settings) {
+  return sanitizeNonNegativeNumber(
+    getIncomePolicyForMonth(monthKey, settings).baseSalary
+  );
+}
+
+
+function getSalaryHistorySignature(settings = appState.settings) {
+  const history = sanitizeSalaryHistory(settings?.salaryHistory);
+  const base = sanitizeNonNegativeNumber(
+    settings?.salaryHistoryBaseAmount,
+    settings?.baseSalary || 0
+  );
+
+  return `${base}|${history
+    .map(item => `${item.effectiveMonth}:${item.amount}`)
+    .join("|")}`;
+}
+
+
 function getDefaultSettings() {
   const now = new Date();
 
@@ -1462,6 +2184,11 @@ function getDefaultSettings() {
     defaultShiftEnd: "17:00",
 
     baseSalary: 0,
+    salaryHistoryBaseAmount: 0,
+    salaryHistory: [],
+    incomeHistoryBase: null,
+    incomeHistory: [],
+    salaryCarryForwards: [],
     standardWorkDays: 26,
     standardHours: 8,
     otMultiplier: 2,
@@ -1548,6 +2275,8 @@ function loadSettings() {
         : defaults.mealPrice)
   });
 
+  applyCurrentIncomePolicyToSettings(appState.settings);
+
   localStorage.setItem(
     getSettingsKey(),
     JSON.stringify(appState.settings)
@@ -1604,6 +2333,47 @@ function sanitizeSettings(value) {
       ? value.leaveStartMonth
       : defaults.leaveStartMonth;
 
+  const salaryHistory =
+    sanitizeSalaryHistory(value.salaryHistory);
+
+  const incomeHistory =
+    sanitizeIncomeHistory(value.incomeHistory);
+
+  const hasIncomeHistoryBase =
+    value.incomeHistoryBase &&
+    typeof value.incomeHistoryBase === "object" &&
+    !Array.isArray(value.incomeHistoryBase);
+
+  const incomeHistoryBase =
+    (incomeHistory.length || hasIncomeHistoryBase)
+      ? sanitizeIncomeHistoryBase(value.incomeHistoryBase, value)
+      : null;
+
+  const salaryCarryForwards =
+    sanitizeSalaryCarryForwards(value.salaryCarryForwards);
+
+  const rawBaseSalary =
+    sanitizeNonNegativeNumber(value.baseSalary);
+
+  const salaryHistoryBaseAmount =
+    salaryHistory.length
+      ? sanitizeNonNegativeNumber(
+          value.salaryHistoryBaseAmount,
+          rawBaseSalary
+        )
+      : rawBaseSalary;
+
+  const currentSalary =
+    incomeHistory.length
+      ? rawBaseSalary
+      : salaryHistory.length
+        ? resolveSalaryForMonth(
+            getMonthKey(new Date()),
+            salaryHistory,
+            salaryHistoryBaseAmount
+          )
+        : rawBaseSalary;
+
   return {
     themeMode,
     fontSize,
@@ -1621,8 +2391,12 @@ function sanitizeSettings(value) {
         ? value.defaultShiftEnd
         : defaults.defaultShiftEnd,
 
-    baseSalary:
-      sanitizeNonNegativeNumber(value.baseSalary),
+    baseSalary: currentSalary,
+    salaryHistoryBaseAmount,
+    salaryHistory,
+    incomeHistoryBase,
+    incomeHistory,
+    salaryCarryForwards,
 
     standardWorkDays:
       sanitizePositiveNumber(
@@ -1708,6 +2482,8 @@ function saveSettings() {
       appState.settings ||
       {}
     );
+
+  applyCurrentIncomePolicyToSettings(appState.settings);
 
   localStorage.setItem(
     getSettingsKey(),
@@ -1809,6 +2585,7 @@ function syncSettingsUI() {
   setValue("#defaultShiftEnd", settings.defaultShiftEnd);
 
   setValue("#settingsBaseSalary", settings.baseSalary || "");
+  renderSalaryHistorySettings();
   setValue("#settingsStandardWorkDays", settings.standardWorkDays);
   setValue("#settingsStandardHours", settings.standardHours);
   setValue("#settingsOTMultiplier", settings.otMultiplier);
@@ -1842,6 +2619,954 @@ function syncSettingsUI() {
   syncMealPriceInputs("settings");
   updateInsuranceSettingsVisibility();
   updateSettingsCategorySummaries();
+}
+
+
+
+function formatSalaryHistoryMonth(monthKey) {
+  const match = /^(\d{4})-(\d{2})$/.exec(String(monthKey || ""));
+
+  return match
+    ? `Tháng ${Number(match[2])}/${match[1]}`
+    : String(monthKey || "");
+}
+
+
+function updateIncomeHistoryEditor() {
+  const field = $("#incomeHistoryField")?.value || "baseSalary";
+  const meta = INCOME_POLICY_META[field] || INCOME_POLICY_META.baseSalary;
+  const unit = $("#incomeHistoryValueUnit");
+  const input = $("#incomeHistoryValue");
+  const monthKey = $("#salaryHistoryEffectiveMonth")?.value || getMonthKey(new Date());
+  const currentValue = getIncomePolicyForMonth(monthKey)[field];
+
+  if (unit) {
+    unit.textContent = meta.unit || "";
+  }
+
+  if (input) {
+    input.step = ["standardWorkDays", "standardHours", "otMultiplier", "insuranceRate"].includes(field)
+      ? "0.1"
+      : "1000";
+    input.placeholder = `Hiện tại: ${formatIncomePolicyValue(field, currentValue)}`;
+  }
+}
+
+
+function renderSalaryHistorySettings() {
+  const settings = appState.settings || getDefaultSettings();
+  const history = getIncomeHistoryDisplayEntries(settings);
+  const list = $("#salaryHistoryList");
+  const currentMonth = getMonthKey(new Date());
+  const currentPolicy = getIncomePolicyForMonth(currentMonth, settings);
+  const effectiveMonthInput = $("#salaryHistoryEffectiveMonth");
+
+  if (effectiveMonthInput && !effectiveMonthInput.value) {
+    effectiveMonthInput.value = currentMonth;
+  }
+
+  const trackedFieldCount = new Set(
+    history.flatMap(item => Object.keys(item.changes || {}))
+  ).size;
+
+  setText(
+    "#salaryHistoryCurrentValue",
+    history.length
+      ? `${trackedFieldCount} khoản • ${history.length} mốc`
+      : "Chưa thiết lập"
+  );
+
+  setText(
+    "#salaryHistoryBaseHint",
+    history.length
+      ? `Hiện tại: lương cơ bản ${formatPayrollMoney(currentPolicy.baseSalary)}, hệ số OT ${formatNumber(currentPolicy.otMultiplier)}, đơn giá giao hàng ${formatPayrollMoney(currentPolicy.fuelRate)}/km.`
+      : "Chưa có lịch sử. Khi có thay đổi, chọn khoản, tháng hiệu lực và giá trị mới; dữ liệu cũ vẫn được giữ nguyên."
+  );
+
+  if (list) {
+    if (!history.length) {
+      list.innerHTML = `
+        <div class="salary-history-empty">
+          <i data-lucide="history"></i>
+          <span>
+            <strong>Chưa có mốc thay đổi thu nhập</strong>
+            <small>Bạn có thể ghi lương, phụ cấp, hệ số OT, đơn giá giao hàng hoặc bảo hiểm theo tháng hiệu lực.</small>
+          </span>
+        </div>
+      `;
+    } else {
+      list.innerHTML = history
+        .slice()
+        .reverse()
+        .map(item => {
+          const previousPolicy = getPolicyBeforeIncomeHistoryMonth(
+            item.effectiveMonth,
+            settings
+          );
+          const lines = Object.entries(item.changes || {})
+            .map(([key, value]) => {
+              const meta = INCOME_POLICY_META[key] || { label: key };
+              const before = previousPolicy[key];
+              const numeric = Number(value) - Number(before);
+              const diff = Number.isFinite(numeric) && meta.kind !== "mode"
+                ? `<em class="${numeric >= 0 ? "positive" : "negative"}">${numeric >= 0 ? "+" : "−"}${formatIncomePolicyValue(key, Math.abs(numeric))}</em>`
+                : "";
+
+              return `
+                <div class="income-history-change-line">
+                  <span>
+                    <strong>${escapeHTML(meta.label)}</strong>
+                    <small>${escapeHTML(formatIncomePolicyValue(key, before))} → ${escapeHTML(formatIncomePolicyValue(key, value))}</small>
+                  </span>
+                  ${diff}
+                </div>
+              `;
+            })
+            .join("");
+
+          return `
+            <div class="salary-history-row income-history-row">
+              <div class="income-history-row-head">
+                <span class="salary-history-date">
+                  <small>HIỆU LỰC</small>
+                  <strong>${formatSalaryHistoryMonth(item.effectiveMonth)}</strong>
+                </span>
+                <span class="income-history-count">${Object.keys(item.changes || {}).length} khoản thay đổi</span>
+                <button
+                  class="salary-history-delete"
+                  type="button"
+                  data-delete-income-history="${item.effectiveMonth}"
+                  aria-label="Xóa thay đổi thu nhập ${item.effectiveMonth}"
+                >
+                  <i data-lucide="trash-2"></i>
+                </button>
+              </div>
+              <div class="income-history-change-list">${lines}</div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+  }
+
+  const pending = getPendingSalaryRevisions();
+  const impact = $("#salaryHistoryImpactStatus");
+
+  if (impact) {
+    impact.classList.toggle("hidden", !pending.length);
+    setText(
+      "#salaryHistoryImpactText",
+      pending.length
+        ? `${pending.length} bảng lương đã lưu đang dùng cấu hình thu nhập cũ và cần xử lý chênh lệch.`
+        : ""
+    );
+  }
+
+  updateIncomeHistoryEditor();
+  refreshIcons();
+}
+
+
+function applyIncomePolicyToDraft(draft, monthKey, { markDirty = false } = {}) {
+  if (!draft) {
+    return false;
+  }
+
+  const expected = getIncomePolicyForMonth(monthKey);
+  const oldSettings = sanitizeSettings(draft.settingsSnapshot || appState.settings);
+  const oldPolicy = getRawIncomePolicyFromSettings(oldSettings);
+  const baseWasPolicy = Math.abs(Number(draft.baseSalary || 0) - Number(oldPolicy.baseSalary || 0)) <= 0.5;
+  const fuelWasPolicy = Math.abs(Number(draft.fuelRate || 0) - Number(oldPolicy.fuelRate || 0)) <= 0.5;
+  let changed = false;
+
+  INCOME_POLICY_FIELDS.forEach(key => {
+    if (String(oldPolicy[key]) !== String(expected[key])) {
+      changed = true;
+    }
+    oldSettings[key] = expected[key];
+  });
+
+  if (baseWasPolicy && Math.abs(Number(draft.baseSalary || 0) - Number(expected.baseSalary || 0)) > 0.5) {
+    draft.baseSalary = expected.baseSalary;
+    changed = true;
+  }
+
+  if (fuelWasPolicy && Math.abs(Number(draft.fuelRate || 0) - Number(expected.fuelRate || 0)) > 0.5) {
+    draft.fuelRate = expected.fuelRate;
+    changed = true;
+  }
+
+  draft.settingsSnapshot = oldSettings;
+
+  if (changed && markDirty) {
+    draft.dirty = true;
+  }
+
+  return changed;
+}
+
+
+function refreshPayrollDraftsAfterSalaryHistoryChange() {
+  const currentMonth = getMonthKey(new Date());
+
+  Object.keys(appState.payrollDrafts).forEach(monthKey => {
+    const draft = appState.payrollDrafts[monthKey];
+    const saved = appState.payrollMonths[monthKey];
+
+    if (!saved && !draft?.dirty) {
+      delete appState.payrollDrafts[monthKey];
+      return;
+    }
+
+    if (monthKey === currentMonth && draft) {
+      applyIncomePolicyToDraft(draft, monthKey, { markDirty: Boolean(saved) });
+    }
+  });
+}
+
+
+function updateCurrentBaseSalaryFromHistory() {
+  applyCurrentIncomePolicyToSettings(appState.settings);
+}
+
+
+function addIncomeHistoryEntry() {
+  const monthInput = $("#salaryHistoryEffectiveMonth");
+  const fieldInput = $("#incomeHistoryField");
+  const valueInput = $("#incomeHistoryValue");
+  const effectiveMonth = String(monthInput?.value || "");
+  const key = String(fieldInput?.value || "baseSalary");
+  const rawValue = valueInput?.value;
+
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(effectiveMonth)) {
+    showToast("Hãy chọn tháng bắt đầu áp dụng thay đổi.", true);
+    monthInput?.focus();
+    return;
+  }
+
+  if (!INCOME_POLICY_NUMERIC_FIELDS.includes(key)) {
+    showToast("Khoản thay đổi chưa hợp lệ.", true);
+    return;
+  }
+
+  if (rawValue === "" || rawValue == null || !Number.isFinite(Number(rawValue))) {
+    showToast("Hãy nhập giá trị mới.", true);
+    valueInput?.focus();
+    return;
+  }
+
+  const value = sanitizeIncomePolicyValue(key, Number(rawValue));
+
+  if (["baseSalary", "standardWorkDays", "standardHours", "otMultiplier"].includes(key) && !(value > 0)) {
+    showToast("Giá trị này phải lớn hơn 0.", true);
+    valueInput?.focus();
+    return;
+  }
+
+  const previousPolicy = getPolicyBeforeIncomeHistoryMonth(effectiveMonth);
+  upsertIncomeHistoryChange(effectiveMonth, key, value);
+  saveSettings();
+  refreshPayrollDraftsAfterSalaryHistoryChange();
+  syncSettingsUI();
+  renderDashboard();
+  renderSalary();
+
+  if (valueInput) {
+    valueInput.value = "";
+  }
+
+  const meta = INCOME_POLICY_META[key] || { label: key };
+  showToast(
+    `${meta.label}: ${formatIncomePolicyValue(key, previousPolicy[key])} → ${formatIncomePolicyValue(key, value)} từ ${formatSalaryHistoryMonth(effectiveMonth)}.`
+  );
+
+  openSalaryRevisionModalIfNeeded();
+}
+
+
+function deleteIncomeHistoryEntry(effectiveMonth) {
+  const history = sanitizeIncomeHistory(appState.settings?.incomeHistory);
+  const legacyOnly = !history.length && sanitizeSalaryHistory(appState.settings?.salaryHistory).length;
+
+  if (legacyOnly) {
+    ensureIncomeHistoryInitialized();
+  }
+
+  const currentHistory = sanitizeIncomeHistory(appState.settings?.incomeHistory);
+  const entry = currentHistory.find(item => item.effectiveMonth === effectiveMonth);
+
+  if (!entry) {
+    return;
+  }
+
+  if (!confirm(`Xóa toàn bộ ${Object.keys(entry.changes).length} thay đổi có hiệu lực từ ${formatSalaryHistoryMonth(effectiveMonth)}?`)) {
+    return;
+  }
+
+  appState.settings.incomeHistory = normalizeIncomeHistoryAgainstBase(
+    currentHistory.filter(
+      item => item.effectiveMonth !== effectiveMonth
+    ),
+    appState.settings.incomeHistoryBase
+  );
+
+  if (appState.settings.incomeHistory.length) {
+    applyCurrentIncomePolicyToSettings(appState.settings);
+  } else if (appState.settings.incomeHistoryBase) {
+    const restoredBase = sanitizeIncomeHistoryBase(
+      appState.settings.incomeHistoryBase,
+      appState.settings
+    );
+
+    INCOME_POLICY_FIELDS.forEach(key => {
+      appState.settings[key] = restoredBase[key];
+    });
+  }
+
+  saveSettings();
+  refreshPayrollDraftsAfterSalaryHistoryChange();
+  syncSettingsUI();
+  renderDashboard();
+  renderSalary();
+  showToast("Đã xóa mốc thay đổi thu nhập.");
+  openSalaryRevisionModalIfNeeded();
+}
+
+
+function getSavedIncomePolicy(saved) {
+  const sourceSettings = sanitizeSettings(
+    saved?.settingsSnapshot || saved?.calculatedSnapshot?.settings || appState.settings
+  );
+  const policy = getRawIncomePolicyFromSettings(sourceSettings);
+
+  if (saved?.baseSalary != null) {
+    policy.baseSalary = sanitizeNonNegativeNumber(saved.baseSalary);
+  } else if (saved?.calculatedSnapshot?.baseSalary != null) {
+    policy.baseSalary = sanitizeNonNegativeNumber(saved.calculatedSnapshot.baseSalary);
+  }
+
+  return policy;
+}
+
+
+function getChangedIncomePolicyFields(savedPolicy, expectedPolicy) {
+  return INCOME_POLICY_FIELDS.filter(key => {
+    if (INCOME_POLICY_MODE_FIELDS.includes(key)) {
+      return String(savedPolicy[key]) !== String(expectedPolicy[key]);
+    }
+
+    return Math.abs(Number(savedPolicy[key] || 0) - Number(expectedPolicy[key] || 0)) > 0.0001;
+  });
+}
+
+
+function recalculateSavedPayrollWithIncomePolicy(saved, expectedPolicy) {
+  const snapshot = saved?.calculatedSnapshot;
+
+  if (!isPayrollSnapshotUsable(snapshot)) {
+    return null;
+  }
+
+  const oldSettings = sanitizeSettings(saved.settingsSnapshot || snapshot.settings || {});
+  const oldPolicy = getRawIncomePolicyFromSettings(oldSettings);
+  const nextSettings = sanitizeSettings({
+    ...oldSettings,
+    ...expectedPolicy
+  });
+
+  INCOME_POLICY_FIELDS.forEach(key => {
+    nextSettings[key] = expectedPolicy[key];
+  });
+
+  const standardDays = sanitizePositiveNumber(expectedPolicy.standardWorkDays, snapshot.standardDays || 26);
+  const standardHours = sanitizePositiveNumber(expectedPolicy.standardHours, snapshot.standardHours || 8);
+  const otMultiplier = sanitizePositiveNumber(expectedPolicy.otMultiplier, snapshot.otMultiplier || 2);
+  const leave = { ...(snapshot.leave || {}) };
+  const unpaid = sanitizeNonNegativeNumber(leave.unpaid);
+  const paidDays = Math.max(0, standardDays - unpaid);
+  const totalOT = sanitizeNonNegativeNumber(snapshot.totalOT);
+
+  const savedBase = sanitizeNonNegativeNumber(saved.baseSalary ?? snapshot.baseSalary);
+  const baseWasPolicy = Math.abs(savedBase - sanitizeNonNegativeNumber(oldPolicy.baseSalary)) <= 0.5;
+  const baseSalary = baseWasPolicy
+    ? sanitizeNonNegativeNumber(expectedPolicy.baseSalary)
+    : savedBase;
+
+  const workingSalary = baseSalary / standardDays * paidDays;
+  const overtimeMoney =
+    baseSalary / standardDays / standardHours * otMultiplier * totalOT;
+
+  const allowances = {
+    main: allowanceResult(
+      expectedPolicy.mainAllowance,
+      expectedPolicy.mainAllowanceMode,
+      paidDays,
+      standardDays,
+      saved.mainAllowanceOverride
+    ),
+    other: allowanceResult(
+      expectedPolicy.otherAllowance,
+      expectedPolicy.otherAllowanceMode,
+      paidDays,
+      standardDays,
+      saved.otherAllowanceOverride
+    ),
+    attendance: allowanceResult(
+      expectedPolicy.attendanceAllowance,
+      expectedPolicy.attendanceAllowanceMode,
+      paidDays,
+      standardDays,
+      saved.attendanceAllowanceOverride
+    ),
+    responsibility: allowanceResult(
+      expectedPolicy.responsibilityAllowance,
+      expectedPolicy.responsibilityAllowanceMode,
+      paidDays,
+      standardDays,
+      saved.responsibilityAllowanceOverride
+    )
+  };
+  const allowanceTotal = Object.values(allowances)
+    .reduce((sum, item) => sum + sanitizeNonNegativeNumber(item.value), 0);
+
+  const monthlyKm = sanitizeNonNegativeNumber(saved.monthlyKm ?? snapshot.monthlyKm);
+  const savedFuelRate = sanitizeNonNegativeNumber(saved.fuelRate ?? snapshot.fuelRate);
+  const fuelWasPolicy = Math.abs(savedFuelRate - sanitizeNonNegativeNumber(oldPolicy.fuelRate)) <= 0.5;
+  const fuelRate = fuelWasPolicy
+    ? sanitizeNonNegativeNumber(expectedPolicy.fuelRate)
+    : savedFuelRate;
+  const fuelMoney = monthlyKm * fuelRate;
+  const fuelEnabled = expectedPolicy.fuelRate > 0 || fuelRate > 0 || monthlyKm > 0;
+
+  const otherIncome = sanitizeNonNegativeNumber(saved.otherIncome ?? snapshot.otherIncome);
+  const advance = sanitizeNonNegativeNumber(saved.advance ?? snapshot.advance);
+  const otherDeduction = sanitizeNonNegativeNumber(saved.otherDeduction ?? snapshot.otherDeduction);
+
+  const insuranceMode = INSURANCE_MODES.includes(saved.insuranceModeOverride)
+    ? saved.insuranceModeOverride
+    : expectedPolicy.insuranceMode;
+  const insuranceBase = saved.insuranceBaseOverride == null
+    ? sanitizeNonNegativeNumber(expectedPolicy.insuranceBase)
+    : sanitizeNonNegativeNumber(saved.insuranceBaseOverride);
+  const insuranceRate = saved.insuranceRateOverride == null
+    ? sanitizeNonNegativeNumber(expectedPolicy.insuranceRate)
+    : sanitizeNonNegativeNumber(saved.insuranceRateOverride);
+  const insuranceFixed = saved.insuranceFixedOverride == null
+    ? sanitizeNonNegativeNumber(expectedPolicy.insuranceFixedAmount)
+    : sanitizeNonNegativeNumber(saved.insuranceFixedOverride);
+
+  let insuranceMoney = 0;
+  let insuranceDescription = "Không khấu trừ bảo hiểm";
+
+  if (insuranceMode === "percentage") {
+    insuranceMoney = insuranceBase * insuranceRate / 100;
+    insuranceDescription = `${formatPayrollMoney(insuranceBase)} × ${formatNumber(insuranceRate)}%`;
+  } else if (insuranceMode === "fixed") {
+    insuranceMoney = insuranceFixed;
+    insuranceDescription = "Số tiền bảo hiểm cố định";
+  }
+
+  const totalIncome =
+    workingSalary + overtimeMoney + allowanceTotal + fuelMoney + otherIncome;
+  const totalDeductions = insuranceMoney + advance + otherDeduction;
+  const netSalary = totalIncome - totalDeductions;
+
+  return {
+    snapshot: {
+      ...snapshot,
+      settings: nextSettings,
+      standardDays,
+      standardHours,
+      otMultiplier,
+      paidDays,
+      baseSalary,
+      workingSalary,
+      overtimeMoney,
+      allowances,
+      monthlyKm,
+      fuelRate,
+      fuelMoney,
+      fuelEnabled,
+      otherIncome,
+      insuranceMode,
+      insuranceMoney,
+      insuranceDescription,
+      advance,
+      otherDeduction,
+      totalIncome,
+      totalDeductions,
+      netSalary,
+      unpaidLeaveReduction: baseSalary / standardDays * unpaid
+    },
+    topLevel: {
+      baseSalary,
+      fuelRate,
+      settingsSnapshot: nextSettings
+    }
+  };
+}
+
+
+function isSalaryRevisionResolved(saved, monthKey) {
+  const signature = getIncomePolicySignatureForMonth(monthKey);
+  const resolution = saved?.incomeRevisionResolution;
+
+  if (resolution?.policySignature === signature) {
+    return true;
+  }
+
+  // Tương thích bản trước chỉ theo dõi lương cơ bản.
+  const legacy = saved?.salaryRevisionResolution;
+  const resolvedPolicy = getIncomePolicyForMonth(monthKey);
+  const savedPolicy = getSavedIncomePolicy(saved);
+  const expectedPolicy = { ...savedPolicy };
+  getTrackedIncomePolicyFieldsForMonth(monthKey).forEach(key => {
+    expectedPolicy[key] = resolvedPolicy[key];
+  });
+  const changed = getChangedIncomePolicyFields(savedPolicy, expectedPolicy);
+
+  return Boolean(
+    legacy &&
+    changed.length === 1 &&
+    changed[0] === "baseSalary" &&
+    Math.abs(Number(legacy.expectedSalary || 0) - Number(expectedPolicy.baseSalary || 0)) <= 0.5
+  );
+}
+
+
+function getPreviouslyCarriedRevisionDifference(saved) {
+  if (saved?.incomeRevisionResolution?.action === "carried-forward") {
+    return Number(saved.incomeRevisionResolution.difference || 0);
+  }
+
+  if (saved?.salaryRevisionResolution?.action === "carried-forward") {
+    return Number(saved.salaryRevisionResolution.difference || 0);
+  }
+
+  return 0;
+}
+
+
+function getPendingSalaryRevisions() {
+  const currentMonth = getMonthKey(new Date());
+  const revisions = [];
+
+  Object.keys(appState.payrollMonths || {})
+    .sort()
+    .forEach(monthKey => {
+      if (monthKey >= currentMonth) {
+        return;
+      }
+
+      const saved = appState.payrollMonths[monthKey];
+      const resolvedPolicy = getIncomePolicyForMonth(monthKey);
+      const savedPolicy = getSavedIncomePolicy(saved);
+      const trackedFields = getTrackedIncomePolicyFieldsForMonth(monthKey);
+      const expectedPolicy = { ...savedPolicy };
+
+      trackedFields.forEach(key => {
+        expectedPolicy[key] = resolvedPolicy[key];
+      });
+
+      const changedFields = getChangedIncomePolicyFields(savedPolicy, expectedPolicy);
+      const previousHandledDifference =
+        getPreviouslyCarriedRevisionDifference(saved);
+
+      if (isSalaryRevisionResolved(saved, monthKey)) {
+        return;
+      }
+
+      // Nếu mốc tăng đã bị xóa/đưa về mức cũ, changedFields có thể rỗng.
+      // Tuy nhiên khoản truy lĩnh đã chuyển sang tháng khác vẫn phải được
+      // hoàn tác, nếu không thu nhập sẽ còn dư khoản cũ.
+      if (
+        !changedFields.length &&
+        Math.abs(previousHandledDifference) <= 0.5
+      ) {
+        return;
+      }
+
+      const recalculated = recalculateSavedPayrollWithIncomePolicy(
+        saved,
+        expectedPolicy
+      );
+
+      if (!recalculated) {
+        return;
+      }
+
+      const oldNet = Number(saved.calculatedSnapshot?.netSalary || 0);
+      const rawDifference =
+        Number(recalculated.snapshot.netSalary || 0) - oldNet;
+      const difference = rawDifference - previousHandledDifference;
+
+      if (Math.abs(difference) <= 0.5) {
+        return;
+      }
+
+      revisions.push({
+        monthKey,
+        saved,
+        savedPolicy,
+        expectedPolicy,
+        changedFields,
+        revisedSnapshot: recalculated.snapshot,
+        topLevelUpdates: recalculated.topLevel,
+        rawDifference,
+        previousHandledDifference,
+        difference,
+        reversalOnly:
+          !changedFields.length &&
+          Math.abs(previousHandledDifference) > 0.5,
+        policySignature: getIncomePolicySignatureForMonth(monthKey)
+      });
+    });
+
+  return revisions;
+}
+
+
+function renderSalaryRevisionModal(revisions) {
+  const list = $("#salaryRevisionList");
+  const totalDifference = revisions.reduce(
+    (sum, item) => sum + item.difference,
+    0
+  );
+
+  appState.pendingSalaryRevisions = revisions;
+
+  setText(
+    "#salaryRevisionSummary",
+    `${revisions.length} tháng đã chốt có chênh lệch cấu hình hoặc khoản truy lĩnh cũ cần xử lý. App sẽ không tự sửa lịch sử cho đến khi bạn chọn cách xử lý.`
+  );
+
+  setText(
+    "#salaryRevisionTotal",
+    `${totalDifference >= 0 ? "+" : "−"}${formatPayrollMoney(Math.abs(totalDifference))}`
+  );
+
+  setText(
+    "#salaryRevisionCarryForwardText",
+    totalDifference >= 0
+      ? `Ghi ${formatPayrollMoney(totalDifference)} vào khoản cộng của ${formatSalaryHistoryMonth(getMonthKey(new Date()))}.`
+      : `Ghi ${formatPayrollMoney(Math.abs(totalDifference))} vào khoản trừ của ${formatSalaryHistoryMonth(getMonthKey(new Date()))}.`
+  );
+
+  if (list) {
+    list.innerHTML = revisions
+      .map(item => {
+        const labels = item.reversalOnly
+          ? ["Hoàn tác khoản truy lĩnh cũ"]
+          : item.changedFields
+              .slice(0, 3)
+              .map(key => INCOME_POLICY_META[key]?.label || key);
+        const extra = item.changedFields.length > 3
+          ? ` +${item.changedFields.length - 3} khoản`
+          : "";
+
+        return `
+          <div class="salary-revision-row">
+            <span>
+              <strong>${formatSalaryHistoryMonth(item.monthKey)}</strong>
+              <small>${escapeHTML(labels.join(", "))}${escapeHTML(extra)}</small>
+            </span>
+            <strong class="${item.difference >= 0 ? "positive" : "negative"}">
+              ${item.difference >= 0 ? "+" : "−"}${formatPayrollMoney(Math.abs(item.difference))}
+            </strong>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  refreshIcons();
+}
+
+
+function openSalaryRevisionModalIfNeeded() {
+  const revisions = getPendingSalaryRevisions();
+  renderSalaryHistorySettings();
+
+  if (!revisions.length) {
+    appState.pendingSalaryRevisions = [];
+    return;
+  }
+
+  renderSalaryRevisionModal(revisions);
+  openModal("salaryRevisionModal");
+}
+
+
+function hashRevisionText(value) {
+  let hash = 2166136261;
+
+  for (const char of String(value || "")) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(36);
+}
+
+
+function getSalaryRevisionBatchId(revisions, targetMonth, purpose) {
+  const payload = revisions
+    .map(item => [
+      item.monthKey,
+      item.policySignature,
+      Number(item.rawDifference || 0).toFixed(2),
+      Number(item.previousHandledDifference || 0).toFixed(2)
+    ].join(":"))
+    .join("|");
+
+  return `${purpose}-${targetMonth}-${hashRevisionText(payload)}`;
+}
+
+
+function addSalaryRevisionCarryEntry({
+  id,
+  targetMonth,
+  amount,
+  note,
+  sourceMonths
+}) {
+  if (Math.abs(Number(amount || 0)) <= 0.5) {
+    return null;
+  }
+
+  const entry = {
+    id,
+    targetMonth,
+    amount: Number(amount),
+    note: String(note || ""),
+    sourceMonths: Array.from(new Set(sourceMonths || [])),
+    createdAt: new Date().toISOString()
+  };
+
+  appState.settings.salaryCarryForwards = sanitizeSalaryCarryForwards([
+    ...(appState.settings.salaryCarryForwards || []),
+    entry
+  ]);
+
+  const draft = ensurePayrollDraft(targetMonth);
+  applySalaryCarryForwardsToDraft(draft, targetMonth, { markDirty: true });
+
+  return entry;
+}
+
+
+async function persistSettingsBeforePayrollRevision() {
+  saveSettings();
+
+  if (appState.settingsSyncTimer) {
+    window.clearTimeout(appState.settingsSyncTimer);
+    appState.settingsSyncTimer = null;
+  }
+
+  if (!appState.currentUser || appState.payrollSupabaseAvailable === false) {
+    return { saved: false, localOnly: true };
+  }
+
+  try {
+    const result = await saveSettingsToSupabase({ quiet: true });
+
+    if (result?.saved) {
+      appState.settingsDirty = false;
+      appState.settingsOpenSnapshot = getSettingsSnapshot();
+      setSettingsAutosaveStatus(
+        "saved",
+        "Đã đồng bộ cấu hình thu nhập trước khi cập nhật bảng lương."
+      );
+    }
+
+    return result;
+  } catch (error) {
+    // Nếu backend chưa có nhóm bảng payroll thì toàn bộ dữ liệu lương đang
+    // chạy local-only; trong trường hợp đó vẫn cho phép thao tác cục bộ.
+    if (appState.payrollSupabaseAvailable === false) {
+      return { saved: false, localOnly: true };
+    }
+
+    const syncError = new Error(
+      "Chưa thể đồng bộ lịch sử thu nhập lên Supabase nên app chưa cập nhật bảng lương. Hãy kiểm tra mạng rồi thử lại."
+    );
+    syncError.cause = error;
+    throw syncError;
+  }
+}
+
+
+async function syncPayrollMonthsByKeys(monthKeys) {
+  const keys = Array.from(new Set(monthKeys)).filter(Boolean);
+
+  if (
+    !keys.length ||
+    appState.payrollSupabaseAvailable !== true ||
+    !appState.currentUser
+  ) {
+    return;
+  }
+
+  const rows = keys
+    .map(monthKey => ({
+      username: appState.currentUser,
+      payroll_month: `${monthKey}-01`,
+      payroll_data: appState.payrollMonths[monthKey]
+    }))
+    .filter(row => row.payroll_data);
+
+  if (!rows.length) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("payroll_months")
+    .upsert(rows, { onConflict: "username,payroll_month" });
+
+  if (error) {
+    throw error;
+  }
+}
+
+
+async function applySalaryRevisionToSavedMonths() {
+  const revisions = getPendingSalaryRevisions();
+
+  if (!revisions.length) {
+    closeModal("salaryRevisionModal");
+    showToast("Không còn bảng lương cũ cần cập nhật.");
+    return;
+  }
+
+  const currentMonth = getMonthKey(new Date());
+  const previousCarryTotal = revisions.reduce(
+    (sum, item) => sum + Number(item.previousHandledDifference || 0),
+    0
+  );
+
+  // Nếu các tháng này trước đây đã được truy lĩnh sang tháng khác,
+  // việc chuyển sang "cập nhật tháng cũ" phải hoàn tác phần đã chuyển.
+  if (Math.abs(previousCarryTotal) > 0.5) {
+    const sourceMonths = revisions.map(item => item.monthKey);
+    const affectedMonths = sourceMonths
+      .map(month => formatSalaryHistoryMonth(month).replace("Tháng ", "T"))
+      .join(", ");
+
+    addSalaryRevisionCarryEntry({
+      id: getSalaryRevisionBatchId(
+        revisions,
+        currentMonth,
+        "income-revision-reversal"
+      ),
+      targetMonth: currentMonth,
+      amount: -previousCarryTotal,
+      note: `Hoàn tác truy lĩnh cũ khi cập nhật lại ${affectedMonths}`,
+      sourceMonths
+    });
+  }
+
+  // Luôn đồng bộ lịch sử/cấu hình trước khi ghi payroll_months để tránh
+  // Supabase có bảng lương mới nhưng settings vẫn là phiên bản cũ.
+  await persistSettingsBeforePayrollRevision();
+
+  const resolvedAt = new Date().toISOString();
+
+  revisions.forEach(item => {
+    const saved = item.saved;
+
+    appState.payrollMonths[item.monthKey] = {
+      ...saved,
+      ...item.topLevelUpdates,
+      calculatedSnapshot: item.revisedSnapshot,
+      incomeRevisionResolution: {
+        action: "updated-past-month",
+        policySignature: item.policySignature,
+        changedFields: item.changedFields.slice(),
+        difference: item.rawDifference,
+        resolvedAt
+      },
+      savedAt: resolvedAt
+    };
+
+    delete appState.payrollDrafts[item.monthKey];
+  });
+
+  savePayrollMonths();
+  await syncPayrollMonthsByKeys(revisions.map(item => item.monthKey));
+  appState.pendingSalaryRevisions = [];
+  closeModal("salaryRevisionModal");
+  renderSalaryHistorySettings();
+  renderSalary();
+  renderDashboard();
+  showToast(`Đã cập nhật ${revisions.length} bảng lương theo cấu hình thu nhập mới.`);
+}
+
+
+async function carrySalaryRevisionToCurrentMonth() {
+  const revisions = getPendingSalaryRevisions();
+
+  if (!revisions.length) {
+    closeModal("salaryRevisionModal");
+    showToast("Không còn khoản chênh lệch cần xử lý.");
+    return;
+  }
+
+  const currentMonth = getMonthKey(new Date());
+  const totalDifference = revisions.reduce(
+    (sum, item) => sum + item.difference,
+    0
+  );
+  const affectedMonths = revisions
+    .map(item => formatSalaryHistoryMonth(item.monthKey).replace("Tháng ", "T"))
+    .join(", ");
+  const note = totalDifference >= 0
+    ? `Truy lĩnh điều chỉnh thu nhập ${affectedMonths}`
+    : `Truy thu/hoàn tác điều chỉnh thu nhập ${affectedMonths}`;
+
+  addSalaryRevisionCarryEntry({
+    id: getSalaryRevisionBatchId(
+      revisions,
+      currentMonth,
+      "income-revision-carry"
+    ),
+    targetMonth: currentMonth,
+    amount: totalDifference,
+    note,
+    sourceMonths: revisions.map(item => item.monthKey)
+  });
+
+  // salaryCarryForwards cũng nằm trong payroll_settings, vì vậy phải lưu
+  // nó lên Supabase trước khi đánh dấu các tháng nguồn là đã xử lý.
+  await persistSettingsBeforePayrollRevision();
+
+  const resolvedAt = new Date().toISOString();
+
+  revisions.forEach(item => {
+    appState.payrollMonths[item.monthKey] = {
+      ...item.saved,
+      incomeRevisionResolution: {
+        action: "carried-forward",
+        policySignature: item.policySignature,
+        changedFields: item.changedFields.slice(),
+        difference: item.rawDifference,
+        targetMonth: currentMonth,
+        resolvedAt
+      }
+    };
+  });
+
+  savePayrollMonths();
+  await syncPayrollMonthsByKeys(revisions.map(item => item.monthKey));
+  appState.pendingSalaryRevisions = [];
+  closeModal("salaryRevisionModal");
+  renderSalaryHistorySettings();
+  renderSalary();
+  renderDashboard();
+  showToast(
+    totalDifference >= 0
+      ? `Đã thêm ${formatPayrollMoney(totalDifference)} chênh lệch vào bảng lương tháng này.`
+      : `Đã ghi ${formatPayrollMoney(Math.abs(totalDifference))} khoản điều chỉnh giảm vào bảng lương tháng này.`
+  );
 }
 
 
@@ -2314,7 +4039,8 @@ function minutesToTime(
 
 
 function getMealCountForEndTime(
-  endTime
+  endTime,
+  startTime = ""
 ) {
   if (
     !isValidTime(
@@ -2324,10 +4050,32 @@ function getMealCountForEndTime(
     return 0;
   }
 
-  const endMinutes =
+  let endMinutes =
     timeToMinutes(
       endTime
     );
+
+  // Nếu giờ kết thúc nhỏ hơn giờ bắt đầu, coi đây là ca qua 0h.
+  // Ví dụ 17:00 -> 00:30 sẽ được hiểu là kết thúc ở phút 1470
+  // thay vì phút 30, nhờ đó vẫn đi qua các mốc cơm 18:30 / 20:30.
+  if (
+    isValidTime(
+      startTime
+    )
+  ) {
+    const startMinutes =
+      timeToMinutes(
+        startTime
+      );
+
+    if (
+      endMinutes <
+      startMinutes
+    ) {
+      endMinutes +=
+        24 * 60;
+    }
+  }
 
   let count =
     0;
@@ -3993,7 +5741,9 @@ async function initializePayrollSupabase({ force = false } = {}) {
 
     renderLeaveDetail();
     renderHistory();
+    renderSalaryHistorySettings();
     renderSalary();
+    renderDashboard();
 
     setSettingsSyncStatus(
       "online",
@@ -5500,16 +7250,40 @@ function renderDashboard() {
     )
   );
 
+  const currentMonthKey =
+    today.slice(
+      0,
+      7
+    );
+
+  const currentMonthOT =
+    getMonthTotal(
+      currentMonthKey
+    );
+
   setText(
     "#monthlyOT",
     formatHours(
-      getMonthTotal(
-        today.slice(
-          0,
-          7
-        )
-      )
+      currentMonthOT
     )
+  );
+
+  const currentPayrollDraft =
+    ensurePayrollDraft(
+      currentMonthKey
+    );
+
+  const currentPayrollResult =
+    calculatePayroll(
+      currentMonthKey,
+      currentPayrollDraft
+    );
+
+  setText(
+    "#monthlyOTMoney",
+    currentPayrollResult.baseSalary > 0
+      ? `≈ ${formatPayrollMoney(currentPayrollResult.overtimeMoney)}`
+      : "Chưa cài lương"
   );
 
   setText(
@@ -5999,7 +7773,8 @@ async function endMainShift() {
 
   const mealCount =
     getMealCountForEndTime(
-      endTime
+      endTime,
+      startTime
     );
 
   const storedNote =
@@ -7002,16 +8777,24 @@ function updateInsuranceSettingsVisibility() {
 
 
 function getDefaultPayrollDraft(monthKey) {
+  const policy = getIncomePolicyForMonth(monthKey, appState.settings);
   const settingsSnapshot = sanitizeSettings({
     ...appState.settings,
+    ...policy,
     mealThresholds: Array.isArray(appState.settings?.mealThresholds)
       ? appState.settings.mealThresholds.map(item => ({ ...item }))
       : cloneDefaultMealThresholds()
   });
 
-  return {
+  INCOME_POLICY_FIELDS.forEach(key => {
+    settingsSnapshot[key] = policy[key];
+  });
+
+  const effectiveBaseSalary = sanitizeNonNegativeNumber(policy.baseSalary);
+
+  const draft = {
     monthKey,
-    baseSalary: settingsSnapshot.baseSalary,
+    baseSalary: effectiveBaseSalary,
     mainAllowanceOverride: null,
     otherAllowanceOverride: null,
     attendanceAllowanceOverride: null,
@@ -7027,9 +8810,13 @@ function getDefaultPayrollDraft(monthKey) {
     advance: 0,
     otherDeduction: 0,
     otherDeductionNote: "",
+    appliedSalaryCarryForwardIds: [],
     settingsSnapshot,
     dirty: false
   };
+
+  applySalaryCarryForwardsToDraft(draft, monthKey, { markDirty: false });
+  return draft;
 }
 
 
@@ -7076,10 +8863,23 @@ function ensurePayrollDraft(monthKey, reset = false) {
         advance: sanitizeNonNegativeNumber(saved.advance),
         otherDeduction: sanitizeNonNegativeNumber(saved.otherDeduction),
         otherDeductionNote: String(saved.otherDeductionNote || ""),
+        appliedSalaryCarryForwardIds: Array.isArray(saved.appliedSalaryCarryForwardIds)
+          ? saved.appliedSalaryCarryForwardIds.slice()
+          : [],
         settingsSnapshot: sanitizeSettings(saved.settingsSnapshot || appState.settings),
         dirty: false
       }
       : getDefaultPayrollDraft(monthKey);
+
+    const draft = appState.payrollDrafts[monthKey];
+
+    if (saved) {
+      applySalaryCarryForwardsToDraft(draft, monthKey, { markDirty: true });
+
+      if (monthKey === getMonthKey(new Date())) {
+        applyIncomePolicyToDraft(draft, monthKey, { markDirty: true });
+      }
+    }
   }
 
   return appState.payrollDrafts[monthKey];
@@ -7247,17 +9047,101 @@ function calculatePayroll(monthKey, draft) {
 }
 
 
+function isPayrollSnapshotUsable(snapshot) {
+  return Boolean(
+    snapshot &&
+    typeof snapshot === "object" &&
+    snapshot.settings &&
+    typeof snapshot.settings === "object" &&
+    snapshot.leave &&
+    typeof snapshot.leave === "object" &&
+    snapshot.allowances &&
+    typeof snapshot.allowances === "object" &&
+    snapshot.allowances.main &&
+    snapshot.allowances.other &&
+    snapshot.allowances.attendance &&
+    snapshot.allowances.responsibility &&
+    Number.isFinite(Number(snapshot.totalOT)) &&
+    Number.isFinite(Number(snapshot.paidDays)) &&
+    Number.isFinite(Number(snapshot.totalIncome)) &&
+    Number.isFinite(Number(snapshot.totalDeductions)) &&
+    Number.isFinite(Number(snapshot.netSalary))
+  );
+}
+
+
+function getPayrollSourceSignature(result) {
+  const leave =
+    result?.leave ||
+    {};
+
+  const normalize =
+    value =>
+      Math.round(
+        (Number(value) || 0) *
+        10000
+      ) /
+      10000;
+
+  return JSON.stringify({
+    totalOT: normalize(result?.totalOT),
+    paidDays: normalize(result?.paidDays),
+    leave: {
+      opening: normalize(leave.opening),
+      accrued: normalize(leave.accrued),
+      used: normalize(leave.used),
+      unpaid: normalize(leave.unpaid),
+      requested: normalize(leave.requested),
+      closing: normalize(leave.closing)
+    }
+  });
+}
+
+
+function hasPayrollSourceChanged(saved, liveResult) {
+  if (!saved) {
+    return false;
+  }
+
+  const snapshot =
+    saved.calculatedSnapshot;
+
+  if (
+    !isPayrollSnapshotUsable(
+      snapshot
+    )
+  ) {
+    // Bản lưu cũ không có snapshot đầy đủ: cho phép lưu lại để nâng cấp.
+    return true;
+  }
+
+  return (
+    getPayrollSourceSignature(
+      snapshot
+    ) !==
+    getPayrollSourceSignature(
+      liveResult
+    )
+  );
+}
+
+
 async function savePayrollMonth() {
   const monthKey = getMonthKey(appState.salaryDate);
   const draft = ensurePayrollDraft(monthKey);
   const savedExisting = appState.payrollMonths[monthKey];
+  const result = calculatePayroll(monthKey, draft);
+  const sourceChanged = hasPayrollSourceChanged(savedExisting, result);
 
-  if (savedExisting && !draft.dirty) {
+  if (
+    savedExisting &&
+    !draft.dirty &&
+    !sourceChanged
+  ) {
     showToast("Bảng lương tháng không có thay đổi mới.");
     return;
   }
 
-  const result = calculatePayroll(monthKey, draft);
   const savedAt = new Date().toISOString();
 
   const payrollData = {
@@ -7278,6 +9162,9 @@ async function savePayrollMonth() {
     advance: draft.advance,
     otherDeduction: draft.otherDeduction,
     otherDeductionNote: draft.otherDeductionNote,
+    appliedSalaryCarryForwardIds: Array.isArray(draft.appliedSalaryCarryForwardIds)
+      ? draft.appliedSalaryCarryForwardIds.slice()
+      : [],
     settingsSnapshot: draft.settingsSnapshot,
     calculatedSnapshot: result,
     savedAt
@@ -7353,6 +9240,11 @@ async function resetPayrollMonth() {
   savePayrollMonths();
   ensurePayrollDraft(monthKey);
   renderSalary();
+
+  if (monthKey === getMonthKey(new Date())) {
+    renderDashboard();
+  }
+
   showToast("Đã khôi phục dữ liệu bảng lương tháng.");
 }
 
@@ -7569,7 +9461,9 @@ function suggestMealCount(
   setValue(
     "#detailMealCount",
     getMealCountForEndTime(
-      endTime
+      endTime,
+      $("#detailStartTime")
+        ?.value || ""
     )
   );
 }
@@ -8382,9 +10276,9 @@ async function deleteSelectedDay() {
   if (
     !dateKey ||
     !confirm(
-      `Xóa toàn bộ dữ liệu ngày ${formatShortDate(
+      `Xóa toàn bộ dữ liệu OT ngày ${formatShortDate(
         dateKey
-      )}?`
+      )}? Dữ liệu nghỉ/phép sẽ được giữ nguyên.`
     )
   ) {
     return;
@@ -8557,6 +10451,10 @@ function handleReportSalaryInput(event) {
   draft.baseSalary = parsePayrollMoney(event.target.value);
   draft.dirty = true;
   renderSalary();
+
+  if (monthKey === getMonthKey(new Date())) {
+    renderDashboard();
+  }
 }
 
 
@@ -8622,8 +10520,29 @@ function renderSalary() {
   const month = appState.salaryDate.getMonth();
   const monthKey = `${year}-${pad(month + 1)}`;
   const draft = ensurePayrollDraft(monthKey);
-  const result = calculatePayroll(monthKey, draft);
   const saved = appState.payrollMonths[monthKey];
+  const liveResult = calculatePayroll(monthKey, draft);
+  const savedSnapshotUsable = isPayrollSnapshotUsable(
+    saved?.calculatedSnapshot
+  );
+  const sourceChanged = Boolean(
+    saved &&
+    !draft.dirty &&
+    hasPayrollSourceChanged(
+      saved,
+      liveResult
+    )
+  );
+
+  // Khi tháng đã lưu và chưa có chỉnh sửa chủ động, luôn hiển thị đúng
+  // snapshot đã chốt. Dữ liệu OT/phép thay đổi sau đó chỉ tạo cảnh báo
+  // và bật nút Lưu để người dùng chủ động cập nhật bảng lương.
+  const result =
+    saved &&
+    !draft.dirty &&
+    savedSnapshotUsable
+      ? saved.calculatedSnapshot
+      : liveResult;
 
   setText("#salaryMonthLabel", `Tháng ${month + 1}/${year}`);
 
@@ -8712,24 +10631,54 @@ function renderSalary() {
 
   updatePayrollConditionalRows(result, draft);
 
-  const snapshotText = saved && !draft.dirty
-    ? `Đã lưu ${formatSavedTime(saved.savedAt)}`
-    : draft.dirty
-      ? "Có thay đổi chưa lưu"
-      : "Chưa lưu bảng lương tháng";
+  const snapshotText =
+    saved &&
+    !draft.dirty
+      ? sourceChanged
+        ? savedSnapshotUsable
+          ? "Đã chốt • dữ liệu OT/phép đã thay đổi"
+          : "Bản lưu cũ cần cập nhật snapshot"
+        : `Đã lưu ${formatSavedTime(saved.savedAt)}`
+      : draft.dirty
+        ? "Có thay đổi chưa lưu"
+        : "Chưa lưu bảng lương tháng";
+
+  const saveStatusText =
+    sourceChanged &&
+    !draft.dirty
+      ? "Dữ liệu OT/phép đã đổi — bấm Lưu bảng lương để cập nhật"
+      : snapshotText;
 
   setText("#payrollSnapshotStatus", snapshotText);
-  setText("#payrollSaveStatus", snapshotText);
+  setText("#payrollSaveStatus", saveStatusText);
 
   const saveStatus = $("#payrollSaveStatus");
-  saveStatus?.classList.toggle("success", Boolean(saved && !draft.dirty));
+  saveStatus?.classList.toggle(
+    "success",
+    Boolean(
+      saved &&
+      !draft.dirty &&
+      !sourceChanged
+    )
+  );
+  saveStatus?.classList.toggle(
+    "warning",
+    Boolean(
+      sourceChanged &&
+      !draft.dirty
+    )
+  );
   saveStatus?.classList.remove("error");
 
   const saveButton = $("#savePayrollMonthButton");
   const resetButton = $("#resetPayrollMonthButton");
 
   if (saveButton) {
-    saveButton.disabled = Boolean(saved && !draft.dirty);
+    saveButton.disabled = Boolean(
+      saved &&
+      !draft.dirty &&
+      !sourceChanged
+    );
   }
 
   if (resetButton) {
@@ -8753,6 +10702,816 @@ function renderSalary() {
   if (appState.activePayrollInlineEditor) {
     populatePayrollInlineEditor(appState.activePayrollInlineEditor);
   }
+}
+
+
+
+
+const SALARY_CHART_METRICS = Object.freeze({
+  "ot-hours": {
+    eyebrow: "GIỜ TĂNG CA",
+    title: "Xu hướng OT theo tháng",
+    value: result => Number(result?.totalOT) || 0,
+    format: value => formatHours(value),
+    compact: value => `${formatNumber(value)}h`,
+    axis: value => `${formatNumber(value)}h`
+  },
+  "ot-money": {
+    eyebrow: "TIỀN TĂNG CA",
+    title: "Giá trị OT theo tháng",
+    value: result => Number(result?.overtimeMoney) || 0,
+    format: value => formatPayrollMoney(value),
+    compact: value => formatCompactChartMoney(value),
+    axis: value => formatCompactChartMoney(value)
+  },
+  "net-income": {
+    eyebrow: "THỰC NHẬN",
+    title: "Xu hướng thực nhận theo tháng",
+    value: result => Number(result?.netSalary) || 0,
+    format: value => formatPayrollMoney(value),
+    compact: value => formatCompactChartMoney(value),
+    axis: value => formatCompactChartMoney(value)
+  }
+});
+
+
+function formatCompactChartMoney(value) {
+  const amount = Math.abs(Number(value) || 0);
+  const sign = Number(value) < 0 ? "−" : "";
+
+  if (amount >= 1_000_000_000) {
+    return `${sign}${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(amount / 1_000_000_000)}tỷ`;
+  }
+
+  if (amount >= 1_000_000) {
+    return `${sign}${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(amount / 1_000_000)}tr`;
+  }
+
+  if (amount >= 1_000) {
+    return `${sign}${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(amount / 1_000)}k`;
+  }
+
+  return `${sign}${new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 }).format(amount)}`;
+}
+
+
+function getSalaryChartMetricConfig(metric = appState.salaryChartMetric) {
+  return SALARY_CHART_METRICS[metric] || SALARY_CHART_METRICS["ot-hours"];
+}
+
+
+function getSalaryChartMonthKey(year, monthIndex) {
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+}
+
+
+function isFutureSalaryChartMonth(year, monthIndex) {
+  const now = new Date();
+  return year > now.getFullYear() ||
+    (year === now.getFullYear() && monthIndex > now.getMonth());
+}
+
+
+async function loadSalaryChartSourceData(year) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  const start = `${year}-01-01`;
+  const end = `${year}-12-31`;
+
+  const [workResult, extraResult] = await Promise.all([
+    supabaseClient
+      .from("work_logs")
+      .select("*")
+      .eq("username", appState.currentUser)
+      .gte("work_date", start)
+      .lte("work_date", end)
+      .order("work_date", { ascending: false }),
+    supabaseClient
+      .from("extra_shifts")
+      .select("*")
+      .eq("username", appState.currentUser)
+      .gte("work_date", start)
+      .lte("work_date", end)
+      .order("start_at", { ascending: false })
+  ]);
+
+  if (workResult.error) {
+    throw workResult.error;
+  }
+
+  let extraRows = [];
+  if (extraResult.error) {
+    appState.extraTableAvailable = false;
+    console.warn("Không tải được extra_shifts cho biểu đồ:", extraResult.error.message);
+  } else {
+    appState.extraTableAvailable = true;
+    extraRows = extraResult.data || [];
+  }
+
+  const workRows = workResult.data || [];
+
+  for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
+    if (isFutureSalaryChartMonth(year, monthIndex)) {
+      continue;
+    }
+
+    const monthKey = getSalaryChartMonthKey(year, monthIndex);
+    mergeWorkLogs(
+      monthKey,
+      workRows.filter(item => String(item.work_date || "").startsWith(monthKey))
+    );
+    mergeExtraShifts(
+      monthKey,
+      extraRows.filter(item => String(item.work_date || "").startsWith(monthKey))
+    );
+    appState.loadedMonths.add(monthKey);
+  }
+
+  renderOpenViewsAfterDataLoad();
+}
+
+
+async function loadSalaryChartYear(year) {
+  const safeYear = Math.min(Number(year) || new Date().getFullYear(), new Date().getFullYear());
+  appState.salaryChartYear = safeYear;
+  appState.salaryChartData = null;
+  appState.salaryChartSelectedIndex = null;
+
+  setText("#salaryChartYearLabel", `Năm ${safeYear}`);
+  const nextButton = $("#salaryChartNextYear");
+  if (nextButton) {
+    nextButton.disabled = safeYear >= new Date().getFullYear();
+  }
+
+  $("#salaryChartLoading")?.classList.remove("hidden");
+  $("#salaryChartContent")?.classList.add("is-loading");
+
+  try {
+    try {
+      await loadSalaryChartSourceData(safeYear);
+    } catch (error) {
+      console.warn("Không tải đủ dữ liệu nguồn cho biểu đồ:", error);
+      showToast(
+        `Không tải đủ dữ liệu biểu đồ: ${error.message || "Lỗi kết nối"}. Các tháng đã chốt vẫn được ưu tiên hiển thị.`,
+        true
+      );
+    }
+
+    const entries = Array.from({ length: 12 }, (_, index) => {
+      const monthKey = getSalaryChartMonthKey(safeYear, index);
+      const future = isFutureSalaryChartMonth(safeYear, index);
+
+      if (future) {
+        return {
+          monthKey,
+          monthIndex: index,
+          future: true,
+          available: false,
+          savedOfficial: false,
+          result: null
+        };
+      }
+
+      const saved = appState.payrollMonths[monthKey];
+      const savedSnapshotUsable = isPayrollSnapshotUsable(saved?.calculatedSnapshot);
+      const monthLoaded = appState.loadedMonths.has(monthKey);
+
+      if (!monthLoaded && !savedSnapshotUsable) {
+        return {
+          monthKey,
+          monthIndex: index,
+          future: false,
+          available: false,
+          savedOfficial: false,
+          result: null
+        };
+      }
+
+      const comparison = getPayrollResultForComparison(monthKey);
+      const savedOfficial = Boolean(
+        comparison.saved &&
+        !comparison.draft.dirty &&
+        isPayrollSnapshotUsable(comparison.saved.calculatedSnapshot)
+      );
+
+      return {
+        monthKey,
+        monthIndex: index,
+        future: false,
+        available: true,
+        savedOfficial,
+        result: comparison.result
+      };
+    });
+
+    appState.salaryChartData = {
+      year: safeYear,
+      entries
+    };
+
+    const preferredMonth = getMonthKey(appState.salaryDate);
+    const preferredIndex = entries.findIndex(item => item.monthKey === preferredMonth && item.available);
+    const lastAvailableIndex = entries.reduce(
+      (found, item, index) => item.available ? index : found,
+      -1
+    );
+    appState.salaryChartSelectedIndex = preferredIndex >= 0
+      ? preferredIndex
+      : lastAvailableIndex >= 0
+        ? lastAvailableIndex
+        : null;
+
+    renderSalaryChart();
+  } finally {
+    $("#salaryChartLoading")?.classList.add("hidden");
+    $("#salaryChartContent")?.classList.remove("is-loading");
+  }
+}
+
+
+function getSalaryChartEntriesWithValues() {
+  const metric = getSalaryChartMetricConfig();
+  return (appState.salaryChartData?.entries || [])
+    .filter(item => item.available && item.result)
+    .map(item => ({
+      ...item,
+      value: metric.value(item.result)
+    }));
+}
+
+
+function getSalaryChartScale(values) {
+  if (!values.length) {
+    return { min: 0, max: 1 };
+  }
+
+  let min = Math.min(...values, 0);
+  let max = Math.max(...values, 0);
+
+  if (Math.abs(max - min) < 0.0001) {
+    max = min === 0 ? 1 : min + Math.abs(min) * 0.2;
+    if (Math.abs(max - min) < 0.0001) {
+      max = min + 1;
+    }
+  }
+
+  const range = max - min;
+  const padding = range * 0.08;
+  max += padding;
+  if (min < 0) {
+    min -= padding;
+  } else {
+    min = 0;
+  }
+
+  return { min, max };
+}
+
+
+function renderSalaryChartSvg(entries) {
+  const metric = getSalaryChartMetricConfig();
+  const width = 720;
+  const height = 330;
+  const margin = { top: 24, right: 18, bottom: 50, left: 64 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const values = entries.map(item => item.value);
+  const scale = getSalaryChartScale(values);
+  const valueRange = scale.max - scale.min || 1;
+  const x = index => margin.left + plotWidth * index / 11;
+  const y = value => margin.top + plotHeight * (scale.max - value) / valueRange;
+  const ticks = Array.from({ length: 5 }, (_, index) => scale.min + valueRange * index / 4).reverse();
+  const entryMap = new Map(entries.map(item => [item.monthIndex, item]));
+
+  const grid = ticks.map(value => {
+    const yy = y(value);
+    return `
+      <line class="salary-chart-grid-line" x1="${margin.left}" y1="${yy}" x2="${width - margin.right}" y2="${yy}"></line>
+      <text class="salary-chart-axis-y" x="${margin.left - 10}" y="${yy + 4}" text-anchor="end">${escapeHTML(metric.axis(value))}</text>
+    `;
+  }).join("");
+
+  const monthLabels = Array.from({ length: 12 }, (_, index) => `
+    <text class="salary-chart-axis-x" x="${x(index)}" y="${height - 18}" text-anchor="middle">T${index + 1}</text>
+  `).join("");
+
+  const segments = [];
+  let currentSegment = [];
+  Array.from({ length: 12 }, (_, index) => index).forEach(index => {
+    const item = entryMap.get(index);
+    if (item) {
+      currentSegment.push(`${x(index)},${y(item.value)}`);
+    } else if (currentSegment.length) {
+      segments.push(currentSegment);
+      currentSegment = [];
+    }
+  });
+  if (currentSegment.length) {
+    segments.push(currentSegment);
+  }
+
+  const lines = segments
+    .filter(segment => segment.length > 1)
+    .map(segment => `<polyline class="salary-chart-line" points="${segment.join(" ")}"></polyline>`)
+    .join("");
+
+  const selectedIndex = appState.salaryChartSelectedIndex;
+  const selected = entries.find(item => item.monthIndex === selectedIndex);
+  const guide = selected
+    ? `<line class="salary-chart-guide" x1="${x(selected.monthIndex)}" y1="${margin.top}" x2="${x(selected.monthIndex)}" y2="${margin.top + plotHeight}"></line>`
+    : "";
+
+  const minEntry = entries.length
+    ? entries.reduce((a, b) => b.value < a.value ? b : a)
+    : null;
+  const maxEntry = entries.length
+    ? entries.reduce((a, b) => b.value > a.value ? b : a)
+    : null;
+
+  const points = entries.map(item => {
+    const active = item.monthIndex === selectedIndex;
+    const extreme = item === minEntry || item === maxEntry;
+    const classes = [
+      "salary-chart-point",
+      item.savedOfficial ? "saved" : "estimate",
+      active ? "selected" : "",
+      extreme ? "extreme" : ""
+    ].filter(Boolean).join(" ");
+    const label = `${formatSalaryHistoryMonth(item.monthKey)}: ${metric.format(item.value)}`;
+    return `
+      <circle
+        class="${classes}"
+        cx="${x(item.monthIndex)}"
+        cy="${y(item.value)}"
+        r="${active ? 8 : 6}"
+        tabindex="0"
+        role="button"
+        aria-label="${escapeHTML(label)}"
+        data-salary-chart-index="${item.monthIndex}">
+      </circle>
+    `;
+  }).join("");
+
+  const extremeLabels = [minEntry, maxEntry]
+    .filter((item, index, list) => item && list.indexOf(item) === index)
+    .map(item => {
+      const yy = Math.max(16, y(item.value) - 12);
+      return `<text class="salary-chart-point-label" x="${x(item.monthIndex)}" y="${yy}" text-anchor="middle">${escapeHTML(metric.compact(item.value))}</text>`;
+    }).join("");
+
+  return `
+    <svg id="salaryChartSvg" class="salary-chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-label="Biểu đồ ${escapeHTML(metric.title)}">
+      ${grid}
+      ${monthLabels}
+      ${guide}
+      ${lines}
+      ${points}
+      ${extremeLabels}
+    </svg>
+  `;
+}
+
+
+function renderSalaryChartSummary(entries) {
+  const metric = getSalaryChartMetricConfig();
+  const values = entries.map(item => item.value);
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const average = values.length ? total / values.length : 0;
+  const maxEntry = entries.length
+    ? entries.reduce((a, b) => b.value > a.value ? b : a)
+    : null;
+
+  setText("#salaryChartTotal", entries.length ? metric.format(total) : "--");
+  setText("#salaryChartMax", maxEntry ? metric.format(maxEntry.value) : "--");
+  setText(
+    "#salaryChartMaxMonth",
+    maxEntry ? formatSalaryHistoryMonth(maxEntry.monthKey) : "Chưa có dữ liệu"
+  );
+  setText("#salaryChartAverage", entries.length ? metric.format(average) : "--");
+  setText(
+    "#salaryChartAverageHint",
+    entries.length ? `Trung bình ${entries.length} tháng có dữ liệu` : "Chưa có dữ liệu"
+  );
+  setText(
+    "#salaryChartTotalHint",
+    entries.length ? `${entries.length} tháng có dữ liệu trong năm` : "Theo dữ liệu hiện có"
+  );
+}
+
+
+function renderSalaryChartDetail() {
+  const metric = getSalaryChartMetricConfig();
+  const entry = appState.salaryChartData?.entries?.[appState.salaryChartSelectedIndex];
+
+  if (!entry?.available || !entry.result) {
+    setText("#salaryChartSelectedMonth", "Chọn một tháng");
+    setText("#salaryChartSelectedValue", "--");
+    setText("#salaryChartSelectedStatus", "Chạm vào điểm trên biểu đồ để xem số liệu.");
+    return;
+  }
+
+  const value = metric.value(entry.result);
+  setText("#salaryChartSelectedMonth", formatSalaryHistoryMonth(entry.monthKey));
+  setText("#salaryChartSelectedValue", metric.format(value));
+
+  let status;
+  if (appState.salaryChartMetric === "ot-hours") {
+    status = entry.savedOfficial
+      ? "Dữ liệu OT thuộc bảng lương đã chốt."
+      : "Dữ liệu OT theo chấm công hiện tại.";
+  } else {
+    status = entry.savedOfficial
+      ? "Bảng lương tháng này đã được chốt."
+      : "Tạm tính từ dữ liệu và cấu hình hiện tại; tháng này chưa chốt bảng lương.";
+  }
+  setText("#salaryChartSelectedStatus", status);
+}
+
+
+function renderSalaryChart() {
+  const metric = getSalaryChartMetricConfig();
+  const entries = getSalaryChartEntriesWithValues();
+  const canvas = $("#salaryChartCanvas");
+
+  setText("#salaryChartMetricEyebrow", metric.eyebrow);
+  setText("#salaryChartMetricTitle", metric.title);
+  setText("#salaryChartYearLabel", `Năm ${appState.salaryChartYear}`);
+
+  $$('[data-salary-chart-metric]').forEach(button => {
+    const active = button.dataset.salaryChartMetric === appState.salaryChartMetric;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active ? "true" : "false");
+  });
+
+  renderSalaryChartSummary(entries);
+
+  if (canvas) {
+    canvas.dataset.metric = appState.salaryChartMetric;
+    canvas.innerHTML = entries.length
+      ? renderSalaryChartSvg(entries)
+      : renderComparisonEmpty("Chưa có dữ liệu để vẽ biểu đồ cho năm này.");
+  }
+
+  renderSalaryChartDetail();
+}
+
+
+function selectSalaryChartPoint(index) {
+  const entry = appState.salaryChartData?.entries?.[index];
+  if (!entry?.available) {
+    return;
+  }
+  appState.salaryChartSelectedIndex = index;
+  renderSalaryChart();
+}
+
+
+function setSalaryChartMetric(metric) {
+  if (!SALARY_CHART_METRICS[metric]) {
+    return;
+  }
+  appState.salaryChartMetric = metric;
+  renderSalaryChart();
+}
+
+
+async function changeSalaryChartYear(direction) {
+  const nextYear = appState.salaryChartYear + direction;
+  const currentYear = new Date().getFullYear();
+  if (nextYear > currentYear) {
+    return;
+  }
+  await loadSalaryChartYear(nextYear);
+}
+
+
+function openSalaryChart() {
+  appState.salaryChartMetric = "ot-hours";
+  appState.salaryChartYear = appState.salaryDate.getFullYear();
+  openModal("salaryChartModal");
+  runLockedAction(
+    "salaryChartLoad",
+    ["#openSalaryChartButton", "#salaryChartPrevYear", "#salaryChartNextYear"],
+    () => loadSalaryChartYear(appState.salaryChartYear)
+  );
+}
+
+
+function monthKeyToDate(monthKey) {
+  const match = /^(\d{4})-(\d{2})$/.exec(String(monthKey || ""));
+
+  if (!match) {
+    return new Date();
+  }
+
+  return new Date(Number(match[1]), Number(match[2]) - 1, 1);
+}
+
+
+function getPayrollResultForComparison(monthKey) {
+  const draft = ensurePayrollDraft(monthKey);
+  const saved = appState.payrollMonths[monthKey];
+  const result =
+    saved &&
+    !draft.dirty &&
+    isPayrollSnapshotUsable(saved.calculatedSnapshot)
+      ? saved.calculatedSnapshot
+      : calculatePayroll(monthKey, draft);
+
+  return {
+    monthKey,
+    result,
+    draft,
+    saved,
+    policy: getIncomePolicyForMonth(monthKey)
+  };
+}
+
+
+function formatSignedMoney(value) {
+  const amount = Number(value) || 0;
+  const prefix = amount > 0 ? "+" : amount < 0 ? "−" : "";
+  return `${prefix}${formatPayrollMoney(Math.abs(amount))}`;
+}
+
+
+function formatSignedNumber(value, unit = "") {
+  const amount = Number(value) || 0;
+  const prefix = amount > 0 ? "+" : amount < 0 ? "−" : "";
+  return `${prefix}${formatNumber(Math.abs(amount))}${unit ? ` ${unit}` : ""}`;
+}
+
+
+function comparisonDiffClass(value, invert = false) {
+  const amount = Number(value) || 0;
+
+  if (Math.abs(amount) < 0.0001) {
+    return "neutral";
+  }
+
+  const positive = invert ? amount < 0 : amount > 0;
+  return positive ? "positive" : "negative";
+}
+
+
+function renderComparisonEmpty(message) {
+  return `
+    <div class="salary-compare-empty">
+      <i data-lucide="equal"></i>
+      <span>${escapeHTML(message)}</span>
+    </div>
+  `;
+}
+
+
+function renderSalaryComparePolicyRows(current, baseline, changedOnly) {
+  const rows = INCOME_POLICY_FIELDS
+    .map(key => {
+      const meta = INCOME_POLICY_META[key] || { label: key, kind: "number" };
+      const currentValue = current.policy[key];
+      const baselineValue = baseline.policy[key];
+      const numericDiff = meta.kind === "mode"
+        ? null
+        : Number(currentValue || 0) - Number(baselineValue || 0);
+      const changed = meta.kind === "mode"
+        ? String(currentValue) !== String(baselineValue)
+        : Math.abs(numericDiff) > 0.0001;
+
+      return {
+        key,
+        label: meta.label,
+        currentValue,
+        baselineValue,
+        numericDiff,
+        changed,
+        meta
+      };
+    })
+    .filter(item => !changedOnly || item.changed);
+
+  if (!rows.length) {
+    return renderComparisonEmpty("Không có thay đổi cấu hình thu nhập giữa hai tháng.");
+  }
+
+  return rows.map(item => {
+    const diff = item.meta.kind === "mode"
+      ? item.changed
+        ? "Đã đổi"
+        : "Không đổi"
+      : item.meta.kind === "money" || item.meta.kind === "money-rate"
+        ? `${item.numericDiff > 0 ? "+" : item.numericDiff < 0 ? "−" : ""}${formatIncomePolicyValue(item.key, Math.abs(item.numericDiff))}`
+        : formatSignedNumber(item.numericDiff, item.meta.unit);
+
+    return `
+      <div class="salary-compare-row ${item.changed ? "is-changed" : ""}">
+        <span class="salary-compare-row-copy">
+          <strong>${escapeHTML(item.label)}</strong>
+          <small>${escapeHTML(formatIncomePolicyValue(item.key, item.baselineValue))} → ${escapeHTML(formatIncomePolicyValue(item.key, item.currentValue))}</small>
+        </span>
+        <strong class="salary-compare-diff ${item.meta.kind === "mode" ? "neutral" : comparisonDiffClass(item.numericDiff)}">${escapeHTML(diff)}</strong>
+      </div>
+    `;
+  }).join("");
+}
+
+
+function renderSalaryComparePayrollRows(current, baseline, changedOnly) {
+  const a = current.result;
+  const b = baseline.result;
+  const rows = [
+    ["Lương làm việc", "workingSalary", false],
+    ["Tiền tăng ca", "overtimeMoney", false],
+    ["Phụ cấp", "allowances.main.value", false],
+    ["Phụ cấp khác", "allowances.other.value", false],
+    ["Phụ cấp chuyên cần", "allowances.attendance.value", false],
+    ["Phụ cấp trách nhiệm", "allowances.responsibility.value", false],
+    ["Hỗ trợ giao hàng", "fuelMoney", false],
+    ["Khoản cộng khác", "otherIncome", false],
+    ["Bảo hiểm", "insuranceMoney", true],
+    ["Ứng trước", "advance", true],
+    ["Khoản trừ khác", "otherDeduction", true]
+  ];
+
+  const get = (obj, path) => path.split(".").reduce((value, key) => value?.[key], obj) ?? 0;
+  const items = rows
+    .map(([label, path, deduction]) => {
+      const currentValue = Number(get(a, path)) || 0;
+      const baselineValue = Number(get(b, path)) || 0;
+      const diff = currentValue - baselineValue;
+      return { label, currentValue, baselineValue, diff, deduction };
+    })
+    .filter(item => !changedOnly || Math.abs(item.diff) > 0.5);
+
+  if (!items.length) {
+    return renderComparisonEmpty("Các khoản tiền trong bảng lương không thay đổi.");
+  }
+
+  return items.map(item => `
+    <div class="salary-compare-row ${Math.abs(item.diff) > 0.5 ? "is-changed" : ""}">
+      <span class="salary-compare-row-copy">
+        <strong>${escapeHTML(item.label)}</strong>
+        <small>${formatPayrollMoney(item.baselineValue)} → ${formatPayrollMoney(item.currentValue)}</small>
+      </span>
+      <strong class="salary-compare-diff ${comparisonDiffClass(item.diff, item.deduction)}">${formatSignedMoney(item.diff)}</strong>
+    </div>
+  `).join("");
+}
+
+
+function renderSalaryCompareActivityRows(current, baseline, changedOnly) {
+  const rows = [
+    {
+      label: "Tổng OT",
+      current: Number(current.result.totalOT) || 0,
+      baseline: Number(baseline.result.totalOT) || 0,
+      format: value => formatHours(value),
+      diff: value => formatSignedNumber(value, "giờ")
+    },
+    {
+      label: "Công hưởng lương",
+      current: Number(current.result.paidDays) || 0,
+      baseline: Number(baseline.result.paidDays) || 0,
+      format: value => `${formatNumber(value)} công`,
+      diff: value => formatSignedNumber(value, "công")
+    },
+    {
+      label: "Kilomet giao hàng",
+      current: Number(current.result.monthlyKm) || 0,
+      baseline: Number(baseline.result.monthlyKm) || 0,
+      format: value => `${formatNumber(value)} km`,
+      diff: value => formatSignedNumber(value, "km")
+    }
+  ];
+
+  const items = rows
+    .map(item => ({ ...item, difference: item.current - item.baseline }))
+    .filter(item => !changedOnly || Math.abs(item.difference) > 0.0001);
+
+  if (!items.length) {
+    return renderComparisonEmpty("OT, ngày công và kilomet giao hàng không thay đổi.");
+  }
+
+  return items.map(item => `
+    <div class="salary-compare-row ${Math.abs(item.difference) > 0.0001 ? "is-changed" : ""}">
+      <span class="salary-compare-row-copy">
+        <strong>${escapeHTML(item.label)}</strong>
+        <small>${escapeHTML(item.format(item.baseline))} → ${escapeHTML(item.format(item.current))}</small>
+      </span>
+      <strong class="salary-compare-diff ${comparisonDiffClass(item.difference)}">${escapeHTML(item.diff(item.difference))}</strong>
+    </div>
+  `).join("");
+}
+
+
+function renderLastSalaryComparison() {
+  const comparison = appState.salaryComparison;
+
+  if (!comparison) {
+    return;
+  }
+
+  const { current, baseline } = comparison;
+  const changedOnly = $("#salaryCompareChangedOnly")?.checked !== false;
+  const netDiff = Number(current.result.netSalary || 0) - Number(baseline.result.netSalary || 0);
+  const incomeDiff = Number(current.result.totalIncome || 0) - Number(baseline.result.totalIncome || 0);
+  const deductionDiff = Number(current.result.totalDeductions || 0) - Number(baseline.result.totalDeductions || 0);
+  const baselineNet = Number(baseline.result.netSalary || 0);
+  const netPercent = Math.abs(baselineNet) > 0.5
+    ? netDiff / Math.abs(baselineNet) * 100
+    : null;
+
+  setText("#salaryCompareCurrentMonth", formatSalaryHistoryMonth(current.monthKey));
+  setText("#salaryCompareNetDiff", formatSignedMoney(netDiff));
+  setText(
+    "#salaryCompareNetPercent",
+    netPercent == null
+      ? "Không có cơ sở %"
+      : `${netPercent > 0 ? "+" : netPercent < 0 ? "−" : ""}${formatNumber(Math.abs(netPercent))}% so với ${formatSalaryHistoryMonth(baseline.monthKey).replace("Tháng ", "T")}`
+  );
+  setText("#salaryCompareIncomeDiff", formatSignedMoney(incomeDiff));
+  setText("#salaryCompareDeductionDiff", formatSignedMoney(deductionDiff));
+
+  [
+    ["#salaryCompareNetDiff", netDiff, false],
+    ["#salaryCompareIncomeDiff", incomeDiff, false],
+    ["#salaryCompareDeductionDiff", deductionDiff, true]
+  ].forEach(([selector, value, invert]) => {
+    const element = $(selector);
+    element?.classList.remove("positive", "negative", "neutral");
+    element?.classList.add(comparisonDiffClass(value, invert));
+  });
+
+  const policyList = $("#salaryComparePolicyList");
+  const payrollList = $("#salaryComparePayrollList");
+  const activityList = $("#salaryCompareActivityList");
+
+  if (policyList) {
+    policyList.innerHTML = renderSalaryComparePolicyRows(current, baseline, changedOnly);
+  }
+  if (payrollList) {
+    payrollList.innerHTML = renderSalaryComparePayrollRows(current, baseline, changedOnly);
+  }
+  if (activityList) {
+    activityList.innerHTML = renderSalaryCompareActivityRows(current, baseline, changedOnly);
+  }
+
+  refreshIcons();
+}
+
+
+async function runSalaryComparison() {
+  const currentMonth = getMonthKey(appState.salaryDate);
+  const baselineMonth = String($("#salaryCompareMonth")?.value || "");
+
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(baselineMonth)) {
+    showToast("Hãy chọn tháng muốn so sánh.", true);
+    return;
+  }
+
+  if (baselineMonth === currentMonth) {
+    showToast("Hãy chọn một tháng khác tháng đang xem.", true);
+    return;
+  }
+
+  $("#salaryCompareLoading")?.classList.remove("hidden");
+  $("#salaryCompareContent")?.classList.add("is-loading");
+
+  try {
+    await Promise.all([
+      loadMonthData(monthKeyToDate(currentMonth), { showLoader: false, force: false }),
+      loadMonthData(monthKeyToDate(baselineMonth), { showLoader: false, force: false })
+    ]);
+
+    appState.salaryComparison = {
+      current: getPayrollResultForComparison(currentMonth),
+      baseline: getPayrollResultForComparison(baselineMonth)
+    };
+    renderLastSalaryComparison();
+  } finally {
+    $("#salaryCompareLoading")?.classList.add("hidden");
+    $("#salaryCompareContent")?.classList.remove("is-loading");
+  }
+}
+
+
+function openSalaryCompare() {
+  const currentMonth = getMonthKey(appState.salaryDate);
+  const currentDate = monthKeyToDate(currentMonth);
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  const defaultBaseline = getMonthKey(currentDate);
+
+  setText("#salaryCompareCurrentMonth", formatSalaryHistoryMonth(currentMonth));
+  setValue("#salaryCompareMonth", defaultBaseline);
+  setChecked("#salaryCompareChangedOnly", true);
+  appState.salaryComparison = null;
+  openModal("salaryCompareModal");
+  runLockedAction(
+    "salaryCompare",
+    ["#salaryCompareRunButton"],
+    runSalaryComparison
+  );
 }
 
 

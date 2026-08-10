@@ -1,20 +1,26 @@
 {
   "name": "OT Pro",
   "short_name": "OT Pro",
-  "description": "Ứng dụng quản lý tăng ca, bảng lương và tiền cơm cá nhân.",
+  "description": "Theo dõi tăng ca, ca phát sinh, tiền cơm và thu nhập cá nhân.",
   "lang": "vi",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#f4f6f9",
   "theme_color": "#111827",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./image.PNG",
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
