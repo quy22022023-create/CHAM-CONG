@@ -178,7 +178,9 @@ const appState = {
   mealReceiptSupabaseAvailable: null,
   selectedMealReceiptWeek: null,
 
-  pendingSalaryRevisions: []
+  pendingSalaryRevisions: [],
+
+  endShiftNoteContext: null
 };
 
 const $ =
@@ -633,6 +635,22 @@ function bindEvents() {
     resetExtraEditor
   );
 
+  on(
+    "#saveEndShiftNoteButton",
+    "click",
+    () => runLockedAction(
+      "saveEndShiftNote",
+      ["#saveEndShiftNoteButton", "#cancelEndShiftNoteButton"],
+      saveEndShiftNote
+    )
+  );
+
+  on(
+    "#cancelEndShiftNoteButton",
+    "click",
+    () => closeModal("endShiftNoteModal")
+  );
+
   $$(
     "[data-close-modal]"
   ).forEach(
@@ -743,6 +761,11 @@ function bindSettingsEvents() {
     appState.settings.showSeconds = event.target.checked;
     saveSettings();
     updateClock();
+  });
+
+  on("#promptNoteAfterShiftEndToggle", "change", event => {
+    appState.settings.promptNoteAfterShiftEnd = event.target.checked;
+    saveSettings();
   });
 
   ["#defaultShiftStart", "#defaultShiftEnd"].forEach(selector => {
@@ -2180,6 +2203,7 @@ function getDefaultSettings() {
     themeMode: "light",
     fontSize: "medium",
     showSeconds: true,
+    promptNoteAfterShiftEnd: true,
     defaultShiftStart: "07:45",
     defaultShiftEnd: "17:00",
 
@@ -2381,6 +2405,9 @@ function sanitizeSettings(value) {
     showSeconds:
       value.showSeconds !== false,
 
+    promptNoteAfterShiftEnd:
+      value.promptNoteAfterShiftEnd !== false,
+
     defaultShiftStart:
       isValidTime(value.defaultShiftStart)
         ? value.defaultShiftStart
@@ -2581,6 +2608,7 @@ function syncSettingsUI() {
   setValue("#themeModeSelect", settings.themeMode);
   setValue("#fontSizeSelect", settings.fontSize);
   setChecked("#showSecondsToggle", settings.showSeconds);
+  setChecked("#promptNoteAfterShiftEndToggle", settings.promptNoteAfterShiftEnd);
   setValue("#defaultShiftStart", settings.defaultShiftStart);
   setValue("#defaultShiftEnd", settings.defaultShiftEnd);
 
@@ -7831,6 +7859,15 @@ async function endMainShift() {
         `Đã tạo ca mặc định ${startTime}–${endTime}`
       );
     }
+
+    const refreshedLog = getWorkLog(targetDate);
+
+    openEndShiftNotePrompt({
+      type: "main",
+      dateKey: targetDate,
+      endTime,
+      note: getLogVisibleNote(refreshedLog)
+    });
   } catch (
     error
   ) {
@@ -7845,6 +7882,121 @@ async function endMainShift() {
     setLoading(
       false
     );
+  }
+}
+
+
+// =====================================================
+// GHI CHÚ SAU KHI TAN CA
+// =====================================================
+
+function shouldPromptEndShiftNote() {
+  return appState.settings?.promptNoteAfterShiftEnd !== false;
+}
+
+function openEndShiftNotePrompt({
+  type,
+  dateKey,
+  shiftId = null,
+  endTime = "",
+  note = ""
+}) {
+  if (!shouldPromptEndShiftNote()) {
+    return;
+  }
+
+  appState.endShiftNoteContext = {
+    type,
+    dateKey,
+    shiftId,
+    endTime
+  };
+
+  const isExtra = type === "extra";
+
+  setText(
+    "#endShiftNoteTitle",
+    isExtra ? "Ghi chú ca thêm" : "Ghi chú ca chính"
+  );
+
+  setText(
+    "#endShiftNoteSavedTime",
+    endTime
+      ? `Giờ tan ca ${endTime} đã được lưu.`
+      : "Giờ tan ca đã được lưu."
+  );
+
+  setText(
+    "#endShiftNoteTypeLabel",
+    isExtra ? "CA THÊM" : "CA CHÍNH"
+  );
+
+  const input = $("#endShiftNoteInput");
+
+  if (input) {
+    input.value = String(note || "");
+  }
+
+  openModal("endShiftNoteModal");
+
+  window.setTimeout(() => {
+    const textarea = $("#endShiftNoteInput");
+    textarea?.focus({ preventScroll: true });
+
+    if (textarea) {
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }
+  }, 180);
+}
+
+async function saveEndShiftNote() {
+  const context = appState.endShiftNoteContext;
+
+  if (!context) {
+    closeModal("endShiftNoteModal");
+    return;
+  }
+
+  const note = String($("#endShiftNoteInput")?.value || "").trim();
+
+  setLoading(true);
+
+  try {
+    if (context.type === "main") {
+      const log = getWorkLog(context.dateKey);
+      const parsed = parseStoredNote(log?.note || "");
+
+      await saveWorkLog(context.dateKey, {
+        note: buildStoredNote(note, parsed.meta)
+      });
+    } else if (context.type === "extra") {
+      if (!ensureExtraTable()) {
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("extra_shifts")
+        .update({ note })
+        .eq("id", context.shiftId)
+        .eq("username", appState.currentUser);
+
+      if (error) {
+        throw error;
+      }
+    } else {
+      throw new Error("Loại ca không hợp lệ.");
+    }
+
+    await refreshData(false, parseDateKey(context.dateKey), true);
+    closeModal("endShiftNoteModal");
+    showToast(note ? "Đã lưu ghi chú tan ca." : "Đã lưu tan ca không kèm ghi chú.");
+  } catch (error) {
+    showToast(
+      `Không thể lưu ghi chú: ${error.message || "Lỗi không xác định"}`,
+      true
+    );
+  } finally {
+    setLoading(false);
   }
 }
 
@@ -8075,6 +8227,18 @@ async function endExtraShift() {
           duration
         )}`
     );
+
+    const refreshedShift = appState.extraShifts.find(
+      item => String(item.id) === String(targetShift.id)
+    );
+
+    openEndShiftNotePrompt({
+      type: "extra",
+      dateKey: targetShift.work_date,
+      shiftId: targetShift.id,
+      endTime: getTimeValue(endDate),
+      note: refreshedShift?.note || targetShift.note || ""
+    });
   } catch (
     error
   ) {
@@ -12339,6 +12503,16 @@ function closeModal(
 
   if (id === "mealReceiptConfirmModal") {
     appState.selectedMealReceiptWeek = null;
+  }
+
+  if (id === "endShiftNoteModal") {
+    appState.endShiftNoteContext = null;
+
+    const input = $("#endShiftNoteInput");
+
+    if (input) {
+      input.value = "";
+    }
   }
 
   const anyOpen =

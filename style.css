@@ -10481,3 +10481,84 @@ html[data-font-size="large"] .settings-tab-button {
     grid-row:auto;
   }
 }
+
+
+/* =========================================================
+   OPTIONAL NOTE AFTER END SHIFT
+========================================================= */
+
+.end-shift-note-setting {
+  margin-top:10px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+
+.end-shift-note-sheet {
+  max-height:min(78vh,78dvh);
+}
+
+.end-shift-note-saved {
+  margin:4px 0 14px;
+  padding:12px;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--green-soft);
+}
+
+.end-shift-note-saved-icon {
+  width:34px;
+  min-width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:11px;
+  background:var(--card);
+  color:var(--green);
+}
+
+.end-shift-note-saved > span:last-child {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.end-shift-note-saved strong {
+  font-size:calc(12px * var(--scale));
+  line-height:1.35;
+}
+
+.end-shift-note-saved small {
+  color:var(--sub);
+  font-size:calc(9px * var(--scale));
+  line-height:1.45;
+}
+
+.end-shift-note-field {
+  margin-top:2px;
+}
+
+.end-shift-note-field .textarea-shell textarea {
+  min-height:92px;
+}
+
+.end-shift-note-actions {
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);
+  gap:9px;
+}
+
+.end-shift-note-actions > button {
+  min-height:48px;
+}
+
+@media (max-width:360px) {
+  .end-shift-note-actions {
+    grid-template-columns:1fr;
+  }
+}
