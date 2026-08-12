@@ -183,8 +183,7 @@ const appState = {
   endShiftNoteContext: null,
 
   hrOtDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  advancedUnlockTapCount: 0,
-  advancedUnlockTimer: null
+  // Trạng thái tính năng ẩn được lưu riêng theo tài khoản.
 };
 
 const $ =
@@ -806,7 +805,7 @@ function bindSettingsEvents() {
     saveSettings();
   });
 
-  on("#settingsVersionRow", "click", handleSettingsVersionTap);
+  on("#newPasswordInput", "input", handleAdvancedUnlockPasswordInput);
 
   on("#hrOtFeatureToggle", "change", event => {
     setHrOtFeatureEnabled(event.target.checked);
@@ -12435,36 +12434,34 @@ function refreshAdvancedFeatureUI() {
 }
 
 
-function handleSettingsVersionTap() {
-  if (!appState.currentUser || isAdvancedFeaturesUnlocked()) {
+function handleAdvancedUnlockPasswordInput(event) {
+  const input = event?.target || $("#newPasswordInput");
+
+  if (!input || !appState.currentUser || isAdvancedFeaturesUnlocked()) {
     return;
   }
 
-  window.clearTimeout(appState.advancedUnlockTimer);
-
-  appState.advancedUnlockTapCount += 1;
-
-  const remaining = Math.max(0, 7 - appState.advancedUnlockTapCount);
-
-  if (remaining === 0) {
-    appState.advancedUnlockTapCount = 0;
-    appState.advancedUnlockTimer = null;
-
-    setAdvancedFeaturesUnlocked(true);
-    refreshAdvancedFeatureUI();
-    refreshIcons();
-    showToast("Đã mở tính năng nâng cao.");
+  if (String(input.value || "").trim().toLowerCase() !== "open") {
     return;
   }
 
-  if (remaining <= 3) {
-    showToast(`Còn ${remaining} lần để mở tính năng nâng cao.`);
-  }
+  // "open" is a private UI command, not a password value.
+  // Clear it immediately so the account cannot be changed to this keyword by mistake.
+  input.value = "";
 
-  appState.advancedUnlockTimer = window.setTimeout(() => {
-    appState.advancedUnlockTapCount = 0;
-    appState.advancedUnlockTimer = null;
-  }, 2500);
+  setAdvancedFeaturesUnlocked(true);
+  refreshAdvancedFeatureUI();
+  refreshIcons();
+
+  const section = $("#advancedFeaturesSection");
+  window.requestAnimationFrame(() => {
+    section?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  });
+
+  showToast("Đã mở tính năng ẩn.");
 }
 
 

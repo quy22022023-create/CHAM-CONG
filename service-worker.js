@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "ot-pro-v8-7-hidden-hr-20260812";
+const CACHE_NAME = "ot-pro-v8-7-hidden-hr-open-20260812";
 const CORE_ASSETS = [
   "./",
   "./index.html",
