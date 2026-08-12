@@ -8,7 +8,7 @@
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V8.7 Settings Tabs";
+const APP_VERSION = "OT Pro V8.8 HR Minutes";
 
 const SB_URL =
   "https://dtdknettwfgilklaqeae.supabase.co";
@@ -448,22 +448,6 @@ function bindEvents() {
     "#hrOtNextMonth",
     "click",
     () => changeHrOtMonth(1)
-  );
-
-  on(
-    "#hrOtTableBody",
-    "input",
-    handleHrOtCellInput
-  );
-
-  on(
-    "#hrOtTableBody",
-    "focusin",
-    event => {
-      if (event.target.matches(".hr-ot-input")) {
-        window.requestAnimationFrame(() => event.target.select());
-      }
-    }
   );
 
   on(
@@ -4659,6 +4643,10 @@ function renderOpenViewsAfterDataLoad() {
     appState.selectedDate
   ) {
     renderDayDetail(false);
+  }
+
+  if ($("#hrOtModal")?.classList.contains("show")) {
+    renderHrOtTable();
   }
 }
 
@@ -12465,40 +12453,26 @@ function handleAdvancedUnlockPasswordInput(event) {
 }
 
 
-function getHrOtStorageKey() {
-  return getPrivateFeatureStorageKey("hr_ot_minutes");
-}
-
-
-function loadHrOtStorage() {
-  try {
-    const parsed = JSON.parse(
-      localStorage.getItem(getHrOtStorageKey()) || "{}"
-    );
-
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? parsed
-      : {};
-  } catch {
-    return {};
-  }
-}
-
-
-function saveHrOtStorage(data) {
-  localStorage.setItem(
-    getHrOtStorageKey(),
-    JSON.stringify(data || {})
-  );
-}
-
-
 function getHrOtMonthKey(date = appState.hrOtDate) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
 }
 
 
-function openHrOt() {
+function getHrOtMinutesForDate(dateKey) {
+  const hours = getStoredTotalOT(dateKey);
+
+  if (!Number.isFinite(Number(hours)) || Number(hours) <= 0) {
+    return 0;
+  }
+
+  // OT Pro stores recognised OT in hours rounded to 2 decimals.
+  // Converting back with Math.round preserves the original whole-minute value
+  // while also respecting manual OT adjustments already saved by the app.
+  return Math.max(0, Math.round(Number(hours) * 60));
+}
+
+
+async function openHrOt() {
   if (!isHrOtFeatureEnabled()) {
     showToast("Bảng OT HR đang tắt.", true);
     return;
@@ -12511,12 +12485,17 @@ function openHrOt() {
     appState.hrOtDate = new Date(now.getFullYear(), now.getMonth(), 1);
   }
 
+  await loadMonthData(appState.hrOtDate, {
+    showLoader: true,
+    force: true
+  });
+
   renderHrOtTable();
   openModal("hrOtModal");
 }
 
 
-function changeHrOtMonth(delta) {
+async function changeHrOtMonth(delta) {
   const current = appState.hrOtDate instanceof Date
     ? appState.hrOtDate
     : new Date();
@@ -12526,6 +12505,11 @@ function changeHrOtMonth(delta) {
     current.getMonth() + delta,
     1
   );
+
+  await loadMonthData(appState.hrOtDate, {
+    showLoader: true,
+    force: true
+  });
 
   renderHrOtTable();
 }
@@ -12546,74 +12530,6 @@ function getHrOtWeekdayLabel(date) {
 }
 
 
-function normalizeHrOtMinutes(value) {
-  const digits = String(value ?? "").replace(/\D/g, "").slice(0, 4);
-
-  if (!digits) {
-    return "";
-  }
-
-  const number = Math.max(0, Math.min(9999, Number(digits)));
-  return Number.isFinite(number) ? String(number) : "";
-}
-
-
-function handleHrOtCellInput(event) {
-  const input = event.target.closest(".hr-ot-input");
-
-  if (!input) {
-    return;
-  }
-
-  const normalized = normalizeHrOtMinutes(input.value);
-
-  if (input.value !== normalized) {
-    input.value = normalized;
-  }
-
-  const row = input.dataset.hrRow;
-  const day = input.dataset.hrDay;
-  const monthKey = getHrOtMonthKey();
-
-  if (!["normal", "sunday"].includes(row) || !day) {
-    return;
-  }
-
-  const storage = loadHrOtStorage();
-  const month = storage[monthKey] && typeof storage[monthKey] === "object"
-    ? storage[monthKey]
-    : { normal: {}, sunday: {} };
-
-  month.normal =
-    month.normal && typeof month.normal === "object"
-      ? month.normal
-      : {};
-
-  month.sunday =
-    month.sunday && typeof month.sunday === "object"
-      ? month.sunday
-      : {};
-
-  if (normalized === "") {
-    delete month[row][day];
-  } else {
-    month[row][day] = Number(normalized);
-  }
-
-  const hasAnyValue =
-    Object.keys(month.normal).length > 0 ||
-    Object.keys(month.sunday).length > 0;
-
-  if (hasAnyValue) {
-    storage[monthKey] = month;
-  } else {
-    delete storage[monthKey];
-  }
-
-  saveHrOtStorage(storage);
-}
-
-
 function renderHrOtTable() {
   const head = $("#hrOtTableHead");
   const body = $("#hrOtTableBody");
@@ -12629,11 +12545,6 @@ function renderHrOtTable() {
   const year = date.getFullYear();
   const month = date.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const monthKey = `${year}-${pad(month + 1)}`;
-  const storage = loadHrOtStorage();
-  const monthData = storage[monthKey] || {};
-  const normal = monthData.normal || {};
-  const sunday = monthData.sunday || {};
 
   setText("#hrOtMonthLabel", `${pad(month + 1)}/${year}`);
 
@@ -12643,8 +12554,11 @@ function renderHrOtTable() {
 
   for (let day = 1; day <= daysInMonth; day += 1) {
     const currentDate = new Date(year, month, day);
+    const dateKey = `${year}-${pad(month + 1)}-${pad(day)}`;
     const isSunday = currentDate.getDay() === 0;
     const sundayClass = isSunday ? " is-sunday" : "";
+    const minutes = getHrOtMinutesForDate(dateKey);
+    const displayValue = minutes > 0 ? String(minutes) : "";
 
     dayCells.push(`
       <th class="hr-ot-day${sundayClass}">
@@ -12655,31 +12569,17 @@ function renderHrOtTable() {
 
     normalCells.push(`
       <td class="hr-ot-cell${sundayClass}">
-        <input
-          class="hr-ot-input"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
-          aria-label="Tca thường ngày ${day}"
-          data-hr-row="normal"
-          data-hr-day="${day}"
-          value="${normal[day] ?? ""}"
-        />
+        <span class="hr-ot-value" aria-label="Tca thường ngày ${day}">${
+          !isSunday ? displayValue : ""
+        }</span>
       </td>
     `);
 
     sundayCells.push(`
       <td class="hr-ot-cell${sundayClass}">
-        <input
-          class="hr-ot-input"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
-          aria-label="Tca chủ nhật ngày ${day}"
-          data-hr-row="sunday"
-          data-hr-day="${day}"
-          value="${sunday[day] ?? ""}"
-        />
+        <span class="hr-ot-value" aria-label="Tca chủ nhật ngày ${day}">${
+          isSunday ? displayValue : ""
+        }</span>
       </td>
     `);
   }

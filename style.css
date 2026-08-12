@@ -10832,7 +10832,7 @@ html[data-theme="dark"] .hr-ot-cell.is-sunday {
   background:#4b3d18;
 }
 
-.hr-ot-input {
+.hr-ot-value {
   width:100%;
   height:42px;
 
@@ -10840,33 +10840,21 @@ html[data-theme="dark"] .hr-ot-cell.is-sunday {
     0
     2px;
 
-  border:0;
-  border-radius:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-  background:transparent;
   color:var(--text);
 
-  font-size:16px;
-  font-weight:750;
+  font-size:
+    calc(
+      10px *
+      var(--scale)
+    );
 
+  font-weight:750;
   text-align:center;
   font-variant-numeric:tabular-nums;
-
-  box-shadow:none !important;
-}
-
-.hr-ot-input:focus {
-  position:relative;
-  z-index:2;
-
-  background:var(--blue-soft);
-
-  outline:
-    2px
-    solid
-    var(--blue);
-
-  outline-offset:-2px;
 }
 
 @media (max-width:430px) {
