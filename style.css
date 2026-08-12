@@ -10562,3 +10562,338 @@ html[data-font-size="large"] .settings-tab-button {
     grid-template-columns:1fr;
   }
 }
+
+
+/* =========================================================
+   HIDDEN FEATURE — HR OT TABLE
+========================================================= */
+
+#settingsVersionRow {
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+}
+
+.advanced-hide-button {
+  width:100%;
+  min-height:42px;
+  margin-top:10px;
+  padding:9px 12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+
+  border:1px solid var(--border);
+  border-radius:13px;
+
+  background:var(--soft);
+  color:var(--sub);
+
+  font-size:
+    calc(
+      10px *
+      var(--scale)
+    );
+
+  font-weight:750;
+}
+
+.advanced-hide-button:active {
+  transform:scale(.985);
+}
+
+.hr-ot-sheet {
+  max-width:100%;
+  max-height:
+    min(
+      72vh,
+      72dvh
+    );
+
+  padding:
+    8px
+    0
+    calc(
+      12px +
+      var(--safe-bottom)
+    );
+
+  overflow:hidden;
+}
+
+.hr-ot-toolbar {
+  position:relative;
+
+  min-height:46px;
+
+  padding:
+    4px
+    58px
+    9px
+    12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:7px;
+}
+
+.hr-ot-toolbar > strong {
+  min-width:90px;
+
+  color:var(--text);
+
+  font-size:
+    calc(
+      14px *
+      var(--scale)
+    );
+
+  font-weight:800;
+
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+
+.hr-ot-month-button {
+  width:35px;
+  min-width:35px;
+  height:35px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:1px solid var(--border);
+  border-radius:11px;
+
+  background:var(--soft);
+  color:var(--text);
+}
+
+.hr-ot-month-button:active {
+  background:var(--strong);
+  transform:scale(.94);
+}
+
+.hr-ot-close {
+  position:absolute;
+  top:4px;
+  right:12px;
+}
+
+.hr-ot-scroll {
+  width:100%;
+
+  overflow-x:auto;
+  overflow-y:hidden;
+
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+}
+
+.hr-ot-table {
+  width:max-content;
+  min-width:100%;
+
+  border-collapse:separate;
+  border-spacing:0;
+
+  background:var(--card);
+
+  table-layout:fixed;
+}
+
+.hr-ot-table th,
+.hr-ot-table td {
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+
+.hr-ot-table thead th {
+  border-top:0;
+}
+
+.hr-ot-row-label {
+  position:sticky;
+  left:0;
+  z-index:4;
+
+  width:106px;
+  min-width:106px;
+  max-width:106px;
+
+  padding:8px 7px;
+
+  background:var(--card);
+  color:var(--text);
+
+  font-size:
+    calc(
+      9.5px *
+      var(--scale)
+    );
+
+  font-weight:800;
+
+  text-align:left;
+  white-space:nowrap;
+
+  box-shadow:
+    1px
+    0
+    0
+    var(--border);
+}
+
+.hr-ot-corner {
+  z-index:6;
+  height:80px;
+}
+
+.hr-ot-day {
+  width:42px;
+  min-width:42px;
+  max-width:42px;
+  height:80px;
+
+  padding:
+    6px
+    2px;
+
+  background:var(--card);
+  color:var(--text);
+
+  text-align:center;
+  vertical-align:top;
+}
+
+.hr-ot-day strong {
+  display:block;
+
+  margin-bottom:5px;
+
+  font-size:
+    calc(
+      9px *
+      var(--scale)
+    );
+
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+
+.hr-ot-day small {
+  height:51px;
+
+  display:inline-block;
+
+  color:var(--sub);
+
+  font-size:
+    calc(
+      7px *
+      var(--scale)
+    );
+
+  font-weight:700;
+
+  line-height:1;
+  white-space:nowrap;
+
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+}
+
+.hr-ot-cell {
+  width:42px;
+  min-width:42px;
+  max-width:42px;
+  height:43px;
+
+  padding:0;
+
+  background:var(--card);
+}
+
+.hr-ot-day.is-sunday,
+.hr-ot-cell.is-sunday {
+  background:#ffe49a;
+}
+
+html[data-theme="dark"] .hr-ot-day.is-sunday,
+html[data-theme="dark"] .hr-ot-cell.is-sunday {
+  background:#4b3d18;
+}
+
+.hr-ot-input {
+  width:100%;
+  height:42px;
+
+  padding:
+    0
+    2px;
+
+  border:0;
+  border-radius:0;
+
+  background:transparent;
+  color:var(--text);
+
+  font-size:16px;
+  font-weight:750;
+
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+
+  box-shadow:none !important;
+}
+
+.hr-ot-input:focus {
+  position:relative;
+  z-index:2;
+
+  background:var(--blue-soft);
+
+  outline:
+    2px
+    solid
+    var(--blue);
+
+  outline-offset:-2px;
+}
+
+@media (max-width:430px) {
+  .hr-ot-sheet {
+    max-height:
+      min(
+        68vh,
+        68dvh
+      );
+  }
+
+  .hr-ot-row-label {
+    width:96px;
+    min-width:96px;
+    max-width:96px;
+
+    font-size:
+      calc(
+        9px *
+        var(--scale)
+      );
+  }
+
+  .hr-ot-day,
+  .hr-ot-cell {
+    width:40px;
+    min-width:40px;
+    max-width:40px;
+  }
+}

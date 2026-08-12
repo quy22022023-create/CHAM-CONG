@@ -180,7 +180,11 @@ const appState = {
 
   pendingSalaryRevisions: [],
 
-  endShiftNoteContext: null
+  endShiftNoteContext: null,
+
+  hrOtDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  advancedUnlockTapCount: 0,
+  advancedUnlockTimer: null
 };
 
 const $ =
@@ -427,6 +431,40 @@ function bindEvents() {
     "#settingsButton",
     "click",
     openSettings
+  );
+
+  on(
+    "#hrOtButton",
+    "click",
+    openHrOt
+  );
+
+  on(
+    "#hrOtPrevMonth",
+    "click",
+    () => changeHrOtMonth(-1)
+  );
+
+  on(
+    "#hrOtNextMonth",
+    "click",
+    () => changeHrOtMonth(1)
+  );
+
+  on(
+    "#hrOtTableBody",
+    "input",
+    handleHrOtCellInput
+  );
+
+  on(
+    "#hrOtTableBody",
+    "focusin",
+    event => {
+      if (event.target.matches(".hr-ot-input")) {
+        window.requestAnimationFrame(() => event.target.select());
+      }
+    }
   );
 
   on(
@@ -766,6 +804,25 @@ function bindSettingsEvents() {
   on("#promptNoteAfterShiftEndToggle", "change", event => {
     appState.settings.promptNoteAfterShiftEnd = event.target.checked;
     saveSettings();
+  });
+
+  on("#settingsVersionRow", "click", handleSettingsVersionTap);
+
+  on("#hrOtFeatureToggle", "change", event => {
+    setHrOtFeatureEnabled(event.target.checked);
+    refreshAdvancedFeatureUI();
+
+    showToast(
+      event.target.checked
+        ? "Đã bật Bảng OT HR."
+        : "Đã ẩn Bảng OT HR khỏi Menu."
+    );
+  });
+
+  on("#hideAdvancedFeaturesButton", "click", () => {
+    setAdvancedFeaturesUnlocked(false);
+    refreshAdvancedFeatureUI();
+    showToast("Đã ẩn tính năng nâng cao.");
   });
 
   ["#defaultShiftStart", "#defaultShiftEnd"].forEach(selector => {
@@ -2642,6 +2699,7 @@ function syncSettingsUI() {
   setText("#settingsUsername", appState.currentUser || "Người dùng");
   setText("#settingsVersion", APP_VERSION);
 
+  refreshAdvancedFeatureUI();
   renderMealThresholdSettings();
   syncSalaryInputs("settings");
   syncMealPriceInputs("settings");
@@ -4232,6 +4290,7 @@ function showApplication() {
     APP_VERSION
   );
 
+  refreshAdvancedFeatureUI();
   refreshIcons();
 }
 
@@ -12305,6 +12364,348 @@ async function confirmMealReceiptAction() {
 }
 
 
+
+// =====================================================
+// TÍNH NĂNG ẨN: BẢNG OT HR
+// =====================================================
+
+function getPrivateFeatureStorageKey(name) {
+  const username = encodeURIComponent(appState.currentUser || "guest");
+  return `otpro_${name}_${username}`;
+}
+
+
+function isAdvancedFeaturesUnlocked() {
+  if (!appState.currentUser) {
+    return false;
+  }
+
+  return localStorage.getItem(
+    getPrivateFeatureStorageKey("advanced_unlocked")
+  ) === "1";
+}
+
+
+function setAdvancedFeaturesUnlocked(enabled) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  localStorage.setItem(
+    getPrivateFeatureStorageKey("advanced_unlocked"),
+    enabled ? "1" : "0"
+  );
+}
+
+
+function isHrOtFeatureEnabled() {
+  if (!appState.currentUser) {
+    return false;
+  }
+
+  return localStorage.getItem(
+    getPrivateFeatureStorageKey("hr_ot_enabled")
+  ) === "1";
+}
+
+
+function setHrOtFeatureEnabled(enabled) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  localStorage.setItem(
+    getPrivateFeatureStorageKey("hr_ot_enabled"),
+    enabled ? "1" : "0"
+  );
+}
+
+
+function refreshAdvancedFeatureUI() {
+  const unlocked = isAdvancedFeaturesUnlocked();
+  const hrEnabled = isHrOtFeatureEnabled();
+
+  $("#advancedFeaturesSection")
+    ?.classList.toggle("hidden", !unlocked);
+
+  setChecked("#hrOtFeatureToggle", hrEnabled);
+
+  $("#hrOtButton")
+    ?.classList.toggle("hidden", !hrEnabled);
+}
+
+
+function handleSettingsVersionTap() {
+  if (!appState.currentUser || isAdvancedFeaturesUnlocked()) {
+    return;
+  }
+
+  window.clearTimeout(appState.advancedUnlockTimer);
+
+  appState.advancedUnlockTapCount += 1;
+
+  const remaining = Math.max(0, 7 - appState.advancedUnlockTapCount);
+
+  if (remaining === 0) {
+    appState.advancedUnlockTapCount = 0;
+    appState.advancedUnlockTimer = null;
+
+    setAdvancedFeaturesUnlocked(true);
+    refreshAdvancedFeatureUI();
+    refreshIcons();
+    showToast("Đã mở tính năng nâng cao.");
+    return;
+  }
+
+  if (remaining <= 3) {
+    showToast(`Còn ${remaining} lần để mở tính năng nâng cao.`);
+  }
+
+  appState.advancedUnlockTimer = window.setTimeout(() => {
+    appState.advancedUnlockTapCount = 0;
+    appState.advancedUnlockTimer = null;
+  }, 2500);
+}
+
+
+function getHrOtStorageKey() {
+  return getPrivateFeatureStorageKey("hr_ot_minutes");
+}
+
+
+function loadHrOtStorage() {
+  try {
+    const parsed = JSON.parse(
+      localStorage.getItem(getHrOtStorageKey()) || "{}"
+    );
+
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+
+function saveHrOtStorage(data) {
+  localStorage.setItem(
+    getHrOtStorageKey(),
+    JSON.stringify(data || {})
+  );
+}
+
+
+function getHrOtMonthKey(date = appState.hrOtDate) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+}
+
+
+function openHrOt() {
+  if (!isHrOtFeatureEnabled()) {
+    showToast("Bảng OT HR đang tắt.", true);
+    return;
+  }
+
+  closeAppMenu();
+
+  if (!(appState.hrOtDate instanceof Date) || Number.isNaN(appState.hrOtDate.getTime())) {
+    const now = new Date();
+    appState.hrOtDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  renderHrOtTable();
+  openModal("hrOtModal");
+}
+
+
+function changeHrOtMonth(delta) {
+  const current = appState.hrOtDate instanceof Date
+    ? appState.hrOtDate
+    : new Date();
+
+  appState.hrOtDate = new Date(
+    current.getFullYear(),
+    current.getMonth() + delta,
+    1
+  );
+
+  renderHrOtTable();
+}
+
+
+function getHrOtWeekdayLabel(date) {
+  const labels = [
+    "Chủ Nhật",
+    "Thứ Hai",
+    "Thứ Ba",
+    "Thứ Tư",
+    "Thứ Năm",
+    "Thứ Sáu",
+    "Thứ Bảy"
+  ];
+
+  return labels[date.getDay()];
+}
+
+
+function normalizeHrOtMinutes(value) {
+  const digits = String(value ?? "").replace(/\D/g, "").slice(0, 4);
+
+  if (!digits) {
+    return "";
+  }
+
+  const number = Math.max(0, Math.min(9999, Number(digits)));
+  return Number.isFinite(number) ? String(number) : "";
+}
+
+
+function handleHrOtCellInput(event) {
+  const input = event.target.closest(".hr-ot-input");
+
+  if (!input) {
+    return;
+  }
+
+  const normalized = normalizeHrOtMinutes(input.value);
+
+  if (input.value !== normalized) {
+    input.value = normalized;
+  }
+
+  const row = input.dataset.hrRow;
+  const day = input.dataset.hrDay;
+  const monthKey = getHrOtMonthKey();
+
+  if (!["normal", "sunday"].includes(row) || !day) {
+    return;
+  }
+
+  const storage = loadHrOtStorage();
+  const month = storage[monthKey] && typeof storage[monthKey] === "object"
+    ? storage[monthKey]
+    : { normal: {}, sunday: {} };
+
+  month.normal =
+    month.normal && typeof month.normal === "object"
+      ? month.normal
+      : {};
+
+  month.sunday =
+    month.sunday && typeof month.sunday === "object"
+      ? month.sunday
+      : {};
+
+  if (normalized === "") {
+    delete month[row][day];
+  } else {
+    month[row][day] = Number(normalized);
+  }
+
+  const hasAnyValue =
+    Object.keys(month.normal).length > 0 ||
+    Object.keys(month.sunday).length > 0;
+
+  if (hasAnyValue) {
+    storage[monthKey] = month;
+  } else {
+    delete storage[monthKey];
+  }
+
+  saveHrOtStorage(storage);
+}
+
+
+function renderHrOtTable() {
+  const head = $("#hrOtTableHead");
+  const body = $("#hrOtTableBody");
+
+  if (!head || !body) {
+    return;
+  }
+
+  const date = appState.hrOtDate instanceof Date
+    ? appState.hrOtDate
+    : new Date();
+
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthKey = `${year}-${pad(month + 1)}`;
+  const storage = loadHrOtStorage();
+  const monthData = storage[monthKey] || {};
+  const normal = monthData.normal || {};
+  const sunday = monthData.sunday || {};
+
+  setText("#hrOtMonthLabel", `${pad(month + 1)}/${year}`);
+
+  const dayCells = [];
+  const normalCells = [];
+  const sundayCells = [];
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const currentDate = new Date(year, month, day);
+    const isSunday = currentDate.getDay() === 0;
+    const sundayClass = isSunday ? " is-sunday" : "";
+
+    dayCells.push(`
+      <th class="hr-ot-day${sundayClass}">
+        <strong>${day}</strong>
+        <small>${escapeHTML(getHrOtWeekdayLabel(currentDate))}</small>
+      </th>
+    `);
+
+    normalCells.push(`
+      <td class="hr-ot-cell${sundayClass}">
+        <input
+          class="hr-ot-input"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          aria-label="Tca thường ngày ${day}"
+          data-hr-row="normal"
+          data-hr-day="${day}"
+          value="${normal[day] ?? ""}"
+        />
+      </td>
+    `);
+
+    sundayCells.push(`
+      <td class="hr-ot-cell${sundayClass}">
+        <input
+          class="hr-ot-input"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          aria-label="Tca chủ nhật ngày ${day}"
+          data-hr-row="sunday"
+          data-hr-day="${day}"
+          value="${sunday[day] ?? ""}"
+        />
+      </td>
+    `);
+  }
+
+  head.innerHTML = `
+    <tr>
+      <th class="hr-ot-row-label hr-ot-corner"></th>
+      ${dayCells.join("")}
+    </tr>
+  `;
+
+  body.innerHTML = `
+    <tr>
+      <th class="hr-ot-row-label" scope="row">Tca thường</th>
+      ${normalCells.join("")}
+    </tr>
+    <tr>
+      <th class="hr-ot-row-label" scope="row">Tca chủ nhật</th>
+      ${sundayCells.join("")}
+    </tr>
+  `;
+}
+
 // =====================================================
 // MENU + CÀI ĐẶT + MODAL
 // =====================================================
@@ -12318,6 +12719,8 @@ function openAppMenu() {
   ) {
     return;
   }
+
+  refreshAdvancedFeatureUI();
 
   setText(
     "#menuUserName",

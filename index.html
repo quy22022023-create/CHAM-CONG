@@ -301,6 +301,16 @@
 </span>
 <i class="menu-item-arrow" data-lucide="chevron-right"></i>
 </button>
+<button class="menu-item menu-item-wide hidden" id="hrOtButton" type="button">
+<span class="menu-item-icon">
+<i data-lucide="table-2"></i>
+</span>
+<span class="menu-item-copy">
+<strong>Bảng OT HR</strong>
+<small>Nhập và xem số phút tăng ca theo bảng HR</small>
+</span>
+<i class="menu-item-arrow" data-lucide="chevron-right"></i>
+</button>
 <button class="menu-item menu-item-wide" id="settingsButton" type="button">
 <span class="menu-item-icon">
 <i data-lucide="settings-2"></i>
@@ -319,6 +329,31 @@
 <i data-lucide="log-out"></i>
                     Đăng xuất
                 </button>
+</div>
+</section>
+</div>
+<!-- HR OT TABLE MODAL -->
+<div class="modal elevated-modal" id="hrOtModal">
+<div class="modal-backdrop" data-close-modal="hrOtModal"></div>
+<section aria-modal="true" class="bottom-sheet large-sheet hr-ot-sheet" role="dialog">
+<div class="sheet-handle"></div>
+<div class="hr-ot-toolbar">
+<button aria-label="Tháng trước" class="hr-ot-month-button" id="hrOtPrevMonth" type="button">
+<i data-lucide="chevron-left"></i>
+</button>
+<strong id="hrOtMonthLabel">08/2026</strong>
+<button aria-label="Tháng sau" class="hr-ot-month-button" id="hrOtNextMonth" type="button">
+<i data-lucide="chevron-right"></i>
+</button>
+<button aria-label="Đóng" class="close-button hr-ot-close" data-close-modal="hrOtModal" type="button">
+<i data-lucide="x"></i>
+</button>
+</div>
+<div class="hr-ot-scroll">
+<table class="hr-ot-table" id="hrOtTable">
+<thead id="hrOtTableHead"></thead>
+<tbody id="hrOtTableBody"></tbody>
+</table>
 </div>
 </section>
 </div>
@@ -349,7 +384,7 @@
 <span>Ghi chú</span>
 <div class="textarea-shell">
 <i data-lucide="notebook-pen"></i>
-<textarea id="endShiftNoteInput" maxlength="500" placeholder="" rows="4"></textarea>
+<textarea id="endShiftNoteInput" maxlength="500" placeholder="Ví dụ: Giao hàng, chờ khách, xử lý công việc phát sinh..." rows="4"></textarea>
 </div>
 </label>
 <div class="end-shift-note-actions">
@@ -611,7 +646,7 @@
 <span>Ghi chú ca thêm</span>
 <div class="input-shell">
 <i data-lucide="notebook-pen"></i>
-<input id="extraEditorNote" placeholder="Ghi chú làm ngoài giờ..." type="text"/>
+<input id="extraEditorNote" placeholder="Ví dụ: Đón sếp, đưa khách..." type="text"/>
 </div>
 </label>
 <button class="secondary-primary-button" id="saveExtraEditorButton" type="button">
@@ -1926,7 +1961,7 @@
 </div>
 <span class="settings-value" id="settingsUsername">Người dùng</span>
 </div>
-<div class="settings-row">
+<div class="settings-row" id="settingsVersionRow">
 <div class="settings-row-copy">
 <strong>Phiên bản ứng dụng</strong>
 <small>Thông tin bản đang sử dụng</small>
@@ -1934,6 +1969,33 @@
 <span class="settings-value" id="settingsVersion">OT Pro</span>
 </div>
 </div>
+<section class="settings-section hidden" id="advancedFeaturesSection">
+<div class="settings-section-heading">
+<span class="settings-section-icon">
+<i data-lucide="flask-conical"></i>
+</span>
+<div>
+<span>NÂNG CAO</span>
+<h3>Tính năng ẩn</h3>
+</div>
+</div>
+<div class="settings-group">
+<div class="settings-row">
+<div class="settings-row-copy">
+<strong>Bảng OT HR</strong>
+<small>Hiện bảng đối chiếu phút tăng ca trong Menu</small>
+</div>
+<label class="modern-switch">
+<input id="hrOtFeatureToggle" type="checkbox"/>
+<span></span>
+</label>
+</div>
+</div>
+<button class="advanced-hide-button" id="hideAdvancedFeaturesButton" type="button">
+<i data-lucide="eye-off"></i>
+<span>Ẩn tính năng nâng cao</span>
+</button>
+</section>
 <div class="settings-group settings-form-group password-settings-group">
 <div class="settings-subsection-heading">
 <div>
