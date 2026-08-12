@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "ot-pro-v8-8-hr-minutes-fix-20260813";
+const CACHE_NAME = "ot-pro-v8-8-overtime-sheet-20260813";
 const CORE_ASSETS = [
   "./",
   "./index.html",

@@ -183,6 +183,7 @@ const appState = {
   endShiftNoteContext: null,
 
   hrOtDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  overtimeSheetDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   // Trạng thái tính năng ẩn được lưu riêng theo tài khoản.
 };
 
@@ -449,6 +450,39 @@ function bindEvents() {
     "click",
     () => changeHrOtMonth(1)
   );
+
+  on(
+    "#overtimeSheetButton",
+    "click",
+    openOvertimeSheet
+  );
+
+  on(
+    "#overtimeSheetPrevMonth",
+    "click",
+    () => changeOvertimeSheetMonth(-1)
+  );
+
+  on(
+    "#overtimeSheetNextMonth",
+    "click",
+    () => changeOvertimeSheetMonth(1)
+  );
+
+  on("#overtimeSheetBody", "change", event => {
+    const input = event.target.closest("[data-overtime-sheet-note]");
+    if (input) {
+      saveOvertimeSheetNoteInput(input);
+    }
+  });
+
+  on("#overtimeSheetBody", "keydown", event => {
+    const input = event.target.closest("[data-overtime-sheet-note]");
+    if (input && event.key === "Enter") {
+      event.preventDefault();
+      input.blur();
+    }
+  });
 
   on(
     "#historyPrevMonth",
@@ -799,6 +833,17 @@ function bindSettingsEvents() {
       event.target.checked
         ? "Đã bật Bảng OT HR."
         : "Đã ẩn Bảng OT HR khỏi Menu."
+    );
+  });
+
+  on("#overtimeSheetFeatureToggle", "change", event => {
+    setOvertimeSheetFeatureEnabled(event.target.checked);
+    refreshAdvancedFeatureUI();
+
+    showToast(
+      event.target.checked
+        ? "Đã bật Giấy tăng ca."
+        : "Đã ẩn Giấy tăng ca khỏi Menu."
     );
   });
 
@@ -12408,17 +12453,45 @@ function setHrOtFeatureEnabled(enabled) {
 }
 
 
+function isOvertimeSheetFeatureEnabled() {
+  if (!appState.currentUser) {
+    return false;
+  }
+
+  return localStorage.getItem(
+    getPrivateFeatureStorageKey("overtime_sheet_enabled")
+  ) === "1";
+}
+
+
+function setOvertimeSheetFeatureEnabled(enabled) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  localStorage.setItem(
+    getPrivateFeatureStorageKey("overtime_sheet_enabled"),
+    enabled ? "1" : "0"
+  );
+}
+
+
 function refreshAdvancedFeatureUI() {
   const unlocked = isAdvancedFeaturesUnlocked();
   const hrEnabled = isHrOtFeatureEnabled();
+  const overtimeSheetEnabled = isOvertimeSheetFeatureEnabled();
 
   $("#advancedFeaturesSection")
     ?.classList.toggle("hidden", !unlocked);
 
   setChecked("#hrOtFeatureToggle", hrEnabled);
+  setChecked("#overtimeSheetFeatureToggle", overtimeSheetEnabled);
 
   $("#hrOtButton")
     ?.classList.toggle("hidden", !hrEnabled);
+
+  $("#overtimeSheetButton")
+    ?.classList.toggle("hidden", !overtimeSheetEnabled);
 }
 
 
@@ -12450,6 +12523,278 @@ function handleAdvancedUnlockPasswordInput(event) {
   });
 
   showToast("Đã mở tính năng ẩn.");
+}
+
+
+function getOvertimeSheetMonthKey(date = appState.overtimeSheetDate) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+}
+
+
+function getMainOvertimeSheetRange(log, dateKey) {
+  if (!log?.start_time || !log?.end_time) {
+    return null;
+  }
+
+  const mainMinutes = calculateMainOTMinutesForHr(
+    log.start_time,
+    log.end_time,
+    getLogLunchChecked(log),
+    dateKey
+  );
+
+  if (mainMinutes <= 0) {
+    return null;
+  }
+
+  if (isSunday(dateKey)) {
+    return {
+      from: log.start_time,
+      to: log.end_time
+    };
+  }
+
+  const baseDate = "2024-01-01";
+  const actualStart = new Date(`${baseDate}T${log.start_time}:00`);
+  const actualEnd = new Date(`${baseDate}T${log.end_time}:00`);
+  const normalStart = new Date(`${baseDate}T${appState.settings.defaultShiftStart}:00`);
+  const normalEnd = new Date(`${baseDate}T${appState.settings.defaultShiftEnd}:00`);
+
+  if ([actualStart, actualEnd, normalStart, normalEnd].some(item => Number.isNaN(item.getTime()))) {
+    return null;
+  }
+
+  if (actualEnd < actualStart) {
+    actualEnd.setDate(actualEnd.getDate() + 1);
+  }
+
+  if (normalEnd <= normalStart) {
+    normalEnd.setDate(normalEnd.getDate() + 1);
+  }
+
+  // The paper is intended to record an actual time interval. For a normal
+  // workday, prefer the after-shift interval (the common 17:00 -> finish case).
+  if (actualEnd > normalEnd) {
+    return {
+      from: actualStart > normalEnd
+        ? log.start_time
+        : appState.settings.defaultShiftEnd,
+      to: log.end_time
+    };
+  }
+
+  // If there is no evening OT but the employee started before the normal shift,
+  // use the morning interval. Lunch-only OT has no reliable source time range,
+  // so it is intentionally not invented here.
+  if (actualStart < normalStart) {
+    return {
+      from: log.start_time,
+      to: appState.settings.defaultShiftStart
+    };
+  }
+
+  return null;
+}
+
+
+function getOvertimeSheetRows() {
+  const monthKey = getOvertimeSheetMonthKey();
+  const [year, month] = monthKey.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const rows = [];
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const dateKey = `${monthKey}-${pad(day)}`;
+    const dayRows = [];
+    const log = getWorkLog(dateKey);
+    const mainRange = getMainOvertimeSheetRange(log, dateKey);
+
+    if (mainRange) {
+      dayRows.push({
+        type: "main",
+        dateKey,
+        id: "",
+        from: mainRange.from,
+        to: mainRange.to,
+        note: getLogVisibleNote(log)
+      });
+    }
+
+    getCompletedExtraShifts(dateKey)
+      .slice()
+      .sort((a, b) => String(a.start_at || "").localeCompare(String(b.start_at || "")))
+      .forEach(item => {
+        dayRows.push({
+          type: "extra",
+          dateKey,
+          id: item.id,
+          from: formatTimeFromISO(item.start_at),
+          to: formatTimeFromISO(item.end_at),
+          note: String(item.note || "")
+        });
+      });
+
+    dayRows.forEach((row, index) => {
+      rows.push({
+        ...row,
+        showDate: index === 0
+      });
+    });
+  }
+
+  return rows;
+}
+
+
+function renderOvertimeSheet() {
+  const body = $("#overtimeSheetBody");
+
+  if (!body) {
+    return;
+  }
+
+  setText(
+    "#overtimeSheetMonthLabel",
+    `${pad(appState.overtimeSheetDate.getMonth() + 1)}/${appState.overtimeSheetDate.getFullYear()}`
+  );
+
+  const rows = getOvertimeSheetRows();
+
+  body.innerHTML = rows.map(row => {
+    const dateText = row.showDate ? formatShortDate(row.dateKey) : "";
+    const rowClass = row.showDate ? " overtime-sheet-new-day" : "";
+
+    return `
+      <tr class="overtime-sheet-row${rowClass}">
+        <td class="overtime-sheet-date">${escapeHTML(dateText)}</td>
+        <td class="overtime-sheet-time">${escapeHTML(row.from || "")}</td>
+        <td class="overtime-sheet-time">${escapeHTML(row.to || "")}</td>
+        <td class="overtime-sheet-note-cell">
+          <input
+            class="overtime-sheet-note-input"
+            data-overtime-sheet-note
+            data-shift-type="${escapeHTML(row.type)}"
+            data-date-key="${escapeHTML(row.dateKey)}"
+            data-shift-id="${escapeHTML(String(row.id || ""))}"
+            data-original-value="${escapeHTML(String(row.note || ""))}"
+            maxlength="500"
+            type="text"
+            value="${escapeHTML(String(row.note || ""))}"
+          />
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+
+async function openOvertimeSheet() {
+  if (!isOvertimeSheetFeatureEnabled()) {
+    showToast("Giấy tăng ca đang tắt.", true);
+    return;
+  }
+
+  closeAppMenu();
+
+  if (!(appState.overtimeSheetDate instanceof Date) || Number.isNaN(appState.overtimeSheetDate.getTime())) {
+    const now = new Date();
+    appState.overtimeSheetDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  await loadMonthData(appState.overtimeSheetDate, {
+    showLoader: true,
+    force: true
+  });
+
+  renderOvertimeSheet();
+  openModal("overtimeSheetModal");
+}
+
+
+async function changeOvertimeSheetMonth(delta) {
+  const current = appState.overtimeSheetDate instanceof Date
+    ? appState.overtimeSheetDate
+    : new Date();
+
+  appState.overtimeSheetDate = new Date(
+    current.getFullYear(),
+    current.getMonth() + delta,
+    1
+  );
+
+  await loadMonthData(appState.overtimeSheetDate, {
+    showLoader: true,
+    force: true
+  });
+
+  renderOvertimeSheet();
+}
+
+
+async function saveOvertimeSheetNoteInput(input) {
+  if (!input || input.disabled) {
+    return;
+  }
+
+  const type = input.dataset.shiftType || "";
+  const dateKey = input.dataset.dateKey || "";
+  const shiftId = input.dataset.shiftId || "";
+  const originalValue = String(input.dataset.originalValue || "");
+  const note = String(input.value || "").trim();
+
+  if (note === originalValue) {
+    input.value = note;
+    return;
+  }
+
+  input.disabled = true;
+
+  try {
+    if (type === "main") {
+      const log = getWorkLog(dateKey);
+      const parsed = parseStoredNote(log?.note || "");
+      const storedNote = buildStoredNote(note, parsed.meta);
+
+      await saveWorkLog(dateKey, { note: storedNote });
+
+      if (log) {
+        log.note = storedNote;
+      }
+    } else if (type === "extra") {
+      if (!ensureExtraTable()) {
+        throw new Error("Chưa có quyền truy cập ca thêm.");
+      }
+
+      const { error } = await supabaseClient
+        .from("extra_shifts")
+        .update({ note })
+        .eq("id", shiftId)
+        .eq("username", appState.currentUser);
+
+      if (error) {
+        throw error;
+      }
+
+      const item = appState.extraShifts.find(extra => String(extra.id) === String(shiftId));
+      if (item) {
+        item.note = note;
+      }
+    } else {
+      throw new Error("Dữ liệu ca không hợp lệ.");
+    }
+
+    input.value = note;
+    input.dataset.originalValue = note;
+    showToast("Đã lưu nội dung.");
+  } catch (error) {
+    input.value = originalValue;
+    showToast(
+      `Không thể lưu nội dung: ${error.message || "Lỗi không xác định"}`,
+      true
+    );
+  } finally {
+    input.disabled = false;
+  }
 }
 
 

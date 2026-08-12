@@ -311,6 +311,16 @@
 </span>
 <i class="menu-item-arrow" data-lucide="chevron-right"></i>
 </button>
+<button class="menu-item menu-item-wide hidden" id="overtimeSheetButton" type="button">
+<span class="menu-item-icon">
+<i data-lucide="clipboard-list"></i>
+</span>
+<span class="menu-item-copy">
+<strong>Giấy tăng ca</strong>
+<small>Ngày, thời gian và nội dung ghi chú</small>
+</span>
+<i class="menu-item-arrow" data-lucide="chevron-right"></i>
+</button>
 <button class="menu-item menu-item-wide" id="settingsButton" type="button">
 <span class="menu-item-icon">
 <i data-lucide="settings-2"></i>
@@ -353,6 +363,38 @@
 <table class="hr-ot-table" id="hrOtTable">
 <thead id="hrOtTableHead"></thead>
 <tbody id="hrOtTableBody"></tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- OVERTIME SHEET MODAL -->
+<div class="modal elevated-modal" id="overtimeSheetModal">
+<div class="modal-backdrop" data-close-modal="overtimeSheetModal"></div>
+<section aria-modal="true" class="bottom-sheet large-sheet overtime-sheet-sheet" role="dialog">
+<div class="sheet-handle"></div>
+<div class="overtime-sheet-toolbar">
+<button aria-label="Tháng trước" class="overtime-sheet-month-button" id="overtimeSheetPrevMonth" type="button">
+<i data-lucide="chevron-left"></i>
+</button>
+<strong id="overtimeSheetMonthLabel">08/2026</strong>
+<button aria-label="Tháng sau" class="overtime-sheet-month-button" id="overtimeSheetNextMonth" type="button">
+<i data-lucide="chevron-right"></i>
+</button>
+<button aria-label="Đóng" class="close-button overtime-sheet-close" data-close-modal="overtimeSheetModal" type="button">
+<i data-lucide="x"></i>
+</button>
+</div>
+<div class="overtime-sheet-scroll">
+<table class="overtime-sheet-table" id="overtimeSheetTable">
+<thead>
+<tr>
+<th>Ngày</th>
+<th>Từ</th>
+<th>Đến</th>
+<th>Nội dung</th>
+</tr>
+</thead>
+<tbody id="overtimeSheetBody"></tbody>
 </table>
 </div>
 </section>
@@ -1987,6 +2029,16 @@
 </div>
 <label class="modern-switch">
 <input id="hrOtFeatureToggle" type="checkbox"/>
+<span></span>
+</label>
+</div>
+<div class="settings-row">
+<div class="settings-row-copy">
+<strong>Giấy tăng ca</strong>
+<small>Hiện ngày, giờ và nội dung tăng ca trong Menu</small>
+</div>
+<label class="modern-switch">
+<input id="overtimeSheetFeatureToggle" type="checkbox"/>
 <span></span>
 </label>
 </div>
