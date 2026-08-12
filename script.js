@@ -12458,17 +12458,152 @@ function getHrOtMonthKey(date = appState.hrOtDate) {
 }
 
 
-function getHrOtMinutesForDate(dateKey) {
-  const hours = getStoredTotalOT(dateKey);
-
-  if (!Number.isFinite(Number(hours)) || Number(hours) <= 0) {
+function calculateMainOTMinutesForHr(
+  startTime,
+  endTime,
+  lunchChecked,
+  dateKey
+) {
+  if (!startTime || !endTime) {
     return 0;
   }
 
-  // OT Pro stores recognised OT in hours rounded to 2 decimals.
-  // Converting back with Math.round preserves the original whole-minute value
-  // while also respecting manual OT adjustments already saved by the app.
-  return Math.max(0, Math.round(Number(hours) * 60));
+  const baseDate = "2024-01-01";
+  const actualStart = new Date(`${baseDate}T${startTime}:00`);
+  const actualEnd = new Date(`${baseDate}T${endTime}:00`);
+
+  if (
+    Number.isNaN(actualStart.getTime()) ||
+    Number.isNaN(actualEnd.getTime())
+  ) {
+    return 0;
+  }
+
+  if (actualEnd < actualStart) {
+    actualEnd.setDate(actualEnd.getDate() + 1);
+  }
+
+  if (!isSunday(dateKey)) {
+    const normalStart = new Date(
+      `${baseDate}T${appState.settings.defaultShiftStart}:00`
+    );
+    const normalEnd = new Date(
+      `${baseDate}T${appState.settings.defaultShiftEnd}:00`
+    );
+
+    if (normalEnd <= normalStart) {
+      normalEnd.setDate(normalEnd.getDate() + 1);
+    }
+
+    let overtimeMinutes = 0;
+
+    if (actualStart < normalStart) {
+      const morningEnd = actualEnd < normalStart
+        ? actualEnd
+        : normalStart;
+
+      overtimeMinutes += Math.max(
+        0,
+        (morningEnd.getTime() - actualStart.getTime()) / 60000
+      );
+    }
+
+    const eveningStart = actualStart > normalEnd
+      ? actualStart
+      : normalEnd;
+
+    if (actualEnd > eveningStart) {
+      overtimeMinutes += Math.max(
+        0,
+        (actualEnd.getTime() - eveningStart.getTime()) / 60000
+      );
+    }
+
+    if (lunchChecked) {
+      overtimeMinutes += 60;
+    }
+
+    return Math.max(0, Math.round(overtimeMinutes));
+  }
+
+  const totalMinutes =
+    (actualEnd.getTime() - actualStart.getTime()) / 60000;
+
+  return Math.max(
+    0,
+    Math.round(totalMinutes - (lunchChecked ? 60 : 0))
+  );
+}
+
+
+function getCompletedExtraMinutesForHr(dateKey) {
+  return getCompletedExtraShifts(dateKey).reduce((total, item) => {
+    const start = item?.start_at ? new Date(item.start_at) : null;
+    const end = item?.end_at ? new Date(item.end_at) : null;
+
+    if (
+      start &&
+      end &&
+      !Number.isNaN(start.getTime()) &&
+      !Number.isNaN(end.getTime()) &&
+      end >= start
+    ) {
+      return total + Math.max(
+        0,
+        Math.round((end.getTime() - start.getTime()) / 60000)
+      );
+    }
+
+    const durationHours = Number(item?.duration_hours);
+
+    return total + (
+      Number.isFinite(durationHours) && durationHours > 0
+        ? Math.max(0, Math.round(durationHours * 60))
+        : 0
+    );
+  }, 0);
+}
+
+
+function getHrOtMinutesForDate(dateKey) {
+  const log = getWorkLog(dateKey);
+  const storedHours = Number(log?.overtime);
+
+  // A positive saved overtime value is the recognised OT total used by OT Pro.
+  // Keep it authoritative so manual adjustments remain exactly respected.
+  if (Number.isFinite(storedHours) && storedHours > 0) {
+    return Math.max(0, Math.round(storedHours * 60));
+  }
+
+  // Older/incomplete work_logs can contain start/end times while overtime is 0.
+  // Rebuild main-shift OT directly in minutes instead of leaving the HR table blank.
+  const mainMinutes = log?.start_time && log?.end_time
+    ? calculateMainOTMinutesForHr(
+      log.start_time,
+      log.end_time,
+      getLogLunchChecked(log),
+      dateKey
+    )
+    : 0;
+
+  // Extra shifts are read independently so an existing work_log with overtime = 0
+  // can never hide completed extra-shift data.
+  const extraMinutes = getCompletedExtraMinutesForHr(dateKey);
+
+  return Math.max(0, mainMinutes + extraMinutes);
+}
+
+
+function resetHrOtScroll() {
+  const scroll = $(".hr-ot-scroll");
+
+  if (!scroll) {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    scroll.scrollLeft = 0;
+  });
 }
 
 
@@ -12492,6 +12627,7 @@ async function openHrOt() {
 
   renderHrOtTable();
   openModal("hrOtModal");
+  resetHrOtScroll();
 }
 
 
@@ -12512,6 +12648,7 @@ async function changeHrOtMonth(delta) {
   });
 
   renderHrOtTable();
+  resetHrOtScroll();
 }
 
 
