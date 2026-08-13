@@ -8,7 +8,7 @@
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V8.8 HR Minutes";
+const APP_VERSION = "OT Pro V8.8.1 Overtime Sheet Fix";
 
 const SB_URL =
   "https://dtdknettwfgilklaqeae.supabase.co";
@@ -837,12 +837,15 @@ function bindSettingsEvents() {
   });
 
   on("#overtimeSheetFeatureToggle", "change", event => {
-    setOvertimeSheetFeatureEnabled(event.target.checked);
+    const enabled = Boolean(event.target.checked);
+
+    setOvertimeSheetFeatureEnabled(enabled);
+    setPrivateFeatureMenuVisibility("#overtimeSheetButton", enabled);
     refreshAdvancedFeatureUI();
 
     showToast(
-      event.target.checked
-        ? "Đã bật Giấy tăng ca."
+      enabled
+        ? "Đã bật Giấy tăng ca. Mở Menu để xem."
         : "Đã ẩn Giấy tăng ca khỏi Menu."
     );
   });
@@ -12476,6 +12479,25 @@ function setOvertimeSheetFeatureEnabled(enabled) {
 }
 
 
+function setPrivateFeatureMenuVisibility(selector, visible) {
+  const element = $(selector);
+
+  if (!element) {
+    return;
+  }
+
+  element.classList.toggle("hidden", !visible);
+  element.hidden = !visible;
+  element.setAttribute("aria-hidden", String(!visible));
+
+  if (visible) {
+    element.style.removeProperty("display");
+  } else {
+    element.style.display = "none";
+  }
+}
+
+
 function refreshAdvancedFeatureUI() {
   const unlocked = isAdvancedFeaturesUnlocked();
   const hrEnabled = isHrOtFeatureEnabled();
@@ -12487,11 +12509,10 @@ function refreshAdvancedFeatureUI() {
   setChecked("#hrOtFeatureToggle", hrEnabled);
   setChecked("#overtimeSheetFeatureToggle", overtimeSheetEnabled);
 
-  $("#hrOtButton")
-    ?.classList.toggle("hidden", !hrEnabled);
+  setPrivateFeatureMenuVisibility("#hrOtButton", hrEnabled);
+  setPrivateFeatureMenuVisibility("#overtimeSheetButton", overtimeSheetEnabled);
 
-  $("#overtimeSheetButton")
-    ?.classList.toggle("hidden", !overtimeSheetEnabled);
+  refreshIcons();
 }
 
 
