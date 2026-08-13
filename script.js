@@ -8,8 +8,8 @@
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V8.9.1 Paper Reminder Stable";
-const APP_BUILD = "20260813-03";
+const APP_VERSION = "OT Pro V8.9.2 Custom Reminder Time";
+const APP_BUILD = "20260813-04";
 const PUSH_FUNCTION_NAME = "otpro-push";
 
 const SB_URL =

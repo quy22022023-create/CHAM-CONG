@@ -1,7 +1,7 @@
 "use strict";
 
-const APP_VERSION = "OT Pro V8.9.1 Paper Reminder Stable";
-const APP_BUILD = "20260813-03";
+const APP_VERSION = "OT Pro V8.9.2 Custom Reminder Time";
+const APP_BUILD = "20260813-04";
 const CACHE_NAME = `ot-pro-${APP_BUILD}`;
 const INDEX_CACHE_KEY = `./index.html?v=${APP_BUILD}`;
 const CORE_ASSETS = [

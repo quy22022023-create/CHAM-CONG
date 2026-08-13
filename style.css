@@ -11312,7 +11312,8 @@ html[data-theme="dark"] .hr-ot-cell.is-sunday {
   border-bottom:0;
 }
 
-.push-select-row select {
+.push-select-row select,
+.push-select-row input[type="time"] {
   min-width:94px;
   min-height:36px;
   padding:7px 28px 7px 9px;
@@ -11323,6 +11324,12 @@ html[data-theme="dark"] .hr-ot-cell.is-sunday {
   font-size:calc(9px * var(--scale));
   font-weight:700;
   text-align:right;
+}
+
+.push-select-row input[type="time"] {
+  appearance:auto;
+  -webkit-appearance:auto;
+  color-scheme:light dark;
 }
 
 .push-support-hint {

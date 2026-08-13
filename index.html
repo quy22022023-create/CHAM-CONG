@@ -12,9 +12,9 @@
 <link href="./icon-192.png" rel="icon" type="image/png"/>
 <link href="./apple-touch-icon.png" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-<link href="style.css?v=20260813-03" rel="stylesheet"/>
+<link href="style.css?v=20260813-04" rel="stylesheet"/>
 </head>
 <body>
 <!-- LOADING -->
@@ -2060,13 +2060,7 @@
 </div>
 <label class="push-select-row">
 <span>Giờ nhắc ngày hôm sau</span>
-<select id="pushPaperTimeSelect">
-<option value="07:00">07:00</option>
-<option value="08:00">08:00</option>
-<option value="09:00">09:00</option>
-<option value="10:00">10:00</option>
-<option value="12:00">12:00</option>
-</select>
+<input id="pushPaperTimeSelect" type="time" value="08:00" step="60" aria-label="Giờ nhắc ngày hôm sau"/>
 </label>
 </div>
 <div class="push-support-hint" id="pushSupportHint"></div>
@@ -2310,10 +2304,6 @@
 <i data-lucide="git-compare-arrows"></i>
 <span>So sánh</span>
 </button>
-<div class="salary-compare-source-status" id="salaryCompareSourceStatus">
-<span>Tháng đang xem <strong id="salaryCompareCurrentStatus">--</strong></span>
-<span>Tháng đối chiếu <strong id="salaryCompareBaselineStatus">--</strong></span>
-</div>
 </div>
 <div class="salary-compare-loading hidden" id="salaryCompareLoading">
 <div class="loading-spinner"></div>
@@ -2370,6 +2360,6 @@
 </div>
 </section>
 </div>
-<script src="script.js?v=20260813-03"></script>
+<script src="script.js?v=20260813-04"></script>
 </body>
 </html>
