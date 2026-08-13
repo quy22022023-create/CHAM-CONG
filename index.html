@@ -12,9 +12,9 @@
 <link href="./icon-192.png" rel="icon" type="image/png"/>
 <link href="./apple-touch-icon.png" rel="apple-touch-icon"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0"></script>
 <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-<link href="style.css?v=8.8.1" rel="stylesheet"/>
+<link href="style.css?v=20260813-03" rel="stylesheet"/>
 </head>
 <body>
 <!-- LOADING -->
@@ -28,6 +28,15 @@
 <div class="toast" id="toast">
 <i data-lucide="circle-check"></i>
 <span id="toastMessage"></span>
+</div>
+<!-- APP UPDATE -->
+<div class="app-update-banner hidden" id="appUpdateBanner" role="status" aria-live="polite">
+<div class="app-update-icon"><i data-lucide="refresh-cw"></i></div>
+<div class="app-update-copy">
+<strong>Có phiên bản OT Pro mới</strong>
+<small id="appUpdateMessage">Tải lại để đồng bộ giao diện và mã ứng dụng.</small>
+</div>
+<button class="app-update-button" id="applyAppUpdateButton" type="button">Cập nhật ngay</button>
 </div>
 <!-- AUTH -->
 <section class="auth-screen" id="authScreen">
@@ -392,6 +401,7 @@
 <th>Từ</th>
 <th>Đến</th>
 <th>Nội dung</th>
+<th>Trạng thái</th>
 </tr>
 </thead>
 <tbody id="overtimeSheetBody"></tbody>
@@ -1484,7 +1494,7 @@
 <label class="modern-switch">
 <input checked="" id="showSecondsToggle" type="checkbox">
 <span></span>
-</input></label>
+</label>
 </div>
 </div>
 </section>
@@ -1505,14 +1515,14 @@
 <div class="input-shell">
 <i data-lucide="log-in"></i>
 <input id="defaultShiftStart" type="time" value="07:45">
-</input></div>
+</div>
 </label>
 <label class="form-field">
 <span>Giờ kết thúc</span>
 <div class="input-shell">
 <i data-lucide="log-out"></i>
 <input id="defaultShiftEnd" type="time" value="17:00">
-</input></div>
+</div>
 </label>
 </div>
 <div class="settings-control-row end-shift-note-setting">
@@ -1558,7 +1568,7 @@
 <i data-lucide="banknote"></i>
 <input id="settingsBaseSalary" inputmode="numeric" min="0" placeholder="Nhập lương cơ bản" step="1000" type="number">
 <small>đ</small>
-</input></div>
+</div>
 </label>
 <label class="form-field settings-number-field">
 <span>Ngày công tiêu chuẩn</span>
@@ -1566,7 +1576,7 @@
 <i data-lucide="calendar-days"></i>
 <input id="settingsStandardWorkDays" inputmode="decimal" min="1" step="0.5" type="number" value="26">
 <small>công</small>
-</input></div>
+</div>
 </label>
 <label class="form-field settings-number-field">
 <span>Giờ tiêu chuẩn mỗi ngày</span>
@@ -1574,7 +1584,7 @@
 <i data-lucide="clock-3"></i>
 <input id="settingsStandardHours" inputmode="decimal" min="0.5" step="0.5" type="number" value="8">
 <small>giờ</small>
-</input></div>
+</div>
 </label>
 <label class="form-field settings-number-field">
 <span>Hệ số OT</span>
@@ -1582,7 +1592,7 @@
 <i data-lucide="badge-percent"></i>
 <input id="settingsOTMultiplier" inputmode="decimal" min="0.1" step="0.1" type="number" value="2">
 <small>lần</small>
-</input></div>
+</div>
 </label>
 </div>
 <div class="payroll-settings-note">
@@ -1605,7 +1615,7 @@
 <div class="input-shell">
 <i data-lucide="calendar-range"></i>
 <input id="salaryHistoryEffectiveMonth" type="month">
-</input></div>
+</div>
 </label>
 <label class="form-field">
 <span>Khoản thay đổi</span>
@@ -1633,7 +1643,7 @@
 <i data-lucide="badge-dollar-sign"></i>
 <input id="incomeHistoryValue" inputmode="decimal" min="0" placeholder="Nhập giá trị mới" step="0.1" type="number">
 <small id="incomeHistoryValueUnit">đ</small>
-</input></div>
+</div>
 </label>
 <button class="secondary-primary-button salary-history-add-button" id="addIncomeHistoryButton" type="button">
 <i data-lucide="plus"></i>
@@ -1678,7 +1688,7 @@
 <i data-lucide="circle-dollar-sign"></i>
 <input id="settingsMainAllowance" inputmode="numeric" min="0" placeholder="0" step="1000" type="number">
 <small>đ</small>
-</input></div>
+</div>
 <select class="settings-select" id="settingsMainAllowanceMode">
 <option value="fixed">Cố định đủ tháng</option>
 <option value="proportional">Theo tỷ lệ ngày công</option>
@@ -1697,7 +1707,7 @@
 <i data-lucide="badge-plus"></i>
 <input id="settingsOtherAllowance" inputmode="numeric" min="0" placeholder="0" step="1000" type="number">
 <small>đ</small>
-</input></div>
+</div>
 <select class="settings-select" id="settingsOtherAllowanceMode">
 <option value="fixed">Cố định đủ tháng</option>
 <option value="proportional">Theo tỷ lệ ngày công</option>
@@ -1716,7 +1726,7 @@
 <i data-lucide="award"></i>
 <input id="settingsAttendanceAllowance" inputmode="numeric" min="0" placeholder="0" step="1000" type="number">
 <small>đ</small>
-</input></div>
+</div>
 <select class="settings-select" id="settingsAttendanceAllowanceMode">
 <option value="fixed">Cố định đủ tháng</option>
 <option value="proportional">Theo tỷ lệ ngày công</option>
@@ -1735,7 +1745,7 @@
 <i data-lucide="shield-check"></i>
 <input id="settingsResponsibilityAllowance" inputmode="numeric" min="0" placeholder="0" step="1000" type="number">
 <small>đ</small>
-</input></div>
+</div>
 <select class="settings-select" id="settingsResponsibilityAllowanceMode">
 <option value="fixed">Cố định đủ tháng</option>
 <option value="proportional">Theo tỷ lệ ngày công</option>
@@ -1757,7 +1767,7 @@
 <i data-lucide="bike"></i>
 <input id="settingsFuelRate" inputmode="numeric" min="0" placeholder="0" step="1" type="number">
 <small>đ/km</small>
-</input></div>
+</div>
 </label>
 </div>
 </section>
@@ -1795,7 +1805,7 @@
 <i data-lucide="calendar-plus"></i>
 <input id="settingsMonthlyLeaveAccrual" inputmode="decimal" min="0" step="0.5" type="number" value="1">
 <small>ngày</small>
-</input></div>
+</div>
 </label>
 <label class="form-field settings-number-field">
 <span>Số dư phép ban đầu</span>
@@ -1803,7 +1813,7 @@
 <i data-lucide="calendar-range"></i>
 <input id="settingsInitialLeaveBalance" inputmode="decimal" min="0" step="0.5" type="number" value="0">
 <small>ngày</small>
-</input></div>
+</div>
 </label>
 </div>
 <label class="form-field">
@@ -1811,7 +1821,7 @@
 <div class="input-shell">
 <i data-lucide="calendar-fold"></i>
 <input id="settingsLeaveStartMonth" type="month">
-</input></div>
+</div>
 </label>
 </div>
 </section>
@@ -1847,7 +1857,7 @@
 <i data-lucide="landmark"></i>
 <input id="settingsInsuranceBase" inputmode="numeric" min="0" placeholder="0" step="1000" type="number">
 <small>đ</small>
-</input></div>
+</div>
 </label>
 <label class="form-field settings-number-field">
 <span>Tỷ lệ bảo hiểm</span>
@@ -1855,7 +1865,7 @@
 <i data-lucide="percent"></i>
 <input id="settingsInsuranceRate" inputmode="decimal" min="0" step="0.1" type="number" value="10.5">
 <small>%</small>
-</input></div>
+</div>
 </label>
 </div>
 <label class="form-field settings-number-field">
@@ -1864,7 +1874,7 @@
 <i data-lucide="receipt-cent"></i>
 <input id="settingsInsuranceFixedAmount" inputmode="numeric" min="0" placeholder="0" step="1000" type="number">
 <small>đ</small>
-</input></div>
+</div>
 </label>
 </div>
 </section>
@@ -1885,7 +1895,7 @@
 <i data-lucide="soup"></i>
 <input id="settingsMealPrice" inputmode="numeric" min="0" type="number" value="30000">
 <small>đ</small>
-</input></div>
+</div>
 </label>
 <div class="payroll-settings-note">
 <i data-lucide="info"></i>
@@ -1907,12 +1917,12 @@
 <div class="input-shell threshold-time-input">
 <i data-lucide="clock-3"></i>
 <input class="meal-threshold-time" type="time" value="18:30">
-</input></div>
+</div>
 <div class="input-shell threshold-count-input">
 <i data-lucide="utensils"></i>
 <input class="meal-threshold-count" inputmode="numeric" min="0" step="1" type="number" value="1">
 <small>phần</small>
-</input></div>
+</div>
 <button aria-label="Xóa mốc phần cơm" class="meal-threshold-delete" data-delete-meal-threshold="" type="button">
 <i data-lucide="trash-2"></i>
 </button>
@@ -1921,12 +1931,12 @@
 <div class="input-shell threshold-time-input">
 <i data-lucide="clock-3"></i>
 <input class="meal-threshold-time" type="time" value="20:30">
-</input></div>
+</div>
 <div class="input-shell threshold-count-input">
 <i data-lucide="utensils"></i>
 <input class="meal-threshold-count" inputmode="numeric" min="0" step="1" type="number" value="2">
 <small>phần</small>
-</input></div>
+</div>
 <button aria-label="Xóa mốc phần cơm" class="meal-threshold-delete" data-delete-meal-threshold="" type="button">
 <i data-lucide="trash-2"></i>
 </button>
@@ -2013,39 +2023,62 @@
 </div>
 <section class="settings-section hidden" id="advancedFeaturesSection">
 <div class="settings-section-heading">
-<span class="settings-section-icon">
-<i data-lucide="flask-conical"></i>
-</span>
-<div>
-<span>NÂNG CAO</span>
-<h3>Tính năng ẩn</h3>
+<span class="settings-section-icon"><i data-lucide="flask-conical"></i></span>
+<div><span>NÂNG CAO</span><h3>Tính năng ẩn</h3></div>
 </div>
-</div>
+<div class="advanced-group-label">TIỆN ÍCH</div>
 <div class="settings-group">
 <div class="settings-row">
-<div class="settings-row-copy">
-<strong>Bảng OT HR</strong>
-<small>Hiện bảng phút tăng ca trong Menu</small>
-</div>
-<label class="modern-switch">
-<input id="hrOtFeatureToggle" type="checkbox"/>
-<span></span>
-</label>
+<div class="settings-row-copy"><strong>Bảng OT HR</strong><small>Hiện bảng phút tăng ca trong Menu</small></div>
+<label class="modern-switch"><input id="hrOtFeatureToggle" type="checkbox"/><span></span></label>
 </div>
 <div class="settings-row">
-<div class="settings-row-copy">
-<strong>Giấy tăng ca</strong>
-<small>Hiện ngày, giờ và nội dung tăng ca trong Menu</small>
+<div class="settings-row-copy"><strong>Giấy tăng ca</strong><small>Hiện ngày, giờ và nội dung tăng ca trong Menu</small></div>
+<label class="modern-switch"><input id="overtimeSheetFeatureToggle" type="checkbox"/><span></span></label>
 </div>
-<label class="modern-switch">
-<input id="overtimeSheetFeatureToggle" type="checkbox"/>
-<span></span>
+</div>
+
+<div class="advanced-group-label">THIẾT BỊ &amp; HỆ THỐNG</div>
+<div class="settings-group">
+<div class="settings-row">
+<div class="settings-row-copy"><strong>Thông báo thiết bị</strong><small>Nhắc nội dung Giấy tăng ca chưa ghi ra giấy thật</small></div>
+<label class="modern-switch"><input id="pushFeatureToggle" type="checkbox"/><span></span></label>
+</div>
+<div class="push-settings-panel hidden" id="pushSettingsPanel">
+<div class="push-status-card" id="pushStatusCard" data-state="idle">
+<span class="push-status-icon"><i data-lucide="bell-ring"></i></span>
+<div class="push-status-copy"><strong id="pushStatusTitle">Chưa kiểm tra</strong><small id="pushStatusDetail">Bật tính năng để kiểm tra thiết bị.</small></div>
+</div>
+<div class="push-primary-actions">
+<button class="secondary-primary-button" id="pushRegisterButton" type="button"><i data-lucide="bell-plus"></i><span>Cho phép thông báo</span></button>
+<button class="secondary-outline-button" id="pushTestButton" type="button"><i data-lucide="send"></i><span>Gửi thử</span></button>
+</div>
+<div class="push-reminder-list">
+<div class="push-reminder-row">
+<div><strong>Nhắc Giấy tăng ca chưa ghi</strong><small>Ngày hôm sau chỉ gửi 1 lần nếu còn dòng Chưa ghi</small></div>
+<label class="modern-switch"><input id="pushPaperReminderToggle" type="checkbox"/><span></span></label>
+</div>
+<label class="push-select-row">
+<span>Giờ nhắc ngày hôm sau</span>
+<select id="pushPaperTimeSelect">
+<option value="07:00">07:00</option>
+<option value="08:00">08:00</option>
+<option value="09:00">09:00</option>
+<option value="10:00">10:00</option>
+<option value="12:00">12:00</option>
+</select>
 </label>
+</div>
+<div class="push-support-hint" id="pushSupportHint"></div>
+<button class="mini-danger-button" id="pushDisconnectButton" type="button"><i data-lucide="bell-off"></i><span>Ngắt thiết bị này</span></button>
+</div>
+<div class="settings-row advanced-system-row">
+<div class="settings-row-copy"><strong>Cập nhật ứng dụng</strong><small id="appBuildStatus">Build đang dùng: --</small></div>
+<button class="mini-text-button advanced-check-button" id="checkAppUpdateButton" type="button">Kiểm tra</button>
 </div>
 </div>
 <button class="advanced-hide-button" id="hideAdvancedFeaturesButton" type="button">
-<i data-lucide="eye-off"></i>
-<span>Ẩn tính năng nâng cao</span>
+<i data-lucide="eye-off"></i><span>Ẩn bảng điều khiển</span>
 </button>
 </section>
 <div class="settings-group settings-form-group password-settings-group">
@@ -2060,21 +2093,21 @@
 <div class="input-shell">
 <i data-lucide="lock-keyhole"></i>
 <input autocomplete="current-password" id="currentPasswordInput" placeholder="Nhập mật khẩu hiện tại" type="password">
-</input></div>
+</div>
 </label>
 <label class="form-field">
 <span>Mật khẩu mới</span>
 <div class="input-shell">
 <i data-lucide="key-round"></i>
 <input autocomplete="new-password" id="newPasswordInput" placeholder="Nhập mật khẩu mới" type="password">
-</input></div>
+</div>
 </label>
 <label class="form-field">
 <span>Nhập lại mật khẩu mới</span>
 <div class="input-shell">
 <i data-lucide="key-square"></i>
 <input autocomplete="new-password" id="confirmNewPasswordInput" placeholder="Nhập lại mật khẩu mới" type="password">
-</input></div>
+</div>
 </label>
 <button class="secondary-primary-button" id="changePasswordButton" type="button">
 <i data-lucide="shield-check"></i>
@@ -2087,6 +2120,26 @@
                     </button>
 </section>
 </div></div></div>
+</section>
+</div>
+<!-- PUSH DEVICE AUTH MODAL -->
+<div class="modal elevated-modal" id="pushAuthModal">
+<div class="modal-backdrop" id="pushAuthBackdrop"></div>
+<section aria-labelledby="pushAuthTitle" aria-modal="true" class="bottom-sheet compact-sheet push-auth-sheet" role="dialog">
+<div class="sheet-handle"></div>
+<header class="sheet-header">
+<div><span class="sheet-eyebrow">XÁC NHẬN THIẾT BỊ</span><h2 id="pushAuthTitle">Đăng ký thông báo</h2></div>
+<button aria-label="Đóng" class="close-button" id="pushAuthCloseButton" type="button"><i data-lucide="x"></i></button>
+</header>
+<p class="push-auth-copy">Nhập mật khẩu OT Pro hiện tại một lần để xác nhận thiết bị này. Mật khẩu không được lưu trong trình duyệt.</p>
+<label class="form-field">
+<span>Mật khẩu hiện tại</span>
+<div class="input-shell"><i data-lucide="lock-keyhole"></i><input autocomplete="current-password" id="pushAuthPasswordInput" placeholder="Nhập mật khẩu" type="password"/></div>
+</label>
+<div class="push-auth-actions">
+<button class="secondary-outline-button" id="pushAuthCancelButton" type="button">Hủy</button>
+<button class="primary-button" id="pushAuthConfirmButton" type="button"><i data-lucide="shield-check"></i><span>Xác nhận</span></button>
+</div>
 </section>
 </div>
 <!-- RETROACTIVE SALARY REVISION MODAL -->
@@ -2257,6 +2310,10 @@
 <i data-lucide="git-compare-arrows"></i>
 <span>So sánh</span>
 </button>
+<div class="salary-compare-source-status" id="salaryCompareSourceStatus">
+<span>Tháng đang xem <strong id="salaryCompareCurrentStatus">--</strong></span>
+<span>Tháng đối chiếu <strong id="salaryCompareBaselineStatus">--</strong></span>
+</div>
 </div>
 <div class="salary-compare-loading hidden" id="salaryCompareLoading">
 <div class="loading-spinner"></div>
@@ -2313,6 +2370,6 @@
 </div>
 </section>
 </div>
-<script src="script.js?v=8.8.1"></script>
+<script src="script.js?v=20260813-03"></script>
 </body>
 </html>

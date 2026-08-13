@@ -1,7 +1,7 @@
 {
-  "name": "OT Pro",
+  "name": "OT Pro V8.9.1",
   "short_name": "OT Pro",
-  "description": "Theo dõi tăng ca, ca phát sinh, tiền cơm và thu nhập cá nhân.",
+  "description": "OT Pro - theo dõi tăng ca, thu nhập và nhắc Giấy tăng ca chưa ghi ra giấy thật.",
   "lang": "vi",
   "start_url": "./index.html",
   "scope": "./",
@@ -10,7 +10,16 @@
   "theme_color": "#111827",
   "orientation": "portrait-primary",
   "icons": [
-    {"src": "./icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "./icon-512.png", "sizes": "512x512", "type": "image/png"}
-  ]
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "id": "./"
 }

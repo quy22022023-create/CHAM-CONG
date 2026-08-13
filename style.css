@@ -10977,6 +10977,7 @@ html[data-theme="dark"] .hr-ot-cell.is-sunday {
 .overtime-sheet-table th:nth-child(1) { width:68px; }
 .overtime-sheet-table th:nth-child(2),
 .overtime-sheet-table th:nth-child(3) { width:64px; }
+.overtime-sheet-table th:nth-child(5) { width:92px; }
 
 .overtime-sheet-row td {
   min-height:48px;
@@ -11030,6 +11031,71 @@ html[data-theme="dark"] .hr-ot-cell.is-sunday {
   opacity:.58;
 }
 
+.overtime-sheet-status-cell {
+  padding:7px 6px;
+  text-align:center;
+}
+
+.overtime-paper-status-button {
+  width:100%;
+  min-width:74px;
+  min-height:32px;
+  padding:6px 9px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border:1px solid transparent;
+  border-radius:999px;
+  font-size:calc(9px * var(--scale));
+  font-weight:800;
+  white-space:nowrap;
+  transition:transform var(--ease), opacity var(--ease), background var(--ease);
+}
+
+.overtime-paper-status-button::before {
+  width:7px;
+  height:7px;
+  flex:0 0 7px;
+  content:"";
+  border-radius:50%;
+  background:currentColor;
+  opacity:.9;
+}
+
+.overtime-paper-status-button.is-pending {
+  border-color:rgba(243,154,37,.3);
+  background:var(--orange-soft);
+  color:var(--orange2);
+}
+
+.overtime-paper-status-button.is-written {
+  border-color:rgba(37,182,95,.28);
+  background:var(--green-soft);
+  color:var(--green2);
+}
+
+.overtime-paper-status-button:not(:disabled):active {
+  transform:scale(.95);
+}
+
+.overtime-paper-status-button:disabled {
+  opacity:.55;
+  cursor:wait;
+}
+
+.overtime-sheet-row.is-pending td {
+  background:color-mix(in srgb, var(--orange-soft) 30%, var(--card));
+}
+
+.overtime-sheet-row.is-written td {
+  background:color-mix(in srgb, var(--green-soft) 24%, var(--card));
+}
+
+.overtime-sheet-row.is-written .overtime-sheet-note-input {
+  color:var(--sub);
+}
+
 @media (max-width:390px) {
   .overtime-sheet-toolbar {
     grid-template-columns:42px minmax(0,1fr) 42px 48px;
@@ -11039,8 +11105,336 @@ html[data-theme="dark"] .hr-ot-cell.is-sunday {
   .overtime-sheet-table th:nth-child(1) { width:62px; }
   .overtime-sheet-table th:nth-child(2),
   .overtime-sheet-table th:nth-child(3) { width:58px; }
+  .overtime-sheet-table th:nth-child(5) { width:86px; }
 
   .overtime-sheet-note-input {
     padding-inline:9px;
   }
+}
+
+/* =========================================================
+   V8.9 — HIDDEN TOOLS, APP UPDATE, WEB PUSH
+========================================================= */
+
+.app-update-banner {
+  position:fixed;
+  z-index:6200;
+  left:max(12px,var(--safe-left));
+  right:max(12px,var(--safe-right));
+  top:calc(10px + var(--safe-top));
+  max-width:540px;
+  margin:auto;
+  padding:11px 12px;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--card);
+  box-shadow:var(--shadow-lg);
+}
+
+.app-update-icon {
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:11px;
+  background:var(--blue-soft);
+  color:var(--blue);
+}
+
+.app-update-copy {
+  min-width:0;
+}
+
+.app-update-copy strong,
+.app-update-copy small {
+  display:block;
+}
+
+.app-update-copy strong {
+  font-size:calc(11px * var(--scale));
+  font-weight:800;
+}
+
+.app-update-copy small {
+  margin-top:2px;
+  color:var(--sub);
+  font-size:calc(8.5px * var(--scale));
+  line-height:1.35;
+}
+
+.app-update-button {
+  min-height:36px;
+  padding:7px 10px;
+  border-radius:10px;
+  background:var(--blue);
+  color:#fff;
+  font-size:calc(9px * var(--scale));
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.advanced-group-label {
+  margin:14px 2px 7px;
+  color:var(--muted);
+  font-size:calc(8px * var(--scale));
+  font-weight:800;
+  letter-spacing:1.1px;
+}
+
+.push-settings-panel {
+  margin:0 10px 10px;
+  padding:11px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--soft);
+}
+
+.push-status-card {
+  min-height:58px;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--card);
+}
+
+.push-status-icon {
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:11px;
+  background:var(--strong);
+  color:var(--sub);
+}
+
+.push-status-card[data-state="success"] .push-status-icon {
+  background:var(--green-soft);
+  color:var(--green);
+}
+
+.push-status-card[data-state="warning"] .push-status-icon,
+.push-status-card[data-state="working"] .push-status-icon {
+  background:var(--orange-soft);
+  color:var(--orange);
+}
+
+.push-status-card[data-state="error"] .push-status-icon {
+  background:var(--red-soft);
+  color:var(--red);
+}
+
+.push-status-copy {
+  min-width:0;
+}
+
+.push-status-copy strong,
+.push-status-copy small {
+  display:block;
+}
+
+.push-status-copy strong {
+  font-size:calc(10px * var(--scale));
+  font-weight:800;
+}
+
+.push-status-copy small {
+  margin-top:3px;
+  color:var(--sub);
+  font-size:calc(8.5px * var(--scale));
+  line-height:1.4;
+}
+
+.push-primary-actions {
+  margin-top:9px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:7px;
+}
+
+.push-primary-actions .secondary-primary-button,
+.push-primary-actions .secondary-outline-button {
+  min-height:42px;
+}
+
+.push-reminder-list {
+  margin-top:10px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--card);
+}
+
+.push-reminder-row,
+.push-select-row {
+  min-height:54px;
+  padding:9px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border-bottom:1px solid var(--border);
+}
+
+.push-reminder-row > div {
+  min-width:0;
+}
+
+.push-reminder-row strong,
+.push-reminder-row small,
+.push-select-row > span {
+  display:block;
+}
+
+.push-reminder-row strong,
+.push-select-row > span {
+  font-size:calc(9.5px * var(--scale));
+  font-weight:750;
+}
+
+.push-reminder-row small {
+  margin-top:2px;
+  color:var(--sub);
+  font-size:calc(8px * var(--scale));
+  line-height:1.35;
+}
+
+.push-select-row:last-child,
+.push-reminder-row:last-child {
+  border-bottom:0;
+}
+
+.push-select-row select {
+  min-width:94px;
+  min-height:36px;
+  padding:7px 28px 7px 9px;
+  border:1px solid var(--border2);
+  border-radius:10px;
+  background:var(--soft);
+  color:var(--text);
+  font-size:calc(9px * var(--scale));
+  font-weight:700;
+  text-align:right;
+}
+
+.push-support-hint {
+  margin:9px 2px 0;
+  color:var(--sub);
+  font-size:calc(8px * var(--scale));
+  line-height:1.45;
+}
+
+.mini-danger-button {
+  min-height:36px;
+  margin-top:8px;
+  padding:7px 9px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border-radius:10px;
+  background:transparent;
+  color:var(--red);
+  font-size:calc(8.5px * var(--scale));
+  font-weight:750;
+}
+
+.mini-danger-button:disabled,
+.push-primary-actions button:disabled,
+.push-reminder-list input:disabled,
+.push-reminder-list select:disabled {
+  opacity:.42;
+  cursor:not-allowed;
+}
+
+.advanced-system-row {
+  align-items:center;
+}
+
+.advanced-check-button {
+  flex-shrink:0;
+}
+
+.push-auth-sheet {
+  max-width:520px;
+}
+
+.push-auth-copy {
+  margin:2px 0 13px;
+  color:var(--sub);
+  font-size:calc(9.5px * var(--scale));
+  line-height:1.5;
+}
+
+.push-auth-actions {
+  margin-top:13px;
+  display:grid;
+  grid-template-columns:1fr 1.3fr;
+  gap:8px;
+}
+
+@media (max-width:380px) {
+  .app-update-banner {
+    grid-template-columns:auto minmax(0,1fr);
+  }
+
+  .app-update-button {
+    grid-column:1 / -1;
+    width:100%;
+  }
+
+  .push-primary-actions {
+    grid-template-columns:1fr;
+  }
+
+  .push-primary-actions button {
+    width:100%;
+  }
+}
+
+
+/* =========================================================
+   V8.9.1 — Salary comparison source status
+========================================================= */
+.salary-compare-source-status {
+  grid-column:1 / -1;
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:2px;
+}
+
+.salary-compare-source-status > span {
+  min-height:28px;
+  padding:5px 8px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:var(--soft);
+  color:var(--sub);
+  font-size:calc(9px * var(--scale));
+  font-weight:700;
+}
+
+.salary-compare-source-status strong {
+  color:var(--text);
+  font-weight:800;
+}
+
+.salary-compare-source-status strong.is-official {
+  color:var(--green2);
+}
+
+.salary-compare-source-status strong.is-estimate {
+  color:var(--orange2);
 }

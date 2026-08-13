@@ -8,7 +8,9 @@
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V8.8.1 Overtime Sheet Fix";
+const APP_VERSION = "OT Pro V8.9.1 Paper Reminder Stable";
+const APP_BUILD = "20260813-03";
+const PUSH_FUNCTION_NAME = "otpro-push";
 
 const SB_URL =
   "https://dtdknettwfgilklaqeae.supabase.co";
@@ -184,6 +186,21 @@ const appState = {
 
   hrOtDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   overtimeSheetDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  overtimePaperStatuses: new Map(),
+  overtimePaperStatusLoadedMonths: new Set(),
+  overtimePaperStatusAvailable: null,
+
+  serviceWorkerRegistration: null,
+  updateAvailableBuild: null,
+  appUpdateChecking: false,
+
+  pushVapidPublicKey: null,
+  pushPasswordResolver: null,
+  pushSettingsSyncTimer: null,
+  pushUiRefreshing: false,
+  pushServerCheckedAt: 0,
+  pushBusy: false,
+
   // Trạng thái tính năng ẩn được lưu riêng theo tài khoản.
 };
 
@@ -262,6 +279,7 @@ document.addEventListener(
         refreshData(true),
         initializePayrollSupabase()
       ]);
+      await handleStartupActionFromUrl();
     } else {
       showAuthentication();
     }
@@ -469,6 +487,13 @@ function bindEvents() {
     () => changeOvertimeSheetMonth(1)
   );
 
+  on("#overtimeSheetBody", "click", event => {
+    const button = event.target.closest("[data-paper-status-toggle]");
+    if (button) {
+      toggleOvertimePaperStatus(button);
+    }
+  });
+
   on("#overtimeSheetBody", "change", event => {
     const input = event.target.closest("[data-overtime-sheet-note]");
     if (input) {
@@ -481,6 +506,19 @@ function bindEvents() {
     if (input && event.key === "Enter") {
       event.preventDefault();
       input.blur();
+    }
+  });
+
+  on("#applyAppUpdateButton", "click", applyAppUpdate);
+
+  on("#pushAuthConfirmButton", "click", confirmPushPasswordPrompt);
+  on("#pushAuthCancelButton", "click", cancelPushPasswordPrompt);
+  on("#pushAuthCloseButton", "click", cancelPushPasswordPrompt);
+  on("#pushAuthBackdrop", "click", cancelPushPasswordPrompt);
+  on("#pushAuthPasswordInput", "keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      confirmPushPasswordPrompt();
     }
   });
 
@@ -837,18 +875,45 @@ function bindSettingsEvents() {
   });
 
   on("#overtimeSheetFeatureToggle", "change", event => {
-    const enabled = Boolean(event.target.checked);
-
-    setOvertimeSheetFeatureEnabled(enabled);
-    setPrivateFeatureMenuVisibility("#overtimeSheetButton", enabled);
-    refreshAdvancedFeatureUI();
-
-    showToast(
-      enabled
-        ? "Đã bật Giấy tăng ca. Mở Menu để xem."
-        : "Đã ẩn Giấy tăng ca khỏi Menu."
-    );
+    handleOvertimeSheetFeatureToggle(Boolean(event.target.checked));
   });
+
+  on("#pushFeatureToggle", "change", event => {
+    handlePushFeatureToggle(Boolean(event.target.checked));
+  });
+
+  on("#pushRegisterButton", "click", () =>
+    runLockedAction(
+      "pushRegister",
+      ["#pushRegisterButton", "#pushTestButton", "#pushDisconnectButton"],
+      registerPushDevice
+    )
+  );
+
+  on("#pushTestButton", "click", () =>
+    runLockedAction(
+      "pushTest",
+      ["#pushRegisterButton", "#pushTestButton", "#pushDisconnectButton"],
+      testPushDevice
+    )
+  );
+
+  on("#pushDisconnectButton", "click", () =>
+    runLockedAction(
+      "pushDisconnect",
+      ["#pushRegisterButton", "#pushTestButton", "#pushDisconnectButton"],
+      disconnectPushDevice
+    )
+  );
+
+  [
+    "#pushPaperReminderToggle",
+    "#pushPaperTimeSelect"
+  ].forEach(selector => {
+    on(selector, "change", savePushReminderSettingsFromUI);
+  });
+
+  on("#checkAppUpdateButton", "click", () => checkForAppUpdate({ manual: true }));
 
   on("#hideAdvancedFeaturesButton", "click", () => {
     setAdvancedFeaturesUnlocked(false);
@@ -1671,30 +1736,164 @@ function setChecked(
 
 
 function registerServiceWorker() {
-  if (
-    !(
-      "serviceWorker" in
-      navigator
-    )
-  ) {
+  if (!("serviceWorker" in navigator)) {
+    updateAppBuildStatus("Service Worker không được hỗ trợ trên thiết bị này.");
     return;
   }
 
-  window.addEventListener(
-    "load",
-    () => {
-      navigator
-        .serviceWorker
-        .register(
-          "./service-worker.js"
-        )
-        .catch(
-          () => {
-            // Ứng dụng vẫn hoạt động khi service worker chưa sẵn sàng.
-          }
-        );
+  navigator.serviceWorker.addEventListener("message", handleServiceWorkerMessage);
+
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register(
+        `./service-worker.js?v=${APP_BUILD}`,
+        { updateViaCache: "none" }
+      );
+
+      appState.serviceWorkerRegistration = registration;
+      bindServiceWorkerRegistration(registration);
+      updateAppBuildStatus();
+
+      // Kiểm tra nhẹ mỗi lần app mở. Không reload tự động giữa phiên.
+      registration.update().catch(() => {});
+    } catch (error) {
+      console.warn("Không đăng ký được Service Worker:", error);
+      updateAppBuildStatus("Không thể khởi tạo Service Worker.");
     }
+  });
+}
+
+
+function bindServiceWorkerRegistration(registration) {
+  if (!registration) {
+    return;
+  }
+
+  if (registration.waiting) {
+    showAppUpdateBanner("Có bản mới đã sẵn sàng.");
+  }
+
+  registration.addEventListener("updatefound", () => {
+    const worker = registration.installing;
+
+    if (!worker) {
+      return;
+    }
+
+    worker.addEventListener("statechange", () => {
+      if (
+        worker.state === "installed" &&
+        navigator.serviceWorker.controller
+      ) {
+        showAppUpdateBanner("Đã tải xong phiên bản mới.");
+      }
+    });
+  });
+}
+
+
+function handleServiceWorkerMessage(event) {
+  const data = event?.data || {};
+
+  if (data.type === "OTPRO_SW_ACTIVATED") {
+    if (data.build && String(data.build) !== APP_BUILD) {
+      appState.updateAvailableBuild = String(data.build);
+      showAppUpdateBanner(
+        data.version
+          ? `Phiên bản mới: ${data.version}`
+          : "Service Worker mới đã được kích hoạt."
+      );
+    }
+
+    return;
+  }
+
+  if (data.type === "OTPRO_PUSH_RECEIVED") {
+    // App đang mở vẫn để hệ điều hành hiển thị notification.
+    // Chỉ cập nhật trạng thái kết nối nếu phần Cài đặt đang hiển thị.
+    refreshPushNotificationUI().catch(() => {});
+  }
+}
+
+
+function showAppUpdateBanner(message = "Tải lại để dùng mã ứng dụng mới nhất.") {
+  const banner = $("#appUpdateBanner");
+
+  if (!banner) {
+    return;
+  }
+
+  setText("#appUpdateMessage", message);
+  banner.classList.remove("hidden");
+  refreshIcons();
+}
+
+
+function hideAppUpdateBanner() {
+  $("#appUpdateBanner")?.classList.add("hidden");
+}
+
+
+function applyAppUpdate() {
+  hideAppUpdateBanner();
+
+  // Navigation của Service Worker dùng network-first + no-store,
+  // nên reload này sẽ lấy đồng bộ HTML/JS/CSS của cùng build mới.
+  window.location.reload();
+}
+
+
+function updateAppBuildStatus(customText = "") {
+  setText(
+    "#appBuildStatus",
+    customText || `Build đang dùng: ${APP_BUILD}`
   );
+}
+
+
+async function checkForAppUpdate({ manual = true } = {}) {
+  if (!("serviceWorker" in navigator) || appState.appUpdateChecking) {
+    if (manual && !("serviceWorker" in navigator)) {
+      showToast("Thiết bị này không hỗ trợ Service Worker.", true);
+    }
+    return;
+  }
+
+  appState.appUpdateChecking = true;
+  updateAppBuildStatus("Đang kiểm tra phiên bản mới...");
+
+  try {
+    const registration =
+      appState.serviceWorkerRegistration ||
+      await navigator.serviceWorker.getRegistration();
+
+    if (!registration) {
+      throw new Error("Chưa có Service Worker.");
+    }
+
+    appState.serviceWorkerRegistration = registration;
+    await registration.update();
+
+    window.setTimeout(() => {
+      if (!$("#appUpdateBanner")?.classList.contains("hidden")) {
+        updateAppBuildStatus("Đã phát hiện bản mới • bấm Cập nhật ngay.");
+      } else {
+        updateAppBuildStatus(`Build ${APP_BUILD} • đang dùng bản mới nhất đã biết.`);
+      }
+    }, 900);
+
+    if (manual) {
+      showToast("Đã yêu cầu kiểm tra cập nhật.");
+    }
+  } catch (error) {
+    updateAppBuildStatus(`Không kiểm tra được cập nhật • ${error.message || "lỗi mạng"}`);
+
+    if (manual) {
+      showToast("Không thể kiểm tra cập nhật lúc này.", true);
+    }
+  } finally {
+    appState.appUpdateChecking = false;
+  }
 }
 
 
@@ -4442,6 +4641,7 @@ async function handleAuth(
       refreshData(),
       initializePayrollSupabase()
     ]);
+    await handleStartupActionFromUrl();
 
     showToast(
       "Đăng nhập thành công."
@@ -4848,6 +5048,10 @@ async function runLockedAction(key, selectors, task) {
       button.removeAttribute("aria-busy");
     });
     renderDashboard();
+
+    if (String(key).startsWith("push")) {
+      refreshPushNotificationUI().catch(() => {});
+    }
   }
 }
 
@@ -11478,11 +11682,18 @@ function getPayrollResultForComparison(monthKey) {
       ? saved.calculatedSnapshot
       : calculatePayroll(monthKey, draft);
 
+  const savedOfficial = Boolean(
+    saved &&
+    !draft.dirty &&
+    isPayrollSnapshotUsable(saved.calculatedSnapshot)
+  );
+
   return {
     monthKey,
     result,
     draft,
     saved,
+    savedOfficial,
     policy: getIncomePolicyForMonth(monthKey)
   };
 }
@@ -11672,6 +11883,20 @@ function renderLastSalaryComparison() {
 
   const { current, baseline } = comparison;
   const changedOnly = $("#salaryCompareChangedOnly")?.checked !== false;
+
+  const currentStatus = current.savedOfficial ? "Đã chốt" : "Ước tính";
+  const baselineStatus = baseline.savedOfficial ? "Đã chốt" : "Ước tính";
+  setText("#salaryCompareCurrentStatus", currentStatus);
+  setText("#salaryCompareBaselineStatus", baselineStatus);
+
+  [
+    ["#salaryCompareCurrentStatus", current.savedOfficial],
+    ["#salaryCompareBaselineStatus", baseline.savedOfficial]
+  ].forEach(([selector, official]) => {
+    const element = $(selector);
+    element?.classList.toggle("is-official", Boolean(official));
+    element?.classList.toggle("is-estimate", !official);
+  });
   const netDiff = Number(current.result.netSalary || 0) - Number(baseline.result.netSalary || 0);
   const incomeDiff = Number(current.result.totalIncome || 0) - Number(baseline.result.totalIncome || 0);
   const deductionDiff = Number(current.result.totalDeductions || 0) - Number(baseline.result.totalDeductions || 0);
@@ -11761,6 +11986,8 @@ function openSalaryCompare() {
   const defaultBaseline = getMonthKey(currentDate);
 
   setText("#salaryCompareCurrentMonth", formatSalaryHistoryMonth(currentMonth));
+  setText("#salaryCompareCurrentStatus", "--");
+  setText("#salaryCompareBaselineStatus", "--");
   setValue("#salaryCompareMonth", defaultBaseline);
   setChecked("#salaryCompareChangedOnly", true);
   appState.salaryComparison = null;
@@ -12400,6 +12627,770 @@ async function confirmMealReceiptAction() {
 
 
 
+
+async function handleStartupActionFromUrl() {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search || "");
+  if (params.get("action") !== "overtime-sheet") {
+    return;
+  }
+
+  const monthKey = String(params.get("month") || "");
+  if (/^\d{4}-(0[1-9]|1[0-2])$/.test(monthKey)) {
+    const [year, month] = monthKey.split("-").map(Number);
+    appState.overtimeSheetDate = new Date(year, month - 1, 1);
+  }
+
+  setOvertimeSheetFeatureEnabled(true);
+  refreshAdvancedFeatureUI();
+
+  try {
+    await openOvertimeSheet();
+  } finally {
+    const cleanUrl = `${window.location.pathname}${window.location.hash || ""}`;
+    window.history.replaceState({}, "", cleanUrl);
+  }
+}
+
+
+// =====================================================
+// WEB PUSH + THÔNG BÁO THIẾT BỊ
+// =====================================================
+
+const DEFAULT_PUSH_REMINDER_SETTINGS = Object.freeze({
+  remindPaper: true,
+  paperReminderTime: "08:00"
+});
+
+
+function getPushDeviceTokenStorageKey() {
+  return getPrivateFeatureStorageKey("push_device_token");
+}
+
+
+function getPushSettingsStorageKey() {
+  return getPrivateFeatureStorageKey("push_settings");
+}
+
+
+function getPushDeviceToken() {
+  if (!appState.currentUser) {
+    return "";
+  }
+
+  return localStorage.getItem(getPushDeviceTokenStorageKey()) || "";
+}
+
+
+function setPushDeviceToken(value) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  const key = getPushDeviceTokenStorageKey();
+  const token = String(value || "");
+
+  if (token) {
+    localStorage.setItem(key, token);
+  } else {
+    localStorage.removeItem(key);
+  }
+}
+
+
+function sanitizePushReminderSettings(value) {
+  const source = value && typeof value === "object" ? value : {};
+  const reminderTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(source.paperReminderTime || ""))
+    ? String(source.paperReminderTime)
+    : DEFAULT_PUSH_REMINDER_SETTINGS.paperReminderTime;
+
+  return {
+    remindPaper: source.remindPaper !== false,
+    paperReminderTime: reminderTime
+  };
+}
+
+
+function getPushReminderSettings() {
+  if (!appState.currentUser) {
+    return { ...DEFAULT_PUSH_REMINDER_SETTINGS };
+  }
+
+  try {
+    return sanitizePushReminderSettings(
+      JSON.parse(localStorage.getItem(getPushSettingsStorageKey()) || "{}")
+    );
+  } catch {
+    return { ...DEFAULT_PUSH_REMINDER_SETTINGS };
+  }
+}
+
+
+function savePushReminderSettingsLocally(settings) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  localStorage.setItem(
+    getPushSettingsStorageKey(),
+    JSON.stringify(sanitizePushReminderSettings(settings))
+  );
+}
+
+
+function getPushTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Ho_Chi_Minh";
+  } catch {
+    return "Asia/Ho_Chi_Minh";
+  }
+}
+
+
+function getPushDeviceLabel() {
+  const platform =
+    navigator.userAgentData?.platform ||
+    navigator.platform ||
+    "Thiết bị web";
+
+  const standalone =
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    navigator.standalone === true;
+
+  return `${platform}${standalone ? " • PWA" : " • Web"}`.slice(0, 120);
+}
+
+
+function isIosLikeDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent || "") ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+
+function isStandaloneWebApp() {
+  return Boolean(
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    navigator.standalone === true
+  );
+}
+
+
+function getPushCapability() {
+  if (!window.isSecureContext) {
+    return {
+      supported: false,
+      title: "Cần HTTPS",
+      detail: "Thông báo thiết bị chỉ hoạt động trên kết nối HTTPS."
+    };
+  }
+
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    return {
+      supported: false,
+      title: "Thiết bị chưa hỗ trợ Web Push",
+      detail: isIosLikeDevice()
+        ? "Trên iPhone/iPad, hãy Add to Home Screen rồi mở OT Pro từ biểu tượng ngoài màn hình chính."
+        : "Trình duyệt hiện tại không cung cấp Push API đầy đủ."
+    };
+  }
+
+  if (isIosLikeDevice() && !isStandaloneWebApp()) {
+    return {
+      supported: false,
+      title: "Hãy mở OT Pro từ Màn hình chính",
+      detail: "Trên iPhone/iPad, Web Push dành cho web app đã Add to Home Screen."
+    };
+  }
+
+  return {
+    supported: true,
+    title: "Thiết bị hỗ trợ thông báo",
+    detail: "Có thể đăng ký thiết bị này để nhận nhắc Giấy tăng ca chưa ghi."
+  };
+}
+
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+}
+
+
+async function callPushFunction(action, payload = {}, { timeout = 15000 } = {}) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const headers = {
+      "Content-Type": "application/json",
+      apikey: SB_KEY
+    };
+
+    // Transitional compatibility: legacy anon keys are JWTs and older deployed
+    // Edge Functions may still require Bearer auth. New sb_publishable_* keys are
+    // NOT JWTs, so they must never be sent as Authorization: Bearer.
+    if (!/^sb_(publishable|secret)_/i.test(String(SB_KEY || ""))) {
+      headers.Authorization = `Bearer ${SB_KEY}`;
+    }
+
+    const response = await fetch(`${SB_URL}/functions/v1/${PUSH_FUNCTION_NAME}`, {
+      method: "POST",
+      cache: "no-store",
+      signal: controller.signal,
+      headers,
+      body: JSON.stringify({ action, ...payload })
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = new Error(
+        data?.error ||
+        (response.status === 404
+          ? "Edge Function otpro-push chưa được triển khai."
+          : `Push server trả về HTTP ${response.status}.`)
+      );
+      error.status = response.status;
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error("Push server phản hồi quá lâu.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+
+async function getCurrentPushSubscription() {
+  if (!("serviceWorker" in navigator)) {
+    return null;
+  }
+
+  const registration =
+    appState.serviceWorkerRegistration ||
+    await navigator.serviceWorker.ready;
+
+  appState.serviceWorkerRegistration = registration;
+  return registration.pushManager?.getSubscription?.() || null;
+}
+
+
+function setPushStatus(state, title, detail) {
+  const card = $("#pushStatusCard");
+
+  if (card) {
+    card.dataset.state = state || "idle";
+  }
+
+  setText("#pushStatusTitle", title);
+  setText("#pushStatusDetail", detail);
+}
+
+
+function syncPushReminderControls() {
+  const settings = getPushReminderSettings();
+
+  setChecked("#pushPaperReminderToggle", settings.remindPaper);
+  setValue("#pushPaperTimeSelect", settings.paperReminderTime);
+}
+
+
+function setPushControlsDisabled(disabled) {
+  [
+    "#pushPaperReminderToggle",
+    "#pushPaperTimeSelect",
+    "#pushTestButton",
+    "#pushDisconnectButton"
+  ].forEach(selector => {
+    const element = $(selector);
+    if (element) {
+      element.disabled = Boolean(disabled);
+    }
+  });
+}
+
+
+async function refreshPushNotificationUI({ checkServer = false } = {}) {
+  const panel = $("#pushSettingsPanel");
+
+  if (!panel) {
+    return;
+  }
+
+  const featureEnabled = isPushFeatureEnabled();
+  panel.classList.toggle("hidden", !featureEnabled);
+  syncPushReminderControls();
+
+  if (!featureEnabled || appState.pushUiRefreshing) {
+    return;
+  }
+
+  appState.pushUiRefreshing = true;
+
+  try {
+    const capability = getPushCapability();
+    const hint = $("#pushSupportHint");
+
+    if (hint) {
+      hint.textContent = capability.detail;
+    }
+
+    if (!capability.supported) {
+      setPushStatus("warning", capability.title, capability.detail);
+      setPushControlsDisabled(true);
+      const registerButton = $("#pushRegisterButton");
+      if (registerButton) {
+        registerButton.disabled = true;
+      }
+      return;
+    }
+
+    const registration =
+      appState.serviceWorkerRegistration ||
+      await navigator.serviceWorker.ready;
+    appState.serviceWorkerRegistration = registration;
+
+    const subscription = await registration.pushManager.getSubscription();
+    const deviceToken = getPushDeviceToken();
+    const permission = Notification.permission;
+
+    setPushControlsDisabled(!(subscription && deviceToken));
+
+    const registerButton = $("#pushRegisterButton");
+    if (registerButton) {
+      registerButton.disabled = permission === "denied";
+      const label = registerButton.querySelector("span");
+      if (label) {
+        label.textContent = subscription && deviceToken
+          ? "Đăng ký lại thiết bị"
+          : "Cho phép thông báo";
+      }
+    }
+
+    if (permission === "denied") {
+      setPushStatus(
+        "error",
+        "Thông báo đang bị chặn",
+        "Mở Cài đặt hệ thống → Thông báo → OT Pro để cho phép lại."
+      );
+      return;
+    }
+
+    if (subscription && deviceToken) {
+      setPushStatus(
+        "success",
+        "Đã kết nối thiết bị này",
+        `Quyền thông báo: ${permission === "granted" ? "đã cho phép" : "đang chờ"} • ${getPushTimezone()}`
+      );
+
+      if (checkServer) {
+        await syncPushDeviceRemote({ quiet: true, subscription });
+      }
+    } else if (subscription && !deviceToken) {
+      setPushStatus(
+        "warning",
+        "Cần đăng ký lại thiết bị",
+        "Trình duyệt còn subscription cũ nhưng thiếu mã thiết bị OT Pro."
+      );
+    } else {
+      setPushStatus(
+        "idle",
+        permission === "granted" ? "Chưa đăng ký thiết bị" : "Chưa cho phép thông báo",
+        permission === "granted"
+          ? "Bấm Đăng ký thiết bị để liên kết với tài khoản OT Pro."
+          : "Bấm Cho phép thông báo để iPhone/trình duyệt hiện hộp xin quyền."
+      );
+    }
+
+    if (checkServer) {
+      try {
+        const config = await callPushFunction("config");
+        appState.pushServerCheckedAt = Date.now();
+        appState.pushVapidPublicKey = config?.vapidPublicKey || null;
+
+        if (!config?.configured) {
+          setPushStatus(
+            "warning",
+            "Push server chưa cấu hình VAPID",
+            "Triển khai Edge Function và đặt VAPID secrets trước khi đăng ký thiết bị."
+          );
+        }
+      } catch (error) {
+        setPushStatus(
+          "warning",
+          "Chưa kết nối được Push server",
+          error.message || "Kiểm tra Edge Function otpro-push."
+        );
+      }
+    }
+  } finally {
+    appState.pushUiRefreshing = false;
+    refreshIcons();
+  }
+}
+
+
+function getPushSettingsFromUI() {
+  return sanitizePushReminderSettings({
+    remindPaper: $("#pushPaperReminderToggle")?.checked !== false,
+    paperReminderTime: String($("#pushPaperTimeSelect")?.value || "08:00")
+  });
+}
+
+
+async function savePushReminderSettingsFromUI() {
+  const settings = getPushSettingsFromUI();
+  savePushReminderSettingsLocally(settings);
+
+  if (appState.pushSettingsSyncTimer) {
+    window.clearTimeout(appState.pushSettingsSyncTimer);
+  }
+
+  appState.pushSettingsSyncTimer = window.setTimeout(() => {
+    syncPushDeviceRemote({ quiet: true }).catch(error => {
+      console.warn("Không đồng bộ được cài đặt Push:", error);
+    });
+  }, 450);
+}
+
+
+async function syncPushDeviceRemote({ quiet = false, subscription = null, enabled = isPushFeatureEnabled() } = {}) {
+  const deviceToken = getPushDeviceToken();
+
+  if (!deviceToken || !appState.currentUser) {
+    return { synced: false };
+  }
+
+  const activeSubscription = subscription || await getCurrentPushSubscription();
+
+  if (!activeSubscription) {
+    return { synced: false };
+  }
+
+  const data = await callPushFunction("update", {
+    username: appState.currentUser,
+    deviceToken,
+    enabled: Boolean(enabled),
+    timezone: getPushTimezone(),
+    deviceLabel: getPushDeviceLabel(),
+    settings: getPushReminderSettings(),
+    subscription: activeSubscription.toJSON()
+  });
+
+  if (!quiet) {
+    showToast("Đã đồng bộ cài đặt thông báo.");
+  }
+
+  return { synced: true, data };
+}
+
+
+async function handleOvertimeSheetFeatureToggle(enabled) {
+  const sheetToggle = $("#overtimeSheetFeatureToggle");
+  const pushWasEnabled = isPushFeatureEnabled();
+
+  setOvertimeSheetFeatureEnabled(enabled);
+
+  // Thông báo chỉ có ý nghĩa khi Giấy tăng ca đang hoạt động.
+  // Tắt Giấy tăng ca sẽ tắt Push cả local lẫn server để tránh trạng thái mâu thuẫn.
+  if (!enabled && pushWasEnabled) {
+    setPushFeatureEnabled(false);
+  }
+
+  refreshAdvancedFeatureUI();
+
+  if (!enabled && pushWasEnabled) {
+    try {
+      await syncPushDeviceRemote({ quiet: true, enabled: false });
+      setPushStatus(
+        "idle",
+        "Thông báo thiết bị đang tắt",
+        "Đã tắt cùng Giấy tăng ca. Subscription vẫn được giữ để bật lại nhanh."
+      );
+      showToast("Đã tắt Giấy tăng ca và thông báo thiết bị.");
+    } catch (error) {
+      console.warn("Không đồng bộ được trạng thái tắt Push:", error);
+      showToast(
+        "Đã tắt Giấy tăng ca trên thiết bị; chưa xác nhận được trạng thái Push trên server.",
+        true
+      );
+    }
+    return;
+  }
+
+  if (sheetToggle) {
+    sheetToggle.checked = enabled;
+  }
+
+  showToast(
+    enabled
+      ? "Đã bật Giấy tăng ca. Mở Menu để xem."
+      : "Đã ẩn Giấy tăng ca khỏi Menu."
+  );
+}
+
+
+async function handlePushFeatureToggle(enabled) {
+  const toggle = $("#pushFeatureToggle");
+
+  setPushFeatureEnabled(enabled);
+
+  if (enabled && !isOvertimeSheetFeatureEnabled()) {
+    setOvertimeSheetFeatureEnabled(true);
+  }
+
+  refreshAdvancedFeatureUI();
+
+  if (!enabled) {
+    try {
+      await syncPushDeviceRemote({ quiet: true, enabled: false });
+      setPushStatus("idle", "Thông báo thiết bị đang tắt", "Subscription được giữ lại để có thể bật lại nhanh.");
+      showToast("Đã tắt thông báo trên thiết bị này.");
+    } catch (error) {
+      setPushFeatureEnabled(true);
+      if (toggle) {
+        toggle.checked = true;
+      }
+      refreshAdvancedFeatureUI();
+      showToast(
+        `Chưa tắt được thông báo trên server: ${error.message || "lỗi không xác định"}`,
+        true
+      );
+    }
+    return;
+  }
+
+  try {
+    await syncPushDeviceRemote({ quiet: true, enabled: true });
+  } catch (error) {
+    console.warn("Chưa bật lại được push remote:", error);
+  }
+
+  await refreshPushNotificationUI({ checkServer: true });
+  showToast("Đã mở bảng điều khiển thông báo thiết bị.");
+}
+
+
+function requestPushPassword() {
+  return new Promise(resolve => {
+    appState.pushPasswordResolver = resolve;
+
+    const input = $("#pushAuthPasswordInput");
+    if (input) {
+      input.value = "";
+    }
+
+    openModal("pushAuthModal");
+
+    window.setTimeout(() => {
+      input?.focus();
+    }, 180);
+  });
+}
+
+
+function settlePushPasswordPrompt(value) {
+  const resolver = appState.pushPasswordResolver;
+  appState.pushPasswordResolver = null;
+
+  const modal = $("#pushAuthModal");
+  modal?.classList.remove("show");
+
+  const input = $("#pushAuthPasswordInput");
+  if (input) {
+    input.value = "";
+  }
+
+  const anyOpen = Boolean($(".modal.show")) || $("#appMenu")?.classList.contains("show");
+  if (!anyOpen) {
+    document.body.classList.remove("modal-open");
+  }
+
+  if (resolver) {
+    resolver(value);
+  }
+}
+
+
+function confirmPushPasswordPrompt() {
+  const password = String($("#pushAuthPasswordInput")?.value || "");
+
+  if (!password) {
+    showToast("Nhập mật khẩu OT Pro hiện tại để xác nhận thiết bị.", true);
+    return;
+  }
+
+  settlePushPasswordPrompt(password);
+}
+
+
+function cancelPushPasswordPrompt() {
+  settlePushPasswordPrompt(null);
+}
+
+
+async function registerPushDevice() {
+  if (!appState.currentUser) {
+    throw new Error("Chưa đăng nhập OT Pro.");
+  }
+
+  const capability = getPushCapability();
+  if (!capability.supported) {
+    showToast(capability.detail, true);
+    return;
+  }
+
+  // Trên iOS, lời xin quyền phải xuất phát trực tiếp từ thao tác người dùng.
+  let permission = Notification.permission;
+  if (permission === "default") {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== "granted") {
+    showToast("Bạn chưa cho phép OT Pro gửi thông báo.", true);
+    await refreshPushNotificationUI();
+    return;
+  }
+
+  setPushStatus("working", "Đang đăng ký thiết bị", "Đang tạo subscription Web Push...");
+
+  const config = await callPushFunction("config");
+  if (!config?.configured || !config?.vapidPublicKey) {
+    throw new Error("Push server chưa cấu hình VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY/VAPID_SUBJECT.");
+  }
+
+  appState.pushVapidPublicKey = config.vapidPublicKey;
+
+  const registration =
+    appState.serviceWorkerRegistration ||
+    await navigator.serviceWorker.ready;
+  appState.serviceWorkerRegistration = registration;
+
+  let subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(config.vapidPublicKey)
+    });
+  }
+
+  let deviceToken = getPushDeviceToken();
+
+  if (deviceToken) {
+    try {
+      await callPushFunction("update", {
+        username: appState.currentUser,
+        deviceToken,
+        enabled: true,
+        timezone: getPushTimezone(),
+        deviceLabel: getPushDeviceLabel(),
+        settings: getPushReminderSettings(),
+        subscription: subscription.toJSON()
+      });
+    } catch (error) {
+      if (Number(error?.status) === 401) {
+        setPushDeviceToken("");
+        deviceToken = "";
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  if (!deviceToken) {
+    const password = await requestPushPassword();
+
+    if (!password) {
+      try {
+        await subscription.unsubscribe();
+      } catch {
+        // Không giữ subscription mồ côi nếu người dùng hủy xác nhận.
+      }
+      showToast("Đã hủy đăng ký thiết bị.");
+      return;
+    }
+
+    const result = await callPushFunction("register", {
+      username: appState.currentUser,
+      password,
+      subscription: subscription.toJSON(),
+      timezone: getPushTimezone(),
+      deviceLabel: getPushDeviceLabel(),
+      settings: getPushReminderSettings()
+    });
+
+    if (!result?.deviceToken) {
+      throw new Error("Push server không trả về mã thiết bị.");
+    }
+
+    setPushDeviceToken(result.deviceToken);
+  }
+
+  setPushFeatureEnabled(true);
+  refreshAdvancedFeatureUI();
+  await refreshPushNotificationUI();
+  showToast("Đã đăng ký thông báo cho thiết bị này.");
+}
+
+
+async function testPushDevice() {
+  const deviceToken = getPushDeviceToken();
+
+  if (!deviceToken) {
+    showToast("Hãy đăng ký thiết bị trước.", true);
+    return;
+  }
+
+  await callPushFunction("test", {
+    username: appState.currentUser,
+    deviceToken
+  });
+
+  showToast("Đã gửi thông báo thử. Kiểm tra Notification Center.");
+}
+
+
+async function disconnectPushDevice() {
+  const deviceToken = getPushDeviceToken();
+  const subscription = await getCurrentPushSubscription();
+
+  if (deviceToken) {
+    try {
+      await callPushFunction("unsubscribe", {
+        username: appState.currentUser,
+        deviceToken
+      });
+    } catch (error) {
+      console.warn("Không xóa được subscription trên server:", error);
+    }
+  }
+
+  if (subscription) {
+    try {
+      await subscription.unsubscribe();
+    } catch (error) {
+      console.warn("Không unsubscribe được browser subscription:", error);
+    }
+  }
+
+  setPushDeviceToken("");
+  await refreshPushNotificationUI();
+  showToast("Đã ngắt thông báo trên thiết bị này.");
+}
+
 // =====================================================
 // TÍNH NĂNG ẨN: BẢNG OT HR
 // =====================================================
@@ -12479,6 +13470,29 @@ function setOvertimeSheetFeatureEnabled(enabled) {
 }
 
 
+function isPushFeatureEnabled() {
+  if (!appState.currentUser) {
+    return false;
+  }
+
+  return localStorage.getItem(
+    getPrivateFeatureStorageKey("push_enabled")
+  ) === "1";
+}
+
+
+function setPushFeatureEnabled(enabled) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  localStorage.setItem(
+    getPrivateFeatureStorageKey("push_enabled"),
+    enabled ? "1" : "0"
+  );
+}
+
+
 function setPrivateFeatureMenuVisibility(selector, visible) {
   const element = $(selector);
 
@@ -12501,16 +13515,38 @@ function setPrivateFeatureMenuVisibility(selector, visible) {
 function refreshAdvancedFeatureUI() {
   const unlocked = isAdvancedFeaturesUnlocked();
   const hrEnabled = isHrOtFeatureEnabled();
-  const overtimeSheetEnabled = isOvertimeSheetFeatureEnabled();
+  let overtimeSheetEnabled = isOvertimeSheetFeatureEnabled();
+  const pushEnabled = isPushFeatureEnabled();
+
+  // Self-heal trạng thái cũ: Push luôn phụ thuộc vào Giấy tăng ca.
+  if (pushEnabled && !overtimeSheetEnabled) {
+    setOvertimeSheetFeatureEnabled(true);
+    overtimeSheetEnabled = true;
+  }
 
   $("#advancedFeaturesSection")
     ?.classList.toggle("hidden", !unlocked);
 
   setChecked("#hrOtFeatureToggle", hrEnabled);
   setChecked("#overtimeSheetFeatureToggle", overtimeSheetEnabled);
+  setChecked("#pushFeatureToggle", pushEnabled);
 
   setPrivateFeatureMenuVisibility("#hrOtButton", hrEnabled);
   setPrivateFeatureMenuVisibility("#overtimeSheetButton", overtimeSheetEnabled);
+
+  $("#pushSettingsPanel")?.classList.toggle("hidden", !pushEnabled);
+  updateAppBuildStatus();
+  syncPushReminderControls();
+
+  if (unlocked && pushEnabled) {
+    const shouldCheckPushServer =
+      !appState.pushServerCheckedAt ||
+      Date.now() - appState.pushServerCheckedAt > 60000;
+
+    refreshPushNotificationUI({ checkServer: shouldCheckPushServer }).catch(error => {
+      console.warn("Không refresh được Push UI:", error);
+    });
+  }
 
   refreshIcons();
 }
@@ -12618,6 +13654,214 @@ function getMainOvertimeSheetRange(log, dateKey) {
 }
 
 
+function getOvertimePaperSourceRef(type, dateKey, shiftId = "") {
+  return type === "main"
+    ? String(dateKey || "")
+    : String(shiftId || "");
+}
+
+
+function normalizeOvertimePaperFingerprintText(value) {
+  return String(value ?? "")
+    .replace(/\r\n/g, "\n")
+    .trim();
+}
+
+
+function buildOvertimePaperFingerprint({
+  type,
+  dateKey,
+  id = "",
+  from = "",
+  to = "",
+  sourceStart = "",
+  sourceEnd = "",
+  note = ""
+} = {}) {
+  const sourceRef = getOvertimePaperSourceRef(type, dateKey, id);
+
+  return JSON.stringify([
+    "otpro-paper-v1",
+    String(type || ""),
+    String(sourceRef || ""),
+    String(dateKey || ""),
+    String(sourceStart || from || ""),
+    String(sourceEnd || to || ""),
+    normalizeOvertimePaperFingerprintText(note)
+  ]);
+}
+
+
+function getOvertimePaperStatus(type, dateKey, shiftId = "") {
+  return appState.overtimePaperStatuses.get(
+    getOvertimePaperStatusKey(type, dateKey, shiftId)
+  ) || null;
+}
+
+
+function getOvertimePaperStatusKey(type, dateKey, shiftId = "") {
+  return `${String(appState.currentUser || "")}|${String(type || "")}:${getOvertimePaperSourceRef(type, dateKey, shiftId)}`;
+}
+
+
+function isOvertimePaperWritten(type, dateKey, shiftId = "", fingerprint = "") {
+  const status = getOvertimePaperStatus(type, dateKey, shiftId);
+
+  if (status?.isWritten !== true) {
+    return false;
+  }
+
+  // Bản ghi cũ chưa có fingerprint được tạm coi là đã ghi. Khi mở Giấy tăng ca,
+  // app sẽ backfill fingerprint hiện tại để các thay đổi về sau được phát hiện.
+  if (!status.sourceFingerprint || !fingerprint) {
+    return true;
+  }
+
+  return status.sourceFingerprint === fingerprint;
+}
+
+
+async function loadOvertimePaperStatuses(monthKey = getOvertimeSheetMonthKey(), { force = false } = {}) {
+  if (!appState.currentUser) {
+    return;
+  }
+
+  if (!force && appState.overtimePaperStatusLoadedMonths.has(monthKey)) {
+    return;
+  }
+
+  const startDate = `${monthKey}-01`;
+  const [year, month] = monthKey.split("-").map(Number);
+  const endDate = `${monthKey}-${pad(new Date(year, month, 0).getDate())}`;
+
+  const { data, error } = await supabaseClient
+    .from("overtime_paper_status")
+    .select("source_type,source_ref,work_date,is_written,written_at,source_fingerprint")
+    .eq("username", appState.currentUser)
+    .gte("work_date", startDate)
+    .lte("work_date", endDate);
+
+  if (error) {
+    const firstFailure = appState.overtimePaperStatusAvailable !== false;
+    appState.overtimePaperStatusAvailable = false;
+    console.warn("Không đọc được overtime_paper_status:", error);
+
+    const schemaMissing = ["42P01", "42703"].includes(String(error?.code || "")) ||
+      /overtime_paper_status|source_fingerprint|relation .* does not exist|column .* does not exist/i.test(
+        String(error?.message || "")
+      );
+
+    if (firstFailure && schemaMissing) {
+      showToast("Supabase chưa cập nhật schema Giấy tăng ca V8.9.1.", true);
+    }
+    return;
+  }
+
+  appState.overtimePaperStatusAvailable = true;
+
+  for (const [key, value] of appState.overtimePaperStatuses.entries()) {
+    if (String(value?.workDate || "").startsWith(monthKey)) {
+      appState.overtimePaperStatuses.delete(key);
+    }
+  }
+
+  (data || []).forEach(item => {
+    const key = `${String(appState.currentUser || "")}|${String(item.source_type || "")}:${String(item.source_ref || "")}`;
+    appState.overtimePaperStatuses.set(key, {
+      isWritten: item.is_written === true,
+      workDate: String(item.work_date || ""),
+      writtenAt: item.written_at || null,
+      sourceFingerprint: String(item.source_fingerprint || "")
+    });
+  });
+
+  appState.overtimePaperStatusLoadedMonths.add(monthKey);
+}
+
+
+async function toggleOvertimePaperStatus(button) {
+  if (!button || button.disabled || !appState.currentUser) {
+    return;
+  }
+
+  const type = String(button.dataset.shiftType || "");
+  const dateKey = String(button.dataset.dateKey || "");
+  const shiftId = String(button.dataset.shiftId || "");
+  const sourceRef = getOvertimePaperSourceRef(type, dateKey, shiftId);
+
+  if (!dateKey || !sourceRef || !["main", "extra"].includes(type)) {
+    showToast("Dữ liệu Giấy tăng ca không hợp lệ.", true);
+    return;
+  }
+
+  const currentRow = getOvertimeSheetRows().find(row =>
+    row.type === type &&
+    row.dateKey === dateKey &&
+    String(row.id || "") === String(shiftId || "")
+  );
+  const sourceFingerprint = currentRow?.fingerprint || "";
+  const nextWritten = !(currentRow?.isWritten === true);
+
+  if (nextWritten && !sourceFingerprint) {
+    showToast("Không xác định được nội dung hiện tại của dòng tăng ca.", true);
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    const payload = {
+      username: appState.currentUser,
+      source_type: type,
+      source_ref: sourceRef,
+      work_date: dateKey,
+      is_written: nextWritten,
+      written_at: nextWritten ? new Date().toISOString() : null,
+      source_fingerprint: nextWritten ? sourceFingerprint : null
+    };
+
+    const { error } = await supabaseClient
+      .from("overtime_paper_status")
+      .upsert(payload, {
+        onConflict: "username,source_type,source_ref"
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    appState.overtimePaperStatusAvailable = true;
+    appState.overtimePaperStatuses.set(
+      getOvertimePaperStatusKey(type, dateKey, shiftId),
+      {
+        isWritten: nextWritten,
+        workDate: dateKey,
+        writtenAt: payload.written_at,
+        sourceFingerprint: payload.source_fingerprint || ""
+      }
+    );
+
+    renderOvertimeSheet();
+    showToast(nextWritten ? "Đã đánh dấu Đã ghi." : "Đã chuyển về Chưa ghi.");
+  } catch (error) {
+    console.error("Không lưu được trạng thái Giấy tăng ca:", error);
+    const missingTable = ["42P01", "42703"].includes(String(error?.code || "")) ||
+      /overtime_paper_status|source_fingerprint|relation .* does not exist|column .* does not exist/i.test(
+        String(error?.message || "")
+      );
+
+    showToast(
+      missingTable
+        ? "Supabase chưa cập nhật schema Giấy tăng ca V8.9.1."
+        : `Không thể lưu trạng thái: ${error.message || "Lỗi không xác định"}`,
+      true
+    );
+  } finally {
+    button.disabled = false;
+  }
+}
+
+
 function getOvertimeSheetRows() {
   const monthKey = getOvertimeSheetMonthKey();
   const [year, month] = monthKey.split("-").map(Number);
@@ -12631,28 +13875,38 @@ function getOvertimeSheetRows() {
     const mainRange = getMainOvertimeSheetRange(log, dateKey);
 
     if (mainRange) {
-      dayRows.push({
+      const row = {
         type: "main",
         dateKey,
         id: "",
         from: mainRange.from,
         to: mainRange.to,
+        sourceStart: String(log?.start_time || ""),
+        sourceEnd: String(log?.end_time || ""),
         note: getLogVisibleNote(log)
-      });
+      };
+      row.fingerprint = buildOvertimePaperFingerprint(row);
+      row.isWritten = isOvertimePaperWritten("main", dateKey, "", row.fingerprint);
+      dayRows.push(row);
     }
 
     getCompletedExtraShifts(dateKey)
       .slice()
       .sort((a, b) => String(a.start_at || "").localeCompare(String(b.start_at || "")))
       .forEach(item => {
-        dayRows.push({
+        const row = {
           type: "extra",
           dateKey,
           id: item.id,
           from: formatTimeFromISO(item.start_at),
           to: formatTimeFromISO(item.end_at),
+          sourceStart: String(item.start_at || ""),
+          sourceEnd: String(item.end_at || ""),
           note: String(item.note || "")
-        });
+        };
+        row.fingerprint = buildOvertimePaperFingerprint(row);
+        row.isWritten = isOvertimePaperWritten("extra", dateKey, item.id, row.fingerprint);
+        dayRows.push(row);
       });
 
     dayRows.forEach((row, index) => {
@@ -12664,6 +13918,44 @@ function getOvertimeSheetRows() {
   }
 
   return rows;
+}
+
+
+async function backfillOvertimePaperFingerprints() {
+  if (!appState.currentUser || appState.overtimePaperStatusAvailable === false) {
+    return;
+  }
+
+  const candidates = getOvertimeSheetRows()
+    .map(row => ({ row, status: getOvertimePaperStatus(row.type, row.dateKey, row.id) }))
+    .filter(({ status }) => status?.isWritten === true && !status.sourceFingerprint);
+
+  if (!candidates.length) {
+    return;
+  }
+
+  const payload = candidates.map(({ row, status }) => ({
+    username: appState.currentUser,
+    source_type: row.type,
+    source_ref: getOvertimePaperSourceRef(row.type, row.dateKey, row.id),
+    work_date: row.dateKey,
+    is_written: true,
+    written_at: status.writtenAt || new Date().toISOString(),
+    source_fingerprint: row.fingerprint
+  }));
+
+  const { error } = await supabaseClient
+    .from("overtime_paper_status")
+    .upsert(payload, { onConflict: "username,source_type,source_ref" });
+
+  if (error) {
+    console.warn("Không backfill được fingerprint Giấy tăng ca:", error);
+    return;
+  }
+
+  candidates.forEach(({ row, status }) => {
+    status.sourceFingerprint = row.fingerprint;
+  });
 }
 
 
@@ -12683,7 +13975,8 @@ function renderOvertimeSheet() {
 
   body.innerHTML = rows.map(row => {
     const dateText = row.showDate ? formatShortDate(row.dateKey) : "";
-    const rowClass = row.showDate ? " overtime-sheet-new-day" : "";
+    const rowClass = `${row.showDate ? " overtime-sheet-new-day" : ""}${row.isWritten ? " is-written" : " is-pending"}`;
+    const statusText = row.isWritten ? "Đã ghi" : "Chưa ghi";
 
     return `
       <tr class="overtime-sheet-row${rowClass}">
@@ -12702,6 +13995,17 @@ function renderOvertimeSheet() {
             type="text"
             value="${escapeHTML(String(row.note || ""))}"
           />
+        </td>
+        <td class="overtime-sheet-status-cell">
+          <button
+            aria-pressed="${row.isWritten ? "true" : "false"}"
+            class="overtime-paper-status-button ${row.isWritten ? "is-written" : "is-pending"}"
+            data-paper-status-toggle
+            data-shift-type="${escapeHTML(row.type)}"
+            data-date-key="${escapeHTML(row.dateKey)}"
+            data-shift-id="${escapeHTML(String(row.id || ""))}"
+            type="button"
+          >${statusText}</button>
         </td>
       </tr>
     `;
@@ -12726,6 +14030,8 @@ async function openOvertimeSheet() {
     showLoader: true,
     force: true
   });
+  await loadOvertimePaperStatuses(getOvertimeSheetMonthKey(), { force: true });
+  await backfillOvertimePaperFingerprints();
 
   renderOvertimeSheet();
   openModal("overtimeSheetModal");
@@ -12747,6 +14053,8 @@ async function changeOvertimeSheetMonth(delta) {
     showLoader: true,
     force: true
   });
+  await loadOvertimePaperStatuses(getOvertimeSheetMonthKey(), { force: true });
+  await backfillOvertimePaperFingerprints();
 
   renderOvertimeSheet();
 }
@@ -12806,7 +14114,22 @@ async function saveOvertimeSheetNoteInput(input) {
 
     input.value = note;
     input.dataset.originalValue = note;
-    showToast("Đã lưu nội dung.");
+
+    const statusBefore = getOvertimePaperStatus(type, dateKey, shiftId);
+    const wasWritten = statusBefore?.isWritten === true;
+    renderOvertimeSheet();
+
+    const currentRow = getOvertimeSheetRows().find(row =>
+      row.type === type &&
+      row.dateKey === dateKey &&
+      String(row.id || "") === String(shiftId || "")
+    );
+
+    showToast(
+      wasWritten && currentRow && !currentRow.isWritten
+        ? "Đã lưu nội dung. Trạng thái đã chuyển về Chưa ghi vì nội dung thay đổi."
+        : "Đã lưu nội dung."
+    );
   } catch (error) {
     input.value = originalValue;
     showToast(
@@ -13263,6 +14586,11 @@ function closeModal(
     !skipSettingsSave
   ) {
     requestCloseSettings();
+    return;
+  }
+
+  if (id === "pushAuthModal" && appState.pushPasswordResolver) {
+    settlePushPasswordPrompt(null);
     return;
   }
 
