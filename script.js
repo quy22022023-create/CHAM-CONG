@@ -8,8 +8,8 @@
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V8.9.2 Custom Reminder Time";
-const APP_BUILD = "20260813-04";
+const APP_VERSION = "OT Pro V8.9.3 Split Morning Evening";
+const APP_BUILD = "20260814-01";
 const PUSH_FUNCTION_NAME = "otpro-push";
 
 const SB_URL =
@@ -13588,9 +13588,9 @@ function getOvertimeSheetMonthKey(date = appState.overtimeSheetDate) {
 }
 
 
-function getMainOvertimeSheetRange(log, dateKey) {
+function getMainOvertimeSheetRanges(log, dateKey) {
   if (!log?.start_time || !log?.end_time) {
-    return null;
+    return [];
   }
 
   const mainMinutes = calculateMainOTMinutesForHr(
@@ -13601,14 +13601,17 @@ function getMainOvertimeSheetRange(log, dateKey) {
   );
 
   if (mainMinutes <= 0) {
-    return null;
+    return [];
   }
 
+  // Chủ nhật không có mốc ca chuẩn để chia sáng/chiều. Giữ nguyên một dòng
+  // từ giờ vào thực tế đến giờ ra thực tế để tương thích dữ liệu cũ.
   if (isSunday(dateKey)) {
-    return {
+    return [{
+      segment: "",
       from: log.start_time,
       to: log.end_time
-    };
+    }];
   }
 
   const baseDate = "2024-01-01";
@@ -13618,7 +13621,7 @@ function getMainOvertimeSheetRange(log, dateKey) {
   const normalEnd = new Date(`${baseDate}T${appState.settings.defaultShiftEnd}:00`);
 
   if ([actualStart, actualEnd, normalStart, normalEnd].some(item => Number.isNaN(item.getTime()))) {
-    return null;
+    return [];
   }
 
   if (actualEnd < actualStart) {
@@ -13629,35 +13632,44 @@ function getMainOvertimeSheetRange(log, dateKey) {
     normalEnd.setDate(normalEnd.getDate() + 1);
   }
 
-  // The paper is intended to record an actual time interval. For a normal
-  // workday, prefer the after-shift interval (the common 17:00 -> finish case).
+  const ranges = [];
+
+  // Dùng trực tiếp mốc giờ làm hiện tại trong Cài đặt. Không lưu lịch sử mốc giờ.
+  // Nếu đi làm sớm hơn giờ vào chuẩn, sinh riêng một dòng tăng ca sáng.
+  if (actualStart < normalStart) {
+    ranges.push({
+      segment: "morning",
+      from: log.start_time,
+      to: appState.settings.defaultShiftStart
+    });
+  }
+
+  // Nếu tan ca muộn hơn giờ tan chuẩn, sinh riêng một dòng tăng ca chiều.
   if (actualEnd > normalEnd) {
-    return {
+    ranges.push({
+      segment: "evening",
       from: actualStart > normalEnd
         ? log.start_time
         : appState.settings.defaultShiftEnd,
       to: log.end_time
-    };
+    });
   }
 
-  // If there is no evening OT but the employee started before the normal shift,
-  // use the morning interval. Lunch-only OT has no reliable source time range,
-  // so it is intentionally not invented here.
-  if (actualStart < normalStart) {
-    return {
-      from: log.start_time,
-      to: appState.settings.defaultShiftStart
-    };
-  }
-
-  return null;
+  // OT trưa +1 giờ vẫn không tự tạo khoảng thời gian trên Giấy tăng ca vì
+  // dữ liệu hiện tại chỉ lưu cờ OT trưa, không có giờ bắt đầu/kết thúc đáng tin cậy.
+  return ranges;
 }
 
 
 function getOvertimePaperSourceRef(type, dateKey, shiftId = "") {
-  return type === "main"
-    ? String(dateKey || "")
-    : String(shiftId || "");
+  if (type === "main") {
+    const segment = String(shiftId || "");
+    return segment
+      ? `${String(dateKey || "")}:${segment}`
+      : String(dateKey || "");
+  }
+
+  return String(shiftId || "");
 }
 
 
@@ -13704,20 +13716,45 @@ function getOvertimePaperStatusKey(type, dateKey, shiftId = "") {
 }
 
 
-function isOvertimePaperWritten(type, dateKey, shiftId = "", fingerprint = "") {
+function isOvertimePaperWritten(
+  type,
+  dateKey,
+  shiftId = "",
+  fingerprint = "",
+  legacyFingerprint = ""
+) {
   const status = getOvertimePaperStatus(type, dateKey, shiftId);
 
-  if (status?.isWritten !== true) {
-    return false;
+  if (status) {
+    if (status.isWritten !== true) {
+      return false;
+    }
+
+    if (!status.sourceFingerprint || !fingerprint) {
+      return true;
+    }
+
+    return status.sourceFingerprint === fingerprint;
   }
 
-  // Bản ghi cũ chưa có fingerprint được tạm coi là đã ghi. Khi mở Giấy tăng ca,
-  // app sẽ backfill fingerprint hiện tại để các thay đổi về sau được phát hiện.
-  if (!status.sourceFingerprint || !fingerprint) {
-    return true;
+  // Tương thích trạng thái V8.9.1/V8.9.2: trước đây ca chính chỉ có một
+  // source_ref = ngày. Khi tách thành sáng/chiều, một dòng legacy "Đã ghi"
+  // vẫn được coi là đã ghi cho cả hai phần nếu dữ liệu nguồn chưa thay đổi.
+  if (type === "main" && shiftId) {
+    const legacyStatus = getOvertimePaperStatus("main", dateKey, "");
+
+    if (legacyStatus?.isWritten !== true) {
+      return false;
+    }
+
+    if (!legacyStatus.sourceFingerprint || !legacyFingerprint) {
+      return true;
+    }
+
+    return legacyStatus.sourceFingerprint === legacyFingerprint;
   }
 
-  return status.sourceFingerprint === fingerprint;
+  return false;
 }
 
 
@@ -13872,22 +13909,43 @@ function getOvertimeSheetRows() {
     const dateKey = `${monthKey}-${pad(day)}`;
     const dayRows = [];
     const log = getWorkLog(dateKey);
-    const mainRange = getMainOvertimeSheetRange(log, dateKey);
+    const mainRanges = getMainOvertimeSheetRanges(log, dateKey);
 
-    if (mainRange) {
-      const row = {
+    if (mainRanges.length) {
+      const visibleNote = getLogVisibleNote(log);
+      const legacyFingerprint = buildOvertimePaperFingerprint({
         type: "main",
         dateKey,
         id: "",
-        from: mainRange.from,
-        to: mainRange.to,
         sourceStart: String(log?.start_time || ""),
         sourceEnd: String(log?.end_time || ""),
-        note: getLogVisibleNote(log)
-      };
-      row.fingerprint = buildOvertimePaperFingerprint(row);
-      row.isWritten = isOvertimePaperWritten("main", dateKey, "", row.fingerprint);
-      dayRows.push(row);
+        note: visibleNote
+      });
+
+      mainRanges.forEach(mainRange => {
+        const row = {
+          type: "main",
+          dateKey,
+          id: String(mainRange.segment || ""),
+          from: mainRange.from,
+          to: mainRange.to,
+          // Fingerprint theo đúng từng hàng. Thay đổi giờ chiều sẽ không làm
+          // trạng thái của hàng sáng bị reset, và ngược lại.
+          sourceStart: String(mainRange.from || ""),
+          sourceEnd: String(mainRange.to || ""),
+          note: visibleNote,
+          legacyFingerprint
+        };
+        row.fingerprint = buildOvertimePaperFingerprint(row);
+        row.isWritten = isOvertimePaperWritten(
+          "main",
+          dateKey,
+          row.id,
+          row.fingerprint,
+          legacyFingerprint
+        );
+        dayRows.push(row);
+      });
     }
 
     getCompletedExtraShifts(dateKey)
@@ -13926,23 +13984,52 @@ async function backfillOvertimePaperFingerprints() {
     return;
   }
 
-  const candidates = getOvertimeSheetRows()
-    .map(row => ({ row, status: getOvertimePaperStatus(row.type, row.dateKey, row.id) }))
-    .filter(({ status }) => status?.isWritten === true && !status.sourceFingerprint);
+  const rows = getOvertimeSheetRows();
+  const payloadByKey = new Map();
+  const statusUpdates = [];
 
-  if (!candidates.length) {
+  rows.forEach(row => {
+    const directStatus = getOvertimePaperStatus(row.type, row.dateKey, row.id);
+
+    if (directStatus?.isWritten === true && !directStatus.sourceFingerprint) {
+      const sourceRef = getOvertimePaperSourceRef(row.type, row.dateKey, row.id);
+      payloadByKey.set(`${row.type}:${sourceRef}`, {
+        username: appState.currentUser,
+        source_type: row.type,
+        source_ref: sourceRef,
+        work_date: row.dateKey,
+        is_written: true,
+        written_at: directStatus.writtenAt || new Date().toISOString(),
+        source_fingerprint: row.fingerprint
+      });
+      statusUpdates.push({ status: directStatus, fingerprint: row.fingerprint });
+      return;
+    }
+
+    // Backfill trạng thái ca chính legacy chỉ một lần. Hai hàng sáng/chiều dùng
+    // cùng legacyFingerprint nên không tạo dữ liệu trùng.
+    if (row.type === "main" && row.id && !directStatus) {
+      const legacyStatus = getOvertimePaperStatus("main", row.dateKey, "");
+      if (legacyStatus?.isWritten === true && !legacyStatus.sourceFingerprint && row.legacyFingerprint) {
+        const sourceRef = getOvertimePaperSourceRef("main", row.dateKey, "");
+        payloadByKey.set(`main:${sourceRef}`, {
+          username: appState.currentUser,
+          source_type: "main",
+          source_ref: sourceRef,
+          work_date: row.dateKey,
+          is_written: true,
+          written_at: legacyStatus.writtenAt || new Date().toISOString(),
+          source_fingerprint: row.legacyFingerprint
+        });
+        statusUpdates.push({ status: legacyStatus, fingerprint: row.legacyFingerprint });
+      }
+    }
+  });
+
+  const payload = [...payloadByKey.values()];
+  if (!payload.length) {
     return;
   }
-
-  const payload = candidates.map(({ row, status }) => ({
-    username: appState.currentUser,
-    source_type: row.type,
-    source_ref: getOvertimePaperSourceRef(row.type, row.dateKey, row.id),
-    work_date: row.dateKey,
-    is_written: true,
-    written_at: status.writtenAt || new Date().toISOString(),
-    source_fingerprint: row.fingerprint
-  }));
 
   const { error } = await supabaseClient
     .from("overtime_paper_status")
@@ -13953,8 +14040,8 @@ async function backfillOvertimePaperFingerprints() {
     return;
   }
 
-  candidates.forEach(({ row, status }) => {
-    status.sourceFingerprint = row.fingerprint;
+  statusUpdates.forEach(({ status, fingerprint }) => {
+    status.sourceFingerprint = fingerprint;
   });
 }
 
