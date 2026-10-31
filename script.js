@@ -11186,10 +11186,10 @@ const SALARY_CHART_METRICS = Object.freeze({
     compact: value => formatCompactChartMoney(value),
     axis: value => formatCompactChartMoney(value)
   },
-  "net-income": {
+    "net-income": {
     eyebrow: "THỰC NHẬN",
     title: "Xu hướng thực nhận theo tháng",
-    value: result => Number(result?.netSalary) || 0,
+    value: result => (Number(result?.netSalary) || 0) + (Number(result?.advance) || 0),
     format: value => formatPayrollMoney(value),
     compact: value => formatCompactChartMoney(value),
     axis: value => formatCompactChartMoney(value)
