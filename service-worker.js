@@ -1,7 +1,7 @@
 "use strict";
 
-const APP_VERSION = "OT Pro V1.1.5 test";
-const APP_BUILD = "20260814-2322";
+const APP_VERSION = "OT Pro V1.1.6 test";
+const APP_BUILD = "20260814-2323";
 const CACHE_NAME = `ot-pro-${APP_BUILD}`;
 const INDEX_CACHE_KEY = `./index.html?v=${APP_BUILD}`;
 const CORE_ASSETS = [
