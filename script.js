@@ -8,8 +8,8 @@
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V1.1.5 test";
-const APP_BUILD = "20260814-2322";
+const APP_VERSION = "OT Pro V1.1.6 test";
+const APP_BUILD = "20260814-2323";
 const PUSH_FUNCTION_NAME = "otpro-push";
 
 const SB_URL =
