@@ -1,5 +1,5 @@
 "use strict";
-const OTPRO_SYNC_BUILD = "20261126-04";
+const OTPRO_SYNC_BUILD = "20261126-05";
 
 // Versioned synchronization for the existing custom-login app.
 // Business data remains in its existing tables. This module owns only local
