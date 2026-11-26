@@ -8,8 +8,8 @@
 // =====================================================
 
 
-const APP_VERSION = "OT Pro V1.1.10";
-const APP_BUILD = "20261126-04";
+const APP_VERSION = "OT Pro V1.1.11";
+const APP_BUILD = "20261126-05";
 const PUSH_FUNCTION_NAME = "otpro-push";
 let otproSyncEngine = null;
 
@@ -14495,6 +14495,10 @@ function closeModal(
     skipSettingsSave = false
   } = {}
 ) {
+  if (id === "cleanupModal") {
+    if (otCleanupRunning) return;
+    clearCleanupDialog();
+  }
   if (
     id === "settingsModal" &&
     !skipSettingsSave
