@@ -1,5 +1,5 @@
 "use strict";
-const OTPRO_PAPER_BUILD = "20261126-04";
+const OTPRO_PAPER_BUILD = "20261126-05";
 (function (global) {
   const hhmm = value => {
     const match = String(value || "").match(/^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d(?:\.\d+)?)?$/);
