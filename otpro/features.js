@@ -1,5 +1,5 @@
 "use strict";
-const OTPRO_FEATURE_BUILD = "20261126-04";
+const OTPRO_FEATURE_BUILD = "20261126-05";
 let otFeatureState = {preferences:null,archives:[],notifications:[],unreadCount:0};
 let otFeatureFormDirty = false;
 let otFeatureLoading = false;
@@ -123,6 +123,10 @@ async function checkReminderServer() {
   finally{clearTimeout(timeout);}
 }
 function bindOTFeatureEvents() {
+  on('#previewCleanupButton','click',()=>runLockedAction('previewCleanup',['#previewCleanupButton'],openCleanupPreview));
+  on('#refreshCleanupPreviewButton','click',()=>runLockedAction('refreshCleanup',['#refreshCleanupPreviewButton'],loadCleanupPreview));
+  on('#cleanupPassword','input',updateCleanupConfirmButton);
+  on('#confirmCleanupButton','click',()=>runLockedAction('manualCleanup',['#confirmCleanupButton'],confirmCleanupNow).finally(updateCleanupConfirmButton));
   on('#notificationsButton','click',()=>{closeAppMenu();openNotifications();});
   on('#refreshNotificationsButton','click',loadOTFeatures);
   on('#readAllNotificationsButton','click',()=>runLockedAction('readNotices',['#readAllNotificationsButton'],()=>markNotificationRead()));
@@ -145,4 +149,82 @@ function bindOTFeatureEvents() {
     else {const [year,part]=month.split('-').map(Number);appState.overtimeSheetDate=new Date(year,part-1,1);setOvertimeSheetFeatureEnabled(true);openOvertimeSheet();}
   });
   window.addEventListener('online',loadOTFeatures);
+}
+
+let otCleanupPreview=null;
+let otCleanupRunning=false;
+let otCleanupLoading=false;
+function clearCleanupDialog() {
+  otCleanupPreview=null;
+  setValue('#cleanupPassword','');
+  updateCleanupConfirmButton();
+}
+function updateCleanupConfirmButton() {
+  const button=$('#confirmCleanupButton');if(!button)return;
+  button.disabled=otCleanupRunning||!otCleanupPreview?.monthDates?.length||otCleanupPreview.username!==appState.currentUser||!$('#cleanupPassword')?.value.trim();
+}
+function cleanupRPCError(error) {
+  return ['PGRST202','42883'].includes(String(error?.code))||/could not find the function|does not exist/i.test(error?.message||'')
+    ? 'Cần chạy SQL 11_MANUAL_CLEANUP_V1_1_11.sql sau SQL 08 để dùng Dọn ngay.'
+    : error?.message||'Chưa kết nối được server. Kiểm tra mạng rồi thử lại.';
+}
+async function cleanupRPC(name,args) {
+  const controller=new AbortController();const timer=window.setTimeout(()=>controller.abort(),30000);
+  try {const {data,error}=await supabaseClient.rpc(name,args).abortSignal(controller.signal);if(error)throw error;return data;}
+  finally {clearTimeout(timer);}
+}
+async function openCleanupPreview() {
+  if(!appState.currentUser)return;
+  clearCleanupDialog();openModal('cleanupModal');await loadCleanupPreview();
+}
+async function loadCleanupPreview() {
+  if(otCleanupRunning||otCleanupLoading||!appState.currentUser)return;
+  const username=appState.currentUser;
+  otCleanupLoading=true;
+  $('#refreshCleanupPreviewButton').disabled=true;
+  clearCleanupDialog();setText('#cleanupStatus','Đang kiểm tra dữ liệu trên server...');
+  setText('#cleanupSummary','');setText('#cleanupPlanList','');
+  $('#cleanupPasswordField')?.classList.remove('hidden');
+  try {
+    if(navigator.onLine===false)throw new Error('Cần kết nối mạng để xem trước và dọn dữ liệu.');
+    const data=await cleanupRPC('otpro_preview_cleanup',{p_username:username});
+    if(appState.currentUser!==username)return;
+    if(data?.protocol!==1||!Array.isArray(data.plan)||!Array.isArray(data.monthDates)||typeof data.signature!=='string')throw new Error('Bản xem trước không hợp lệ. Hãy kiểm tra SQL nâng cấp.');
+    otCleanupPreview={...data,username,requestId:crypto.randomUUID()};
+    const eligible=data.plan.filter(row=>row.eligible),blocked=data.plan.filter(row=>!row.eligible);
+    setText('#cleanupKeepMonths',`Giữ chi tiết tháng ${data.previousMonth} và ${data.currentMonth}. Bảng lương đã chốt được giữ lâu dài.`);
+    const logs=eligible.reduce((sum,row)=>sum+Number(row.workLogCount||0),0),extras=eligible.reduce((sum,row)=>sum+Number(row.extraShiftCount||0),0);
+    setText('#cleanupSummary',`${eligible.length} tháng có thể dọn · ${logs} dòng chấm công · ${extras} ca thêm. ${blocked.length} tháng được giữ để kiểm tra.`);
+    $('#cleanupPlanList').innerHTML=data.plan.length?data.plan.map(row=>`<article class="cleanup-plan-row${row.eligible?'':' is-blocked'}"><div><strong>Tháng ${escapeHTML(row.month)}</strong><span>${row.eligible?'Có thể dọn':'Giữ lại'}</span></div><p>${row.eligible?`${Number(row.workLogCount)||0} dòng chấm công, ${Number(row.extraShiftCount)||0} ca thêm, ${Number(row.paperStatusCount)||0} trạng thái giấy.`:escapeHTML(row.reason||'Chưa đủ điều kiện dọn.')}</p></article>`).join(''):'<p class="feature-help">Chưa có tháng cũ cần dọn.</p>';
+    setText('#cleanupStatus',eligible.length?'Kiểm tra danh sách rồi nhập mật khẩu nếu muốn dọn ngay.':'Không có tháng đủ điều kiện. Chi tiết và bảng lương vẫn được giữ nguyên.');
+  }catch(error){setText('#cleanupStatus',cleanupRPCError(error));}
+  finally {otCleanupLoading=false;$('#refreshCleanupPreviewButton').disabled=false;updateCleanupConfirmButton();refreshIcons();}
+}
+async function confirmCleanupNow() {
+  const preview=otCleanupPreview,password=$('#cleanupPassword')?.value.trim()||'';
+  if(otCleanupRunning||!password||!preview?.monthDates?.length||preview.username!==appState.currentUser)return;
+  if(navigator.onLine===false){setText('#cleanupStatus','Cần kết nối mạng để dọn dữ liệu.');return;}
+  otCleanupRunning=true;
+  const controls=$$('#cleanupModal button, #cleanupPassword');controls.forEach(control=>control.disabled=true);
+  setText('#cleanupStatus','Đang dọn các tháng đã xem trước.');
+  try {
+    const result=await cleanupRPC('otpro_cleanup_now',{p_username:preview.username,p_password:password,p_months:preview.monthDates,p_signature:preview.signature,p_request_id:preview.requestId});
+    if(appState.currentUser!==preview.username)return;
+    if(result?.protocol!==1||!Number.isInteger(result.archivedCount))throw new Error('Chưa xác nhận được kết quả. Bấm Xem trước lại để kiểm tra.');
+    otCleanupPreview=null;
+    if(result.features)acceptFeatureState(result.features,{syncControls:false});
+    await initializePayrollSupabase({force:true});
+    await loadOTFeatures();
+    $('#cleanupPasswordField')?.classList.add('hidden');
+    $$('#cleanupPlanList .cleanup-plan-row:not(.is-blocked) span').forEach(label=>{label.textContent='Đã dọn';});
+    setText('#cleanupSummary',`Đã dọn chi tiết ${result.archivedCount} tháng. Bảng lương được giữ nguyên.`);
+    setText('#cleanupStatus','Đã hoàn tất. Bạn có thể xem bảng lương và kết quả trong mục Thông báo.');
+    showToast(`Đã dọn chi tiết ${result.archivedCount} tháng, giữ bảng lương.`);
+  }catch(error){
+    const message=cleanupRPCError(error);setText('#cleanupStatus',message);
+    if(/Dữ liệu đã thay đổi|Mã thao tác/.test(message))otCleanupPreview=null;
+  }finally {
+    setValue('#cleanupPassword','');otCleanupRunning=false;
+    controls.forEach(control=>control.disabled=false);updateCleanupConfirmButton();
+  }
 }
