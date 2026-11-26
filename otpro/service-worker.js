@@ -1,7 +1,7 @@
 "use strict";
 
-const APP_VERSION = "OT Pro V1.1.10";
-const APP_BUILD = "20261126-04";
+const APP_VERSION = "OT Pro V1.1.11";
+const APP_BUILD = "20261126-05";
 const CACHE_PREFIX = `ot-pro-${encodeURIComponent(new URL(self.registration.scope).pathname)}-`;
 const CACHE_NAME = `${CACHE_PREFIX}${APP_BUILD}`;
 const INDEX_CACHE_KEY = `./index.html?v=${APP_BUILD}`;
