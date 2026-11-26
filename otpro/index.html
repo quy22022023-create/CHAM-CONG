@@ -3,7 +3,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
-<meta name="otpro-build" content="20261126-04"/>
+<meta name="otpro-build" content="20261126-05"/>
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" name="viewport"/>
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
@@ -15,7 +15,7 @@
 <link href="vendor/inter.css" rel="stylesheet"/>
 <script src="vendor/supabase-2.119.2.js"></script>
 <script src="vendor/lucide-0.468.0.min.js"></script>
-<link href="style.css?v=20261126-04" rel="stylesheet"/>
+<link href="style.css?v=20261126-05" rel="stylesheet"/>
 </head>
 <body>
 <!-- LOADING -->
@@ -2008,6 +2008,8 @@
 <div class="settings-row"><div class="settings-row-copy"><strong>Tự dọn chi tiết tháng cũ</strong><small>Giữ tháng hiện tại và tháng trước; giữ nguyên bảng lương đã chốt.</small></div><label class="modern-switch"><input id="retentionToggle" type="checkbox"/><span></span></label></div>
 <p class="feature-help">Khi bật sẽ có 3 ngày chờ. Chỉ dọn tháng đã chốt và khớp nguồn OT/phép. Chi tiết giờ làm sau khi xóa không xem lại được; tháng chưa chốt được giữ và gửi nhắc.</p>
 <p class="feature-help">Hồ sơ phép, tiền cơm và cấu hình được giữ để app cũ vẫn tính đúng số dư.</p>
+<button class="secondary-primary-button" id="previewCleanupButton" type="button"><i data-lucide="archive"></i><span>Dọn ngay</span></button>
+<small class="feature-help">Xem trước rồi xác nhận dọn tháng đủ điều kiện. Dùng được khi tự dọn đang tắt, không cần chờ lịch chạy.</small>
 </div>
 <button class="primary-button" id="saveFeatureSettingsButton" type="button"><i data-lucide="save"></i><span>Lưu lịch nhắc và lưu trữ</span></button>
 <p class="feature-help" role="status" id="featureSettingsStatus">Đang tải cấu hình...</p>
@@ -2414,9 +2416,21 @@
 <div class="notification-toolbar"><span id="notificationSummary">Đang tải thông báo...</span><button class="mini-text-button" id="refreshNotificationsButton" type="button">Làm mới</button><button class="mini-text-button" id="readAllNotificationsButton" type="button">Đọc tất cả</button></div>
 <div class="notification-list" id="notificationList"></div>
 </section></div>
-<script src="paper-logic.js?v=20261126-04"></script>
-<script src="features.js?v=20261126-04"></script>
-<script src="sync.js?v=20261126-04"></script>
-<script src="script.js?v=20261126-04"></script>
+<div class="modal elevated-modal" id="cleanupModal"><div class="modal-backdrop" data-close-modal="cleanupModal"></div>
+<section class="bottom-sheet large-sheet cleanup-sheet" role="dialog" aria-modal="true" aria-labelledby="cleanupTitle">
+<div class="sheet-handle"></div><header class="sheet-header"><div><span class="sheet-eyebrow">LƯU BẢNG LƯƠNG</span><h2 id="cleanupTitle">Dọn chi tiết tháng cũ</h2></div><button class="close-button" type="button" data-close-modal="cleanupModal" aria-label="Đóng xem trước"><i data-lucide="x"></i></button></header>
+<div class="cleanup-content"><p class="feature-help" id="cleanupKeepMonths">Đang kiểm tra dữ liệu trên server...</p>
+<div id="cleanupSummary" class="cleanup-summary" aria-live="polite"></div>
+<div id="cleanupPlanList" class="cleanup-plan-list"></div>
+<p class="feature-help">Dọn ngay xóa giờ vào/ra, ca thêm, ghi chú ngày và trạng thái Giấy tăng ca của các tháng được liệt kê. Bảng lương, hồ sơ phép và biên nhận tiền cơm được giữ.</p>
+<p class="cleanup-warning">Chi tiết sau khi dọn không xem lại được. Thao tác này thực hiện ngay sau xác nhận, kể cả khi tự dọn đang tắt hoặc còn trong 3 ngày chờ.</p>
+<label class="form-field" id="cleanupPasswordField"><span>Nhập lại mật khẩu tài khoản để xác nhận</span><div class="input-shell"><i data-lucide="lock-keyhole"></i><input id="cleanupPassword" type="password" autocomplete="current-password" placeholder="Mật khẩu đang dùng"/></div></label>
+<p id="cleanupStatus" class="feature-help" role="status" aria-live="polite"></p>
+<div class="cleanup-actions"><button class="danger-outline-button" id="confirmCleanupButton" type="button" disabled>Dọn các tháng đã xem trước</button><button class="secondary-primary-button" id="refreshCleanupPreviewButton" type="button">Xem trước lại</button><button class="mini-text-button" type="button" data-close-modal="cleanupModal">Đóng</button></div>
+</div></section></div>
+<script src="paper-logic.js?v=20261126-05"></script>
+<script src="features.js?v=20261126-05"></script>
+<script src="sync.js?v=20261126-05"></script>
+<script src="script.js?v=20261126-05"></script>
 </body>
 </html>
