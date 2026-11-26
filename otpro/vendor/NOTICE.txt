@@ -1,0 +1,14 @@
+THIRD-PARTY ASSETS - BUNDLED FOR OFFLINE STARTUP
+================================================
+Supabase JS 2.119.2 - MIT - supabase-LICENSE.txt
+Source: https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js
+This is the version resolved by the original unpinned @supabase/supabase-js@2 URL when preparing this release.
+
+Lucide 0.468.0 - ISC/MIT - lucide-LICENSE.txt
+Source: https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js
+
+Inter (Google Fonts v20) - SIL Open Font License 1.1 - inter-OFL.txt
+CSS source: https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap
+Font binaries from fonts.gstatic.com; filenames are local aliases and font family metadata is unchanged.
+
+These libraries/fonts are served locally. Supabase business data is still requested online and is not cached by the service worker.
